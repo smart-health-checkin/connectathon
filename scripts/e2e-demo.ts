@@ -31,6 +31,7 @@ try {
   wallet.on("console", (m) => m.type() === "error" && console.log("[wallet console]", m.text()));
   wallet.on("pageerror", (e) => console.log("[wallet error]", e.message));
   await wallet.waitForSelector("#share", { visible: true, timeout: 30000 });
+  await wallet.waitForFunction(() => !(document.getElementById("share") as HTMLButtonElement).disabled, { timeout: 60000 });
   // Settings that can change after the request arrives, e.g. "patient=large".
   const patientKey = new URLSearchParams(walletFragment).get("patient");
   if (patientKey) {

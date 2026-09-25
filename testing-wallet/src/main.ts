@@ -311,6 +311,10 @@ function renderItems(items: Prepared[]) {
 }
 
 async function showRequest(s: Session) {
+  const shareButton = $("share") as HTMLButtonElement;
+  const declineButton = $("decline") as HTMLButtonElement;
+  // Disabled until the items are ready, so an early click can't be lost.
+  shareButton.disabled = declineButton.disabled = true;
   $("waiting").hidden = true;
   $("consent").hidden = false;
   $("origin").textContent = s.ehrOrigin;
@@ -318,9 +322,11 @@ async function showRequest(s: Session) {
   $("reader-auth").textContent = s.readerAuth === "absent" ? "The request isn't signed by the clinic (no reader authentication)." : "The request carries a reader authentication signature. This wallet doesn't verify it yet.";
   $("raw-request").textContent = JSON.stringify(s.request, null, 2);
   const redraw = async () => {
+    shareButton.disabled = true;
     prepared = await prepare(s);
     renderItems(prepared);
     renderStatusOverrides(prepared);
+    shareButton.disabled = declineButton.disabled = false;
   };
   renderPatientPicker(() => void redraw());
   await redraw();
