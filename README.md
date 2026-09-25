@@ -21,3 +21,20 @@ bun run build   # validate and build the site into _site/
 ```
 
 Pushes to `main` deploy through GitHub Pages.
+
+## End-to-end checks
+
+- Web: `bun scripts/self-test.ts` drives the live testing EHR against the live testing wallet for every web-path scenario and every fault. It runs nightly in CI.
+- Android: `bun scripts/android-e2e.ts [M1 M3 …]` drives the live testing EHR in an Android device's Chrome, through the Digital Credentials API, to the installed reference Android wallet. Local only for now.
+
+Setting up an emulator for the Android run:
+
+```
+sdkmanager "system-images;android-37.0;google_apis_playstore;x86_64" emulator
+avdmanager create avd -n ktc_api37 -k "system-images;android-37.0;google_apis_playstore;x86_64" -d pixel_8
+emulator -avd ktc_api37 -no-window -no-audio -gpu swiftshader_indirect &
+bun scripts/android-e2e.ts --release          # installs the latest release APK first
+bun scripts/android-e2e.ts --apk path/to.apk  # or a local build
+```
+
+Older images don't work: the Digital Credentials API needs a current Chrome and Google Play services.
