@@ -1,0 +1,25 @@
+name: Validate FHIR
+
+# Runs the latest HL7 validator over the repo's FHIR content. Slower than the
+# build check, so it only runs when FHIR content changes.
+on:
+  push:
+    branches: [main]
+    paths: ["Questionnaire/**", "testing-wallet/data/**", "scripts/validate-fhir.sh"]
+  pull_request:
+    paths: ["Questionnaire/**", "testing-wallet/data/**", "scripts/validate-fhir.sh"]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21" }
+      - uses: actions/cache@v4
+        with:
+          path: ~/.fhir
+          key: fhir-packages-${{ github.run_id }}
+          restore-keys: fhir-packages-
+      - run: scripts/validate-fhir.sh

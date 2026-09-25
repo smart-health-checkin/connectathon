@@ -1,5 +1,9 @@
 {
   "resourceType": "Questionnaire",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Semaglutide 4-week check-in</b></p><ol><li>How many weekly shots have you taken so far?</li><li>Have you missed a shot or taken one more than 2 days late?</li><li>What got in the way?</li><li>Any trouble with the pen or the shots? Check any that apply, or describe it in your own words.</li><li>In the past week, how much nausea have you had?</li><li>In the past week, have you vomited?</li><li>How have your bowels been?</li><li>Are you able to drink enough fluids each day?</li><li>How has your appetite changed?</li><li>Have you had spells of feeling shaky, sweaty, or confused that went away after eating?</li><li>Have you had any of these? Check all that apply.</li><li>The usual plan is to step up to the next dose after 4 weeks. How do you feel about that?</li><li>What questions do you have for me about this medicine?</li></ol></div>"
+  },
   "url": "https://smart-health-checkin.org/connectathon/Questionnaire/semaglutide-4-week-checkin.json",
   "version": "1",
   "name": "SemaglutideFourWeekCheckin",

@@ -1,5 +1,9 @@
 {
   "resourceType": "Questionnaire",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>GAD-7 anxiety screen</b></p><ol><li>Feeling nervous, anxious, or on edge</li><li>Not being able to stop or control worrying</li><li>Worrying too much about different things</li><li>Trouble relaxing</li><li>Being so restless that it is hard to sit still</li><li>Becoming easily annoyed or irritable</li><li>Feeling afraid, as if something awful might happen</li></ol></div>"
+  },
   "url": "https://smart-health-checkin.org/connectathon/Questionnaire/gad-7.json",
   "version": "1",
   "name": "GAD7",
@@ -31,7 +35,7 @@
         {
           "system": "http://loinc.org",
           "code": "69725-0",
-          "display": "Feeling nervous, anxious, or on edge"
+          "display": "Feeling nervous, anxious or on edge in last 2 weeks"
         }
       ],
       "prefix": "1.",
@@ -98,7 +102,7 @@
         {
           "system": "http://loinc.org",
           "code": "68509-9",
-          "display": "Not being able to stop or control worrying"
+          "display": "Not able to stop or control worrying in the last 2 weeks"
         }
       ],
       "prefix": "2.",
@@ -165,7 +169,7 @@
         {
           "system": "http://loinc.org",
           "code": "69733-4",
-          "display": "Worrying too much about different things"
+          "display": "Worrying too much about different things in last 2 weeks [Reported.PHQ]"
         }
       ],
       "prefix": "3.",
@@ -232,7 +236,7 @@
         {
           "system": "http://loinc.org",
           "code": "69734-2",
-          "display": "Trouble relaxing"
+          "display": "Trouble relaxing in last 2 weeks [Reported.PHQ]"
         }
       ],
       "prefix": "4.",
@@ -299,7 +303,7 @@
         {
           "system": "http://loinc.org",
           "code": "69735-9",
-          "display": "Being so restless that it is hard to sit still"
+          "display": "Being so restless that it is hard to sit still in last 2 weeks [Reported.PHQ]"
         }
       ],
       "prefix": "5.",
@@ -366,7 +370,7 @@
         {
           "system": "http://loinc.org",
           "code": "69689-8",
-          "display": "Becoming easily annoyed or irritable"
+          "display": "Becoming easily annoyed or irritable in last 4 weeks [Reported.PHQ]"
         }
       ],
       "prefix": "6.",
@@ -433,7 +437,7 @@
         {
           "system": "http://loinc.org",
           "code": "69736-7",
-          "display": "Feeling afraid, as if something awful might happen"
+          "display": "Feeling afraid as if something awful might happen in last 2 weeks [Reported.PHQ]"
         }
       ],
       "prefix": "7.",
