@@ -19,7 +19,7 @@
   "packages": {
     "@puppeteer/browsers": ["@puppeteer/browsers@3.2.3", "", { "dependencies": { "modern-tar": "^0.8.4", "yargs": "^18.0.0" }, "peerDependencies": { "proxy-agent": ">=8.0.1", "yauzl": "^2.10.0 || ^3.4.0" }, "optionalPeers": ["proxy-agent", "yauzl"], "bin": { "browsers": "lib/main-cli.js" } }, "sha512-2Bt3m6dDAJqmZehn0wiXSYyQmuhyiHHZ7FjvrVaS1W2RoFGV6eCK71UvKYkNJjkwC1Q9nobjhvTMhLQztFVINA=="],
 
-    "@smart-health-checkin/client": ["@smart-health-checkin/client@github:smart-health-checkin/client#2b4171f", {}, "smart-health-checkin-client-2b4171f", "sha512-alGbAitPSGEmjVBBqm09YfrmQUdOe5tCMQSHHeAudLe0DbXk5RCEmlPdWhxTwgbs0sW4U3AhVabxeirEhk0SAQ=="],
+    "@smart-health-checkin/client": ["@smart-health-checkin/client@github:smart-health-checkin/client#298fe01", {}, "smart-health-checkin-client-298fe01", "sha512-y66ZlD36BlCyNYncXlMv07caShrQq1LINQle4aek9gBm3doih3g1Kvdv8zWOWr1xGJgJP34DsfrevPtSofWY4w=="],
 
     "ajv": ["ajv@8.20.0", "", { "dependencies": { "fast-deep-equal": "^3.1.3", "fast-uri": "^3.0.1", "json-schema-traverse": "^1.0.0", "require-from-string": "^2.0.2" } }, "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA=="],
 

@@ -23,6 +23,6 @@ status=0
 run "Questionnaires against R4" .tools/questionnaires.json Questionnaire/*.json -version 4.0.1 || status=1
 if compgen -G "testing-wallet/data/*.json" > /dev/null; then
   run "Wallet patient data against US Core and CARIN" .tools/wallet-data.json testing-wallet/data/*.json \
-    -version 4.0.1 -ig hl7.fhir.us.core -ig hl7.fhir.us.insurance-card || status=1
+    -version 4.0.1 -ig hl7.fhir.us.core -ig hl7.fhir.us.insurance-card#1.1.0 || status=1
 fi
 exit $status
