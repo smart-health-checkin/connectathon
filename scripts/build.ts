@@ -32,9 +32,7 @@ const DEMO_EHR = "https://smart-health-checkin.org/client/demo/";
 const CHECK_ONLY = process.argv.includes("--check-only");
 
 // Requests that are meant to fail the request validator, with the reason.
-const EXPECTED_INVALID: Record<string, string> = {
-  "o12-unknown-selector.json": "uses an unknown selector kind on purpose",
-};
+const EXPECTED_INVALID: Record<string, string> = {};
 
 const errors: string[] = [];
 const fail = (msg: string) => errors.push(msg);
