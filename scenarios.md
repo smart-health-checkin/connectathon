@@ -88,7 +88,7 @@ All under <https://smart-health-checkin.org/connectathon/>.
 
 | Resource | Link |
 |---|---|
-| Participant directory: your check-in URL, install link, or registry entry, and your test patient | <https://smart-health-checkin.org/connectathon/directory.html>. Register by pull request, see [how to register](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md). |
+| Participant directory: your check-in URL, install link, or registry entry, and your test patient | <https://smart-health-checkin.org/connectathon/directory.html>. Register with the [registration form](https://smart-health-checkin.org/connectathon/register/), which opens a pull request for you. |
 | Test results: one GitHub issue per run, filed through a form | [file a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml); all results at <https://smart-health-checkin.org/connectathon/results.html> |
 | Wallet registry | <https://smart-health-checkin.org/connectathon/wallets.json> |
 | Web wallet hand-off | <https://smart-health-checkin.org/connectathon/web-wallet-handoff.html> |
@@ -122,7 +122,7 @@ The event registry lists every participating web wallet, at <https://smart-healt
 }
 ```
 
-You don't edit this file directly. Add your web wallet's entry to your organization's participant file by pull request ([how to register](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md)), and the registry is regenerated from those files.
+You don't edit this file directly. Add your web wallet on the [registration form](https://smart-health-checkin.org/connectathon/register/), which fills in every registry field and opens a pull request with your organization's participant file. The registry is regenerated from those files ([details](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md)).
 
 The list will change during testing. EHRs should load it from the registry URL each time the check-in page opens, or sync it automatically, so changes need no redeploy.
 
@@ -284,7 +284,6 @@ Baseline 4, kept separate so size limits don't block the minimum scenarios.
 | O10 | Prefilled form | Wallet prefills answers it can from the patient's records and lets the patient edit | Prefilled answers are visible to the patient before sending. |
 | O11 | Write back | EHR files returned data or answers into the chart after staff review | Staff can accept or reject each item. |
 | O12 | Unknown selector | An item with `kind: "example.ktc-test"` ([§5.4.3](https://smart-health-checkin.org/spec/#5-4-3-extension-selectors)) | Wallet reports `unsupported` for that item and still answers the others. |
-| O13 | Reader authentication | EHR signs the request with `readerAuth`, and the wallet shows the verified requester ([§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction), [A.4](https://smart-health-checkin.org/spec/#a-4-optional-per-docrequest-readerauth)) | Wallet distinguishes absent, malformed, invalid, untrusted, and trusted signatures. |
 
 ## Testing EHR and testing wallet
 

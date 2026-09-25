@@ -118,8 +118,7 @@ async function run() {
     if (!reqCheck.ok) throw new Error(`the request file is invalid: ${reqCheck.error}`);
     $("sent-request").textContent = JSON.stringify(request, null, 2);
 
-    const signed = ($("sign") as HTMLInputElement).checked;
-    const bundle = await buildOrgIsoMdocRequest(request, { origin: location.origin, readerAuth: signed });
+    const bundle = await buildOrgIsoMdocRequest(request, { origin: location.origin, readerAuth: false });
 
     let getCredential: (arg: unknown) => Promise<unknown>;
     if (walletId === "platform") {
@@ -154,7 +153,7 @@ async function run() {
     $("status").textContent = failed.length ? `${failed.length} check(s) failed.` : "All checks passed.";
     const log = [
       `Testing EHR run ${started}`,
-      `Scenario ${tc.id} ${tc.title}; wallet ${walletId}; path ${path}${signed ? "; request signed with readerAuth" : ""}`,
+      `Scenario ${tc.id} ${tc.title}; wallet ${walletId}; path ${path}`,
       ...result.checks.map((c) => `[${c.outcome.toUpperCase()}] ${c.title}${c.detail ? ` — ${c.detail}` : ""}`),
     ].join("\n");
     $("log").textContent = log;

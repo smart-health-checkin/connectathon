@@ -319,7 +319,6 @@ async function showRequest(s: Session) {
   $("consent").hidden = false;
   $("origin").textContent = s.ehrOrigin;
   $("purpose").textContent = s.request.purpose ?? "";
-  $("reader-auth").textContent = s.readerAuth === "absent" ? "The request isn't signed by the clinic (no reader authentication)." : "The request carries a reader authentication signature. This wallet doesn't verify it yet.";
   $("raw-request").textContent = JSON.stringify(s.request, null, 2);
   const redraw = async () => {
     shareButton.disabled = true;

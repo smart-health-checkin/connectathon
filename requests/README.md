@@ -21,6 +21,5 @@ Each file's `id` is `replace-with-a-unique-id`. Your EHR must send a fresh, uniq
 | O7 One artifact, several items | uses `baseline-1.json` |
 | O8 Cross-device, O9 in-person handoff | use `baseline-1.json` |
 | O12 Unknown selector | `o12-unknown-selector.json` |
-| O13 Reader authentication | `baseline-1.json`, signed with `readerAuth` when sent |
 
 O12 carries an extension selector kind that no wallet will recognize, on purpose. A wallet should answer that item `unsupported` and still answer the others ([§5.4.3](https://smart-health-checkin.org/spec/#5-4-3-extension-selectors)).

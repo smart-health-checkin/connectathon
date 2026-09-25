@@ -25,8 +25,6 @@ default. A testing panel adds controls for exercising EHR error handling.
   and parses the `DeviceRequest` and `encryptionInfo` with the client library.
 - Validates the SMART request (spec §5). If it's malformed, shows the problem
   and replies `error` with the validator's message.
-- Classifies `readerAuth` as absent or present. Verifying its signature is
-  listed under limitations.
 - Unknown selector kinds make that item `unsupported`. The other items are
   still answered (§5.4.3).
 
@@ -127,5 +125,4 @@ open the wallet preconfigured, for example
 
 ## Limitations in this version
 
-- `readerAuth` is detected but its signature isn't verified.
 - No Android build. The reference Android wallet covers native testing.

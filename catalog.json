@@ -435,28 +435,6 @@
       "specSections": [
         "5-4-3-extension-selectors"
       ]
-    },
-    {
-      "id": "O13",
-      "title": "Reader authentication",
-      "request": "baseline-1.json",
-      "paths": [
-        "web",
-        "native"
-      ],
-      "summary": "EHR signs the request with readerAuth.",
-      "expect": {
-        "ehr": [
-          "Sends a valid readerAuth"
-        ],
-        "wallet": [
-          "Distinguishes absent, malformed, invalid, untrusted, and trusted signatures"
-        ]
-      },
-      "specSections": [
-        "8-2-verifier-request-construction",
-        "a-4-optional-per-docrequest-readerauth"
-      ]
     }
   ]
 }

@@ -58,7 +58,7 @@ const validateParticipant = ajv.compile(participantSchema);
 type Component = {
   id: string; role: "ehr" | "web-wallet" | "native-wallet"; name: string; status: string;
   description?: string; url?: string; walletUrl?: string; iconUrl?: string; target?: "tab" | "popup";
-  installUrl?: string; platforms?: string[]; testPatient?: string; notes?: string;
+  installUrl?: string; platforms?: string[]; testPatient?: string; notes?: string; homepage?: string;
 };
 type Participant = { file: string; organization: string; homepage?: string; contacts?: any[]; components: Component[] };
 
@@ -75,7 +75,7 @@ for (const file of jsonFiles("participants").filter((f) => f !== "schema.json"))
   for (const c of (data as any).components as Component[]) {
     if (componentIds.has(c.id)) fail(`${path}: component id "${c.id}" is already used in ${componentIds.get(c.id)}`);
     componentIds.set(c.id, path);
-    for (const key of ["url", "walletUrl", "installUrl", "iconUrl"] as const) {
+    for (const key of ["url", "walletUrl", "installUrl", "iconUrl", "homepage"] as const) {
       const v = c[key];
       if (v && !v.startsWith("https://")) fail(`${path}: ${c.id}.${key} must be an https URL`);
     }
@@ -94,7 +94,7 @@ const webWallets = participants.flatMap((p) =>
       description: [c.description, c.testPatient ? `Test patient: ${c.testPatient}.` : "", `From ${p.organization}.`]
         .filter(Boolean)
         .join(" "),
-      ...(p.homepage ? { homepage: p.homepage } : {}),
+      ...(c.homepage ?? p.homepage ? { homepage: c.homepage ?? p.homepage } : {}),
       ...(c.iconUrl ? { iconUrl: c.iconUrl } : {}),
       target: c.target ?? "tab",
     })),
@@ -213,7 +213,7 @@ function page(title: string, body: string, { wide = false } = {}): string {
 <body>
 <div data-smart-topbar></div>
 <main class="page${wide ? " wide" : ""}">
-<p class="crumbs"><a href="${SITE}">Connectathon</a> · <a href="${SITE}requests/">Requests</a> · <a href="${SITE}Questionnaire/">Questionnaires</a> · <a href="${SITE}directory.html">Directory</a> · <a href="${SITE}results.html">Results</a> · <a href="https://github.com/${REPO}">GitHub</a></p>
+<p class="crumbs"><a href="${SITE}">Connectathon</a> · <a href="${SITE}requests/">Requests</a> · <a href="${SITE}Questionnaire/">Questionnaires</a> · <a href="${SITE}directory.html">Directory</a> · <a href="${SITE}register/">Register</a> · <a href="${SITE}results.html">Results</a> · <a href="https://github.com/${REPO}">GitHub</a></p>
 ${body}
 </main>
 <div data-smart-footer></div>
@@ -248,9 +248,10 @@ writeFileSync(
 // sample responses, raw
 if (existsSync(join(ROOT, "responses"))) cpSync(join(ROOT, "responses"), join(OUT, "responses"), { recursive: true });
 
-// participants and schema, raw
+// participants and schema, raw, plus an index for the registration form
 mkdirSync(join(OUT, "participants"), { recursive: true });
 cpSync(join(ROOT, "participants"), join(OUT, "participants"), { recursive: true });
+writeFileSync(join(OUT, "participants/index.json"), JSON.stringify(participants.map((p) => ({ file: p.file, organization: p.organization })), null, 2) + "\n");
 if (catalog) writeFileSync(join(OUT, "catalog.json"), JSON.stringify(catalog, null, 2) + "\n");
 
 // requests: raw files plus an index with "try it" links
@@ -325,7 +326,7 @@ writeFileSync(
   join(OUT, "directory.html"),
   page(
     "Connectathon directory",
-    `<article class="doc"><h1>Participant directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, see <a href="https://github.com/${REPO}/blob/main/CONTRIBUTING.md">how to register</a>. Web wallets listed here are in the <a href="wallets.json">wallet registry</a>.</p></article>
+    `<article class="doc"><h1>Participant directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Web wallets listed here are in the <a href="wallets.json">wallet registry</a>.</p></article>
 <div class="table-wrap"><table><thead><tr><th>Organization</th><th>Role</th><th>Component</th><th>Link</th><th>Test patient</th><th>Status</th><th>Contacts</th></tr></thead><tbody>${dirRows}</tbody></table></div>`,
     { wide: true },
   ),
@@ -407,7 +408,7 @@ writeFileSync(
 );
 
 // test tools, bundled
-for (const tool of ["testing-ehr", "testing-wallet"]) {
+for (const tool of ["testing-ehr", "testing-wallet", "register"]) {
   const dir = join(ROOT, tool);
   if (!existsSync(join(dir, "index.html"))) continue;
   // The "bun" condition resolves the client library to its TypeScript source,
