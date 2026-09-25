@@ -68,7 +68,7 @@ Full hand-off details: <https://smart-health-checkin.org/connectathon/web-wallet
 
 - **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](#shared-resources). An EHR lists a public check-in page URL. A web wallet adds its entry to the [registry](#wallet-registry). A native wallet lists an install link and the name of its test patient.
 - **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people.
-- **Main room plus your own breakout rooms.** The event runs in one Zoom meeting. Kickoff, check-ins, and the report-out happen in the main room. When a pair needs to debug together, they open a room at `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in the `#kill-the-clipboard` Slack channel.
+- **Main room plus your own breakout rooms.** The event runs in one Zoom meeting. Kickoff, check-ins, and the report-out happen in the main room. When a pair needs to debug together, one of them starts a Slack huddle in a direct message with the other, which has video and screen sharing. For a group, or if someone isn't on the Slack, open a room at `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in `#kill-the-clipboard`.
 - **Try to test with every counterpart** over the course of the event.
 - **Record failures as well as passes** by [filing a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml). A failure often points to a spec gap or an interop bug, and its issue is where it gets discussed.
 - **Synthetic data only.** Never use real patient records, even your own.
