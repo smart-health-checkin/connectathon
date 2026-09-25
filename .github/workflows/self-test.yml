@@ -48,5 +48,6 @@ jobs:
             const out = fs.readFileSync("out.txt", "utf8").slice(-60000);
             const body = `The self-test failed on ${new Date().toISOString()} ([run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})).\n\n\`\`\`\n${out}\n\`\`\``;
             const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, labels: "self-test", state: "open" });
-            if (open.length) await github.rest.issues.createComment({ ...context.repo, issue_number: open[0].number, body });
+            const mine = open.find((i) => !i.title.startsWith("Android"));
+            if (mine) await github.rest.issues.createComment({ ...context.repo, issue_number: mine.number, body });
             else await github.rest.issues.create({ ...context.repo, title: "Self-test failing", labels: ["self-test"], body });

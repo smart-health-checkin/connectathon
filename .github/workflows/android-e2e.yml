@@ -1,0 +1,59 @@
+name: Android end-to-end
+
+# Boots an Android emulator with Chrome and Google Play services, installs the
+# latest reference Android wallet release, and runs scripts/android-e2e.ts:
+# the live testing EHR in the emulator's Chrome asks through the Digital
+# Credentials API and checks the wallet's answers. Opens (or updates) an issue
+# labeled "self-test" on failure.
+on:
+  schedule:
+    - cron: "17 7 * * *"   # nightly
+  repository_dispatch:
+    types: [wallet-released]
+  workflow_dispatch:
+    inputs:
+      cases:
+        description: Scenario ids to run, space-separated
+        default: M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12
+
+permissions:
+  issues: write
+
+concurrency:
+  group: android-e2e
+  cancel-in-progress: true
+
+jobs:
+  android-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - id: run
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: "37.0"
+          target: google_apis_playstore
+          arch: x86_64
+          profile: pixel_6
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          disable-animations: true
+          script: bun scripts/android-e2e.ts --release ${{ github.event.inputs.cases || 'M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12' }} > out.txt 2>&1; s=$?; cat out.txt; exit $s
+      - if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const out = fs.existsSync("out.txt") ? fs.readFileSync("out.txt", "utf8").slice(-60000) : "(no output; the emulator may not have booted)";
+            const body = `The Android end-to-end run failed on ${new Date().toISOString()} ([run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})).\n\n\`\`\`\n${out}\n\`\`\``;
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, labels: "self-test", state: "open" });
+            const mine = open.find((i) => i.title.startsWith("Android"));
+            if (mine) await github.rest.issues.createComment({ ...context.repo, issue_number: mine.number, body });
+            else await github.rest.issues.create({ ...context.repo, title: "Android end-to-end failing", labels: ["self-test"], body });

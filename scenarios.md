@@ -323,7 +323,7 @@ Baseline 4, kept separate so size limits don't block the minimum scenarios.
 | # | Scenario | Pass |
 |---|---|---|
 | L1 | Anything in USCDI, small patient: a modest record, under 512 KB | The EHR shows every returned resource under `uscdi`, whatever the resource types. The wallet lets the patient choose what to include ([§5.4](https://smart-health-checkin.org/spec/#5-4-content-selectors)). |
-| L2 | Anything in USCDI, large patient: a full history with notes, well over 512 KB | The response arrives intact. Record the browser, phone, and wallet version, since older Android wallet APIs fail near 520 KB. |
+| L2 | Anything in USCDI, large patient: a full history with notes, well over 512 KB | The response arrives intact. On Android, this needs Chrome 150 or later and a wallet that uses the large-payload response API; with older Chrome, responses over about 520 KB are dropped silently and the page waits forever. Record the browser, phone, and wallet version. |
 
 ## Optional and stretch scenarios
 
