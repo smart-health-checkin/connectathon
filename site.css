@@ -35,3 +35,11 @@ details { margin: var(--space-3) 0; border: 1px solid var(--border); border-radi
 details > summary { cursor: pointer; padding: var(--space-3) 0; font-weight: 600; color: var(--fg-2); }
 details[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: var(--space-3); }
 details table { margin-bottom: var(--space-3); }
+@media (max-width: 640px) {
+  .doc details table, .doc details tbody, .doc details tr, .doc details td { display: block; }
+  .doc details thead { display: none; }
+  .doc details tr { padding: var(--space-2) 0; border-bottom: 1px solid var(--border); }
+  .doc details td { border: 0; padding: 2px 0; }
+  .doc details td:first-child { font-weight: 600; }
+  .doc details td code { white-space: normal; }
+}
