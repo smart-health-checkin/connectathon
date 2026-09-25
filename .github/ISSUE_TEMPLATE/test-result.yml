@@ -54,6 +54,7 @@ body:
     attributes:
       label: Wallet
       options:
+        - "Flexpa Health Wallet (Flexpa, flexpa)"
         - "SMART reference Android wallet (SMART Health IT, smart-android-wallet)"
         - "SMART Testing Wallet (SMART Health IT, smart-testing-wallet)"
         - "Other (say which in the note)"
