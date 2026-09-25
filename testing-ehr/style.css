@@ -1,0 +1,27 @@
+:root { --fg:#1f2933; --muted:#6b7280; --line:#e4e7eb; --bg:#fff; --soft:#f6f8fa; --accent:#0e6fb8; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color:var(--fg); background:var(--bg); }
+.bar { padding:10px 16px; border-bottom:3px solid var(--accent); background:var(--soft); display:flex; gap:10px; flex-wrap:wrap; align-items:baseline; }
+.bar a { color:var(--accent); font-size:14px; }
+main { max-width:960px; margin:0 auto; padding:16px; display:grid; gap:20px; }
+.muted { color:var(--muted); } .small { font-size:13px; }
+.setup { display:grid; gap:8px; max-width:640px; }
+.setup label { font-weight:600; font-size:14px; } .setup label.inline { font-weight:400; }
+select, button { font:inherit; }
+select { padding:6px 8px; border:1px solid var(--line); border-radius:6px; }
+.case-info p { margin:4px 0; }
+.warn { color:#8a5a00; }
+button { padding:8px 18px; border-radius:6px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; justify-self:start; }
+button:disabled { opacity:.6; cursor:default; }
+button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.status { margin:0; font-weight:600; }
+.faults-box summary { cursor:pointer; color:var(--accent); font-size:14px; }
+.faults { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:4px; font-size:13px; }
+table { border-collapse:collapse; width:100%; font-size:14px; }
+th, td { text-align:left; vertical-align:top; padding:6px 8px; border-bottom:1px solid var(--line); }
+td.detail { color:var(--muted); overflow-wrap:anywhere; }
+.pill { display:inline-block; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:700; text-transform:uppercase; }
+.pill.pass { background:#e5f5f1; color:#12705e; } .pill.fail { background:#fbe4e2; color:#a32a22; }
+.pill.warn { background:#fcefd9; color:#7a5a16; } .pill.info { background:#e8f4fb; color:#094d80; }
+.raw { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:8px; max-height:420px; overflow:auto; font-size:12px; }
+details summary { cursor:pointer; }

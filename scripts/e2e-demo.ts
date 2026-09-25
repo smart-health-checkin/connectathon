@@ -29,7 +29,7 @@ try {
   const wallet = await (await walletTarget).page();
   if (!wallet) throw new Error("wallet tab did not open");
   wallet.on("console", (m) => m.type() === "error" && console.log("[wallet console]", m.text()));
-  wallet.on("pageerror", (e) => console.log("[wallet error]", e.message));
+  wallet.on("pageerror", (e) => console.log("[wallet error]", (e as Error).message));
   await wallet.waitForSelector("#share", { visible: true, timeout: 30000 });
   await wallet.waitForFunction(() => !(document.getElementById("share") as HTMLButtonElement).disabled, { timeout: 60000 });
   // Settings that can change after the request arrives, e.g. "patient=large".

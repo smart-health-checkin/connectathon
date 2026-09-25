@@ -2,7 +2,10 @@
   "organization": "SMART Health IT",
   "homepage": "https://smarthealthit.org",
   "contacts": [
-    { "name": "Josh Mandel", "github": "jmandel" }
+    {
+      "name": "Josh Mandel",
+      "github": "jmandel"
+    }
   ],
   "components": [
     {
@@ -18,7 +21,7 @@
       "role": "ehr",
       "name": "Testing EHR",
       "description": "Sends any connectathon request to any registered wallet and checks the response against the spec.",
-      "status": "not-yet",
+      "status": "up",
       "url": "https://smart-health-checkin.org/connectathon/testing-ehr/"
     },
     {
@@ -26,7 +29,7 @@
       "role": "web-wallet",
       "name": "SMART Testing Wallet",
       "description": "Answers every connectathon request with realistic data, renders questionnaires, and can send deliberately broken responses.",
-      "status": "not-yet",
+      "status": "up",
       "walletUrl": "https://smart-health-checkin.org/connectathon/testing-wallet/",
       "target": "tab",
       "testPatient": "Aria Test, born 1981, with problems, allergies, medications, immunizations, and CARIN and US Core insurance; a second patient with a record over 512 KB"
@@ -48,7 +51,9 @@
       "description": "Native wallet answering through Credential Manager. Renders questionnaires.",
       "status": "not-yet",
       "installUrl": "https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk",
-      "platforms": ["android"],
+      "platforms": [
+        "android"
+      ],
       "testPatient": "Same two patients as the SMART Testing Wallet"
     }
   ]

@@ -235,6 +235,15 @@ if (existsSync(join(ROOT, "web-wallet-handoff.md")))
 
 // wallets.json
 writeFileSync(join(OUT, "wallets.json"), JSON.stringify(registry, null, 2) + "\n");
+// components.json: every component with the label the result form uses, for the test tools.
+writeFileSync(
+  join(OUT, "components.json"),
+  JSON.stringify(
+    participants.flatMap((p) => p.components.map((c) => ({ id: c.id, role: c.role, organization: p.organization, name: c.name, label: `${c.name} (${p.organization}, ${c.id})` }))),
+    null,
+    2,
+  ) + "\n",
+);
 
 // participants and schema, raw
 mkdirSync(join(OUT, "participants"), { recursive: true });

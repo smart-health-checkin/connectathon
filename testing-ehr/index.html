@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMART Testing EHR</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="bar"><b>SMART Testing EHR</b> <span class="muted">sends connectathon requests and checks the responses</span> <a href="../">Scenarios</a> · <a href="../results.html">Results</a></header>
+<main>
+  <section class="setup">
+    <label for="case">Scenario</label>
+    <select id="case"></select>
+    <div id="case-info" class="case-info"></div>
+
+    <label for="wallet">Wallet</label>
+    <select id="wallet"></select>
+
+    <details id="fault-box" class="faults-box" hidden>
+      <summary>Ask the SMART Testing Wallet to send a broken response</summary>
+      <p class="small">Each fault should make at least one check below fail. Use them to test your own EHR's error handling the same way.</p>
+      <div id="faults" class="faults"></div>
+    </details>
+
+    <label class="inline"><input type="checkbox" id="sign"> Sign the request with reader authentication (O13)</label>
+
+    <button id="run" type="button">Send the request</button>
+    <p id="status" class="status" role="status"></p>
+  </section>
+
+  <section>
+    <div id="checks"></div>
+    <p><a id="file" hidden target="_blank">File this run as a result on GitHub</a></p>
+    <details><summary>Log</summary><pre id="log" class="raw"></pre></details>
+    <details><summary>Request as sent</summary><pre id="sent-request" class="raw"></pre></details>
+    <details><summary>SMART response as received</summary><pre id="smart-response" class="raw"></pre></details>
+  </section>
+</main>
+<script type="module" src="./src/main.ts"></script>
+</body>
+</html>
