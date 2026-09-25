@@ -1,0 +1,52 @@
+name: Self-test
+
+# Drives the live testing EHR against the live SMART Testing Wallet for every
+# web-path scenario and injected fault, and the reference EHR against the
+# testing wallet. Opens (or updates) an issue labeled "self-test" on failure.
+on:
+  schedule:
+    - cron: "41 6 * * *"   # nightly
+  workflow_run:
+    workflows: ["Build and deploy the site"]
+    types: [completed]
+  repository_dispatch:
+    types: [client-updated]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+concurrency:
+  group: self-test
+  cancel-in-progress: true
+
+jobs:
+  self-test:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Install Chromium
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq chromium-browser || sudo apt-get install -y -qq chromium
+          echo "CHROMIUM_PATH=$(command -v chromium-browser || command -v chromium)" >> "$GITHUB_ENV"
+      - id: run
+        run: |
+          set +e
+          { bun scripts/self-test.ts; echo "exit=$?" > code.txt; } 2>&1 | tee out.txt
+          { bun scripts/e2e-demo.ts requests/baseline-1.json smart-testing-wallet; echo "e2e=$?" >> code.txt; } 2>&1 | tee -a out.txt
+          cat code.txt
+          grep -q "exit=0" code.txt && grep -q "e2e=0" code.txt
+      - if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const out = fs.readFileSync("out.txt", "utf8").slice(-60000);
+            const body = `The self-test failed on ${new Date().toISOString()} ([run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})).\n\n\`\`\`\n${out}\n\`\`\``;
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, labels: "self-test", state: "open" });
+            if (open.length) await github.rest.issues.createComment({ ...context.repo, issue_number: open[0].number, body });
+            else await github.rest.issues.create({ ...context.repo, title: "Self-test failing", labels: ["self-test"], body });
