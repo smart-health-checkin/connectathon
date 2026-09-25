@@ -384,7 +384,7 @@ if (!results) {
     byScenario.set(s, [...(byScenario.get(s) ?? []), r]);
   }
   const cls = (v: string) => (/^pass/i.test(v) ? "up" : /^fail/i.test(v) ? "broken" : "not-yet");
-  resultsBody = [...byScenario.entries()]
+  resultsBody = byScenario.size === 0 ? `<p>No open results. Closed issues are withdrawn results.</p>` : [...byScenario.entries()]
     .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
     .map(([scenario, rs]) => {
       const ehrs = [...new Set(rs.map((r) => r.fields["EHR"]))].sort();
