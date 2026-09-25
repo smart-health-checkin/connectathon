@@ -39,6 +39,9 @@ jobs:
             git commit -m "Sync the result form with participants and catalog"
             git push
           fi
+      - name: Let the issues listing catch up
+        if: github.event_name == 'issues'
+        run: sleep 20
       - run: bun run build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
