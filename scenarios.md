@@ -1,6 +1,6 @@
 # SMART Health Check-in connectathon: test scenarios
 
-<p class="draft"><b>Draft.</b> Resources are being set up now. Links marked <code>{{TBD: …}}</code> and components marked "not yet" in the <a href="directory.html">directory</a> are not live yet.</p>
+<p class="draft"><b>Draft.</b> The event date isn't set yet, so dates below are marked <code>{{TBD: …}}</code>. Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">directory</a> aren't ready for testing.</p>
 
 KTC pre-visit check-in connectathon, {{TBD: event date and time}}, about 3 hours, on Zoom: {{TBD: Zoom link}}.
 
