@@ -114,7 +114,9 @@ async function ensureChrome(caseId: string) {
     if (running && (await devtoolsUp())) return;
     await sleep(3000);
   }
-  throw new Error("Chrome's DevTools never became reachable");
+  const pid = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim();
+  const sockets = (await adb("shell", "cat", "/proc/net/unix")).stdout.toString().split("\n").filter((l) => /devtools/.test(l)).join("; ");
+  throw new Error(`Chrome's DevTools never became reachable (chrome pid ${pid || "none"}; devtools sockets: ${sockets || "none"})`);
 }
 
 async function ehrPage(caseId: string): Promise<Page> {
@@ -212,7 +214,13 @@ async function chromeMajor(): Promise<number> {
 }
 const LARGE_CASES = new Set(["L2"]);
 
-await setup();
+try {
+  await setup();
+} catch (e) {
+  console.log(`FAIL setup: ${(e as Error).message}`);
+  await saveEvidence("setup").catch(() => {});
+  process.exit(1);
+}
 const chrome = await chromeMajor();
 console.log(`device ${SERIAL}: Chrome ${chrome}`);
 let bad = 0;
