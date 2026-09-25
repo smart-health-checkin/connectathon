@@ -94,10 +94,11 @@ All under <https://smart-health-checkin.org/connectathon/>.
 | Web wallet hand-off | <https://smart-health-checkin.org/connectathon/web-wallet-handoff.html> |
 | Baseline and scenario requests | <https://smart-health-checkin.org/connectathon/requests/> |
 | Example questionnaires | <https://smart-health-checkin.org/connectathon/Questionnaire/> |
-| Reference EHR check-in page and reference web wallet | <https://smart-health-checkin.org/client/demo/> |
+| Reference EHR check-in page | <https://smart-health-checkin.org/client/demo/>. Load the event registry with [this link](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json). |
+| Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | <https://smart-health-checkin.org/connectathon/responses/> |
 | Reference Android wallet | [download](https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk), see [below](#reference-android-wallet) |
 | Testing EHR | <https://smart-health-checkin.org/connectathon/testing-ehr/> |
-| Testing wallet | <https://smart-health-checkin.org/connectathon/testing-wallet/>, also in the registry |
+| SMART Testing Wallet: the reference web wallet, also usable for fault testing | <https://smart-health-checkin.org/connectathon/testing-wallet/>, also in the registry. [What it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md). |
 | Chat for questions and pairing | `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)) |
 
 ### Wallet registry
@@ -305,6 +306,7 @@ Download: <https://github.com/smart-health-checkin/spec/releases/latest/download
   adb install -r smart-checkin-wallet-debug.apk
   ```
 - **Requirements:** Android 8 or later, and a Chrome version with the Digital Credentials API. Open the app once after installing so it registers with the phone's Credential Manager.
+- **Test patient:** the same synthetic patients as the SMART Testing Wallet. Choose Aria Test, or the large record for L2, on the app's home screen.
 
 New builds install over old ones without uninstalling.
 
