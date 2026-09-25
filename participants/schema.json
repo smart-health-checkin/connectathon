@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://smart-health-checkin.org/connectathon/participants/schema.json",
+  "title": "Connectathon participant",
+  "description": "One file per organization, named participants/<organization-id>.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["organization", "components"],
+  "properties": {
+    "organization": { "type": "string", "minLength": 1, "description": "Organization name as it should appear in the directory." },
+    "homepage": { "type": "string", "format": "uri" },
+    "contacts": {
+      "type": "array",
+      "description": "Who to reach during testing. Everything here is public.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "github": { "type": "string", "description": "GitHub username, without @" },
+          "slack": { "type": "string", "description": "Display name in the CMS Health Tech Ecosystem Slack" },
+          "email": { "type": "string", "format": "email" }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "role", "name", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$", "description": "Unique across all participants. For a web wallet this is also its registry id." },
+          "role": { "enum": ["ehr", "web-wallet", "native-wallet"] },
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" },
+          "status": { "enum": ["up", "not-yet", "broken"], "description": "Whether others can test against it right now." },
+          "url": { "type": "string", "format": "uri", "description": "EHR: the public check-in page." },
+          "walletUrl": { "type": "string", "format": "uri", "description": "Web wallet: the page the EHR opens. Goes into wallets.json." },
+          "iconUrl": { "type": "string", "format": "uri", "description": "Web wallet: icon shown in EHR wallet menus." },
+          "target": { "enum": ["tab", "popup"], "description": "Web wallet: how the EHR opens it. Default tab." },
+          "installUrl": { "type": "string", "format": "uri", "description": "Native wallet: where to install it." },
+          "platforms": { "type": "array", "items": { "enum": ["android", "ios"] }, "description": "Native wallet: which phones it runs on." },
+          "testPatient": { "type": "string", "description": "Wallets: the synthetic patient it holds, so EHR testers know what to expect." },
+          "notes": { "type": "string" }
+        },
+        "allOf": [
+          { "if": { "properties": { "role": { "const": "ehr" } } }, "then": { "required": ["url"] } },
+          { "if": { "properties": { "role": { "const": "web-wallet" } } }, "then": { "required": ["walletUrl"] } },
+          { "if": { "properties": { "role": { "const": "native-wallet" } } }, "then": { "required": ["installUrl", "platforms"] } }
+        ]
+      }
+    }
+  }
+}

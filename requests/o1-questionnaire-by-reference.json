@@ -1,0 +1,23 @@
+{
+  "type": "smart-health-checkin-request",
+  "version": "1",
+  "id": "replace-with-a-unique-id",
+  "purpose": "Pre-visit check-in",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "items": [
+    {
+      "id": "gad7",
+      "title": "Questions about worry and anxiety",
+      "required": true,
+      "content": {
+        "kind": "form.fhir",
+        "questionnaireCanonical": "https://smart-health-checkin.org/connectathon/Questionnaire/gad-7.json"
+      },
+      "accept": [
+        "application/fhir+json"
+      ]
+    }
+  ]
+}

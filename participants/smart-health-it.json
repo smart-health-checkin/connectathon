@@ -1,0 +1,55 @@
+{
+  "organization": "SMART Health IT",
+  "homepage": "https://smarthealthit.org",
+  "contacts": [
+    { "name": "Josh Mandel", "github": "jmandel" }
+  ],
+  "components": [
+    {
+      "id": "smart-reference-ehr",
+      "role": "ehr",
+      "name": "Reference clinic check-in page",
+      "description": "The client library's clinic demo. Pick a request, pick a wallet, and see the verified response.",
+      "status": "up",
+      "url": "https://smart-health-checkin.org/client/demo/"
+    },
+    {
+      "id": "smart-testing-ehr",
+      "role": "ehr",
+      "name": "Testing EHR",
+      "description": "Sends any connectathon request to any registered wallet and checks the response against the spec.",
+      "status": "not-yet",
+      "url": "https://smart-health-checkin.org/connectathon/testing-ehr/"
+    },
+    {
+      "id": "smart-testing-wallet",
+      "role": "web-wallet",
+      "name": "SMART Testing Wallet",
+      "description": "Answers every connectathon request with realistic data, renders questionnaires, and can send deliberately broken responses.",
+      "status": "not-yet",
+      "walletUrl": "https://smart-health-checkin.org/connectathon/testing-wallet/",
+      "target": "tab",
+      "testPatient": "Aria Test, born 1981, with problems, allergies, medications, immunizations, and CARIN and US Core insurance; a second patient with a record over 512 KB"
+    },
+    {
+      "id": "smart-demo-wallet",
+      "role": "web-wallet",
+      "name": "Demo Health Wallet",
+      "description": "The client library's demo wallet. Quick to try, but it guesses what each item wants and doesn't render questionnaires.",
+      "status": "up",
+      "walletUrl": "https://smart-health-checkin.org/client/demo/wallet.html",
+      "target": "tab",
+      "testPatient": "Demo Health Wallet demo patient"
+    },
+    {
+      "id": "smart-android-wallet",
+      "role": "native-wallet",
+      "name": "SMART reference Android wallet",
+      "description": "Native wallet answering through Credential Manager. Renders questionnaires.",
+      "status": "not-yet",
+      "installUrl": "https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk",
+      "platforms": ["android"],
+      "testPatient": "Same two patients as the SMART Testing Wallet"
+    }
+  ]
+}

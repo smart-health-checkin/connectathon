@@ -1,0 +1,22 @@
+{
+  "type": "smart-health-checkin-request",
+  "version": "1",
+  "id": "replace-with-a-unique-id",
+  "purpose": "Pre-visit check-in",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "items": [
+    {
+      "id": "anything",
+      "title": "Anything you'd like your doctor to see",
+      "summary": "Share whatever you think is relevant to this visit.",
+      "content": {
+        "kind": "selection.fhir"
+      },
+      "accept": [
+        "application/fhir+json"
+      ]
+    }
+  ]
+}

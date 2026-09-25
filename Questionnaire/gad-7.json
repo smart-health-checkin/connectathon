@@ -1,0 +1,498 @@
+{
+  "resourceType": "Questionnaire",
+  "url": "https://smart-health-checkin.org/connectathon/Questionnaire/gad-7.json",
+  "version": "1",
+  "name": "GAD7",
+  "title": "GAD-7 anxiety screen",
+  "status": "draft",
+  "subjectType": [
+    "Patient"
+  ],
+  "date": "2026-09-25",
+  "publisher": "SMART Health IT (connectathon example)",
+  "description": "The seven-question GAD-7 anxiety screen, for the KTC SMART Health Check-in connectathon. Wording follows the published instrument. Answers carry scores 0 to 3 in the ordinalValue extension; the total (LOINC 70274-6) is the sum and is computed by the receiver, not entered by the patient.",
+  "copyright": "This material contains content from LOINC (http://loinc.org). LOINC is copyright © Regenstrief Institute, Inc. and the Logical Observation Identifiers Names and Codes (LOINC) Committee and is available at no cost under the license at http://loinc.org/license. GAD-7: Developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke and colleagues, with an educational grant from Pfizer Inc. No permission required to reproduce, translate, display or distribute.",
+  "code": [
+    {
+      "system": "http://loinc.org",
+      "code": "69737-5",
+      "display": "Generalized anxiety disorder 7 item (GAD-7)"
+    }
+  ],
+  "item": [
+    {
+      "linkId": "stem",
+      "type": "display",
+      "text": "Over the last 2 weeks, how often have you been bothered by the following problems?"
+    },
+    {
+      "linkId": "gad7-1",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "69725-0",
+          "display": "Feeling nervous, anxious, or on edge"
+        }
+      ],
+      "prefix": "1.",
+      "text": "Feeling nervous, anxious, or on edge",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "gad7-2",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "68509-9",
+          "display": "Not being able to stop or control worrying"
+        }
+      ],
+      "prefix": "2.",
+      "text": "Not being able to stop or control worrying",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "gad7-3",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "69733-4",
+          "display": "Worrying too much about different things"
+        }
+      ],
+      "prefix": "3.",
+      "text": "Worrying too much about different things",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "gad7-4",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "69734-2",
+          "display": "Trouble relaxing"
+        }
+      ],
+      "prefix": "4.",
+      "text": "Trouble relaxing",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "gad7-5",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "69735-9",
+          "display": "Being so restless that it is hard to sit still"
+        }
+      ],
+      "prefix": "5.",
+      "text": "Being so restless that it is hard to sit still",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "gad7-6",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "69689-8",
+          "display": "Becoming easily annoyed or irritable"
+        }
+      ],
+      "prefix": "6.",
+      "text": "Becoming easily annoyed or irritable",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "linkId": "gad7-7",
+      "code": [
+        {
+          "system": "http://loinc.org",
+          "code": "69736-7",
+          "display": "Feeling afraid, as if something awful might happen"
+        }
+      ],
+      "prefix": "7.",
+      "text": "Feeling afraid, as if something awful might happen",
+      "type": "choice",
+      "answerOption": [
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6568-5",
+            "display": "Not at all"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 0
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6569-3",
+            "display": "Several days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 1
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6570-1",
+            "display": "More than half the days"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 2
+            }
+          ]
+        },
+        {
+          "valueCoding": {
+            "system": "http://loinc.org",
+            "code": "LA6571-9",
+            "display": "Nearly every day"
+          },
+          "extension": [
+            {
+              "url": "http://hl7.org/fhir/StructureDefinition/ordinalValue",
+              "valueDecimal": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

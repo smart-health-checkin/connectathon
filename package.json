@@ -1,0 +1,19 @@
+{
+  "name": "smart-health-checkin-connectathon",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun scripts/build.ts",
+    "check": "bun scripts/build.ts --check-only",
+    "serve": "bun scripts/serve.ts"
+  },
+  "dependencies": {
+    "@smart-health-checkin/client": "github:smart-health-checkin/client",
+    "marked": "^18.0.14",
+    "marked-gfm-heading-id": "^4.1.4"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1"
+  }
+}

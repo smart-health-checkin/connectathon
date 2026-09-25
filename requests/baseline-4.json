@@ -1,0 +1,25 @@
+{
+  "type": "smart-health-checkin-request",
+  "version": "1",
+  "id": "replace-with-a-unique-id",
+  "purpose": "Pre-visit check-in",
+  "fhirVersions": [
+    "4.0.1"
+  ],
+  "items": [
+    {
+      "id": "uscdi",
+      "title": "Your health record",
+      "summary": "Any US Core data you choose to share: problems, medications, allergies, results, immunizations, coverage, notes, and so on.",
+      "content": {
+        "kind": "selection.fhir",
+        "profilesFrom": [
+          "http://hl7.org/fhir/us/core"
+        ]
+      },
+      "accept": [
+        "application/fhir+json"
+      ]
+    }
+  ]
+}

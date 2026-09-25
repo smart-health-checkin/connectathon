@@ -1,0 +1,56 @@
+name: Build and deploy the site
+
+on:
+  push:
+    branches: [main]
+  issues:
+    types: [opened, edited, closed, reopened, labeled, unlabeled, deleted]
+  schedule:
+    - cron: "17 * * * *"   # hourly, so results never lag long
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Issue events only matter for result issues.
+    if: github.event_name != 'issues' || contains(github.event.issue.labels.*.name, 'result')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Keep the result form's dropdowns in sync
+        if: github.event_name == 'push'
+        run: |
+          bun scripts/sync-issue-form.ts
+          if ! git diff --quiet -- .github/ISSUE_TEMPLATE/test-result.yml; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add .github/ISSUE_TEMPLATE/test-result.yml
+            git commit -m "Sync the result form with participants and catalog"
+            git push
+          fi
+      - run: bun run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

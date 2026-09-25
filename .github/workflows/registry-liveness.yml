@@ -1,0 +1,39 @@
+name: Registry liveness
+
+# Loads every walletUrl in the published registry. Opens (or updates) one issue
+# labeled "registry-down" listing the failures, and closes it once all load.
+on:
+  schedule:
+    - cron: "7 * * * *"   # hourly; switch to "*/10 * * * *" for the event day
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - id: run
+        run: |
+          set +e
+          bun scripts/check-wallets.ts > out.txt
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat out.txt
+      - uses: actions/github-script@v7
+        env:
+          CODE: ${{ steps.run.outputs.code }}
+        with:
+          script: |
+            const fs = require("fs");
+            const out = fs.readFileSync("out.txt", "utf8");
+            const { data: open } = await github.rest.issues.listForRepo({ ...context.repo, labels: "registry-down", state: "open" });
+            if (process.env.CODE !== "0") {
+              const body = `These wallet URLs in the registry did not load at ${new Date().toISOString()}:\n\n${out}\n\nFix the wallet or set its status to \`broken\` in its participant file.`;
+              if (open.length) await github.rest.issues.update({ ...context.repo, issue_number: open[0].number, body });
+              else await github.rest.issues.create({ ...context.repo, title: "Registry: wallet URLs not loading", labels: ["registry-down"], body });
+            } else {
+              for (const issue of open) await github.rest.issues.update({ ...context.repo, issue_number: issue.number, state: "closed" });
+            }
