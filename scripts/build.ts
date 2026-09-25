@@ -68,13 +68,13 @@ const participants: Participant[] = [];
 const componentIds = new Map<string, string>();
 for (const file of jsonFiles("participants").filter((f) => f !== "schema.json")) {
   const path = `participants/${file}`;
-  const data = readJson(join(ROOT, path));
+  const data = readJson(join(ROOT, path)) as any;
   if (!data) continue;
   if (!validateParticipant(data)) {
     for (const e of validateParticipant.errors ?? []) fail(`${path}${e.instancePath}: ${e.message}`);
     continue;
   }
-  for (const c of data.components as Component[]) {
+  for (const c of (data as any).components as Component[]) {
     if (componentIds.has(c.id)) fail(`${path}: component id "${c.id}" is already used in ${componentIds.get(c.id)}`);
     componentIds.set(c.id, path);
     for (const key of ["url", "walletUrl", "installUrl", "iconUrl"] as const) {
@@ -82,7 +82,7 @@ for (const file of jsonFiles("participants").filter((f) => f !== "schema.json"))
       if (v && !v.startsWith("https://")) fail(`${path}: ${c.id}.${key} must be an https URL`);
     }
   }
-  participants.push({ file, ...data });
+  participants.push({ file, ...(data as any) });
 }
 
 // ---------------------------------------------------------------- wallet registry
@@ -400,10 +400,16 @@ writeFileSync(
 for (const tool of ["testing-ehr", "testing-wallet"]) {
   const dir = join(ROOT, tool);
   if (!existsSync(join(dir, "index.html"))) continue;
-  const built = await Bun.build({ entrypoints: [join(dir, "index.html")], outdir: join(OUT, tool), minify: true, target: "browser", publicPath: `${SITE}${tool}/` });
+  // The "bun" condition resolves the client library to its TypeScript source,
+  // so the bundle doesn't depend on the package's dist/ having been built.
+  const built = await Bun.build({ entrypoints: [join(dir, "index.html")], outdir: join(OUT, tool), minify: true, target: "browser", conditions: ["bun"] });
   if (!built.success) {
     for (const log of built.logs) console.error(log);
     process.exit(1);
+  }
+  // Static files the tool fetches at run time.
+  for (const extra of ["data", "issuer", "FEATURES.md"]) {
+    if (existsSync(join(dir, extra))) cpSync(join(dir, extra), join(OUT, tool, extra), { recursive: true });
   }
 }
 

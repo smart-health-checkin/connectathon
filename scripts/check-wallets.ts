@@ -1,3 +1,4 @@
+export {};
 /**
  * Fetches every walletUrl in the built registry and prints the ones that fail.
  * Exits 1 when any fail. Used by the registry-liveness workflow.

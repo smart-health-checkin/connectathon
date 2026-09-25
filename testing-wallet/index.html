@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMART Testing Wallet</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="bar"><b>SMART Testing Wallet</b> <span class="muted">reference web wallet for SMART Health Check-in</span></header>
+<main>
+  <p id="waiting">Waiting for a check-in request from the page that opened this wallet…</p>
+
+  <section id="standalone" hidden>
+    <h1>SMART Testing Wallet</h1>
+    <p>This is the reference web wallet for the <a href="https://smart-health-checkin.org/connectathon/">SMART Health Check-in connectathon</a>. It answers check-in requests from an EHR page that opens it. It isn't meant to be opened on its own.</p>
+    <p>To try it, open the <a href="https://smart-health-checkin.org/connectathon/testing-ehr/">testing EHR</a> or the <a href="https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json&amp;wallet=smart-testing-wallet">reference clinic check-in page</a>, and choose this wallet.</p>
+    <p>What it does: <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md">features and behavior</a>.</p>
+  </section>
+
+  <div id="error" class="error" role="alert" hidden></div>
+
+  <section id="consent" hidden>
+    <p class="asker">Check-in request from <b id="origin"></b></p>
+    <p id="purpose" class="purpose"></p>
+    <p id="reader-auth" class="muted small"></p>
+    <label class="patient">Answer as <select id="patient"></select></label>
+    <ul id="items" class="items"></ul>
+    <div class="actions">
+      <button id="decline" class="secondary" type="button">Not now</button>
+      <button id="share" type="button">Share</button>
+    </div>
+  </section>
+
+  <section id="done" hidden>
+    <p id="done-text"></p>
+  </section>
+
+  <details id="testing" class="testing">
+    <summary>Testing panel</summary>
+    <p class="small">Settings are saved in this page's URL, so a test case can open the wallet preconfigured.</p>
+    <h3>Force a status per item</h3>
+    <div id="status-overrides" class="overrides"><span class="muted small">Appears when a request arrives.</span></div>
+    <h3>Faults</h3>
+    <div id="faults" class="faults"></div>
+    <h3>Request as received</h3>
+    <pre id="raw-request" class="raw"></pre>
+    <h3>Response as sent</h3>
+    <pre id="raw-response" class="raw"></pre>
+  </details>
+</main>
+<script type="module" src="./src/main.ts"></script>
+</body>
+</html>
