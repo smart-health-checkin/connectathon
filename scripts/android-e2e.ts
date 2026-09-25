@@ -99,11 +99,43 @@ const STEPS: Array<[RegExp, string]> = [
   [/^Agree and continue$/, "picked the wallet in the system sheet"],
 ];
 
-async function ehrPage(): Promise<Page> {
+const EHR_URL = (caseId: string) => `${BASE}testing-ehr/#case=${caseId}&wallet=platform`;
+const devtoolsUp = () => fetch(`http://localhost:${PORT}/json/version`, { signal: AbortSignal.timeout(3000) }).then((r) => r.ok, () => false);
+
+// Chrome in front with DevTools reachable. A cold emulator can take a minute
+// to start Chrome, and Play services updates sometimes kill it, so this polls,
+// relaunches, and taps through Chrome's first-run prompts.
+async function ensureChrome(caseId: string) {
+  await adb("forward", `tcp:${PORT}`, "localabstract:chrome_devtools_remote");
+  for (let i = 0; i < 40; i++) {
+    const running = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim() !== "";
+    if (i % 10 === 0 || !running) await adb("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", `'${EHR_URL(caseId)}'`, "com.android.chrome");
+    await tapIfShown(/^(No thanks|Accept & continue|Use without an account|Got it)$/);
+    if (running && (await devtoolsUp())) return;
+    await sleep(3000);
+  }
+  throw new Error("Chrome's DevTools never became reachable");
+}
+
+async function ehrPage(caseId: string): Promise<Page> {
+  await ensureChrome(caseId);
   const browser = await puppeteer.connect({ browserURL: `http://localhost:${PORT}`, defaultViewport: null });
-  const page = (await browser.pages()).find((p) => p.url().includes("/testing-ehr/"));
-  if (!page) throw new Error("the testing EHR tab is not open in Chrome");
+  let page = (await browser.pages()).find((p) => p.url().includes("/testing-ehr/"));
+  if (!page) {
+    page = await browser.newPage();
+    await page.goto(EHR_URL(caseId), { waitUntil: "networkidle0" });
+  }
   return page;
+}
+
+// Evidence for a failed case: screenshot, UI tree, and logcat.
+const EVIDENCE = opt("--evidence") ?? "android-e2e-evidence";
+async function saveEvidence(caseId: string) {
+  await $`mkdir -p ${EVIDENCE}`.quiet();
+  await Bun.write(`${EVIDENCE}/${caseId}.png`, (await adb("exec-out", "screencap", "-p")).stdout);
+  await adb("shell", "uiautomator", "dump", "/sdcard/ui.xml");
+  await Bun.write(`${EVIDENCE}/${caseId}.ui.xml`, (await adb("shell", "cat", "/sdcard/ui.xml")).stdout);
+  await Bun.write(`${EVIDENCE}/${caseId}.logcat.txt`, (await adb("logcat", "-d", "-t", "3000")).stdout);
 }
 
 async function setup() {
@@ -123,17 +155,12 @@ async function setup() {
   await sleep(4000);
   await adb("shell", "sh", "-c", "'echo \"_ --disable-fre --no-default-browser-check --no-first-run\" > /data/local/tmp/chrome-command-line'");
   await adb("shell", "am", "set-debug-app", "--persistent", "com.android.chrome");
-  await adb("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", `'${BASE}testing-ehr/#case=M1&wallet=platform'`, "com.android.chrome");
-  await sleep(6000);
-  await tapIfShown(/^No thanks$/);
-  await adb("forward", `tcp:${PORT}`, "localabstract:chrome_devtools_remote");
+  await ensureChrome("M1");
 }
 
 async function runCase(caseId: string) {
   await choosePatient(caseId === "L2" ? "large" : "aria");
-  await adb("shell", "am", "start", "-n", "com.android.chrome/com.google.android.apps.chrome.Main");
-  await sleep(2000);
-  const page = await ehrPage();
+  const page = await ehrPage(caseId);
   await page.bringToFront();
   await page.goto(`${BASE}testing-ehr/#case=${caseId}&wallet=platform`, { waitUntil: "networkidle0" });
   await page.reload({ waitUntil: "networkidle0" });
@@ -200,12 +227,13 @@ for (const c of CASES) {
     const r = await runCase(c);
     const extra = EXPECT[c]?.(r) ?? (FORM_CASES.has(c) && !r.qrAnswers ? "the QuestionnaireResponse arrived with no answers" : undefined);
     const ok = /All checks passed/.test(r.status) && !extra;
-    if (!ok) bad++;
+    if (!ok) { bad++; await saveEvidence(c); }
     console.log(`${ok ? "ok  " : "FAIL"} ${c}: ${r.status}${extra ? ` | ${extra}` : ""}  [${r.steps.join(" → ")}]${r.qrAnswers ? ` (${r.qrAnswers} answer(s) received)` : ""}${c === "L2" ? ` (${r.sizeKb} KB)` : ""}`);
     if (!ok || process.env.VERBOSE) console.log(r.log.split("\n").map((l) => "     " + l).join("\n"));
   } catch (e) {
     bad++;
     console.log(`FAIL ${c}: ${(e as Error).message}`);
+    await saveEvidence(c).catch(() => {});
   }
 }
 const ran = CASES.length - skipped;
