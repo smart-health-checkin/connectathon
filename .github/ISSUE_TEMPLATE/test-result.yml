@@ -35,7 +35,6 @@ body:
         - "O10 Prefilled form"
         - "O11 Write back"
         - "O12 Unknown selector"
-        - "O13 Reader authentication"
         - "Other (say which in the note)"
     validations:
       required: true
