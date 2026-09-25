@@ -107,16 +107,20 @@ const devtoolsUp = () => fetch(`http://localhost:${PORT}/json/version`, { signal
 // relaunches, and taps through Chrome's first-run prompts.
 async function ensureChrome(caseId: string) {
   await adb("forward", `tcp:${PORT}`, "localabstract:chrome_devtools_remote");
-  for (let i = 0; i < 40; i++) {
+  let launch = "";
+  for (let i = 0; i < 80; i++) {
     const running = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim() !== "";
-    if (i % 10 === 0 || !running) await adb("shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", `'${EHR_URL(caseId)}'`, "com.android.chrome");
+    if (i % 10 === 0 || !running) {
+      const r = await adb("shell", "am", "start", "-W", "-a", "android.intent.action.VIEW", "-d", `'${EHR_URL(caseId)}'`, "com.android.chrome");
+      launch = (r.stdout.toString() + r.stderr.toString()).trim().replace(/\s+/g, " ");
+    }
     await tapIfShown(/^(No thanks|Accept & continue|Use without an account|Got it)$/);
     if (running && (await devtoolsUp())) return;
     await sleep(3000);
   }
   const pid = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim();
   const sockets = (await adb("shell", "cat", "/proc/net/unix")).stdout.toString().split("\n").filter((l) => /devtools/.test(l)).join("; ");
-  throw new Error(`Chrome's DevTools never became reachable (chrome pid ${pid || "none"}; devtools sockets: ${sockets || "none"})`);
+  throw new Error(`Chrome's DevTools never became reachable (chrome pid ${pid || "none"}; devtools sockets: ${sockets || "none"}; last launch: ${launch})`);
 }
 
 async function ehrPage(caseId: string): Promise<Page> {
