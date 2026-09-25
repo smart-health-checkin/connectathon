@@ -1,0 +1,21 @@
+{
+  "organization": "Flexpa",
+  "homepage": "https://www.flexpa.com",
+  "contacts": [
+    { "name": "Joshua Kelly", "github": "jdjkelly" }
+  ],
+  "components": [
+    {
+      "id": "flexpa",
+      "role": "web-wallet",
+      "name": "Flexpa Health Wallet",
+      "description": "A patient wallet built by Flexpa: US Core records, a CARIN insurance card, and PHQ-2 as a form. Renders questionnaires.",
+      "status": "up",
+      "walletUrl": "https://test.wallet.flexpa.com/wallet.html",
+      "iconUrl": "https://test.wallet.flexpa.com/favicon.svg",
+      "target": "tab",
+      "testPatient": "Sam Okafor, born 1986, with problems, allergies, medications, immunizations, observations, and a CARIN insurance card",
+      "notes": "Signed out, the wallet first asks you to simulate an IAL2 sign-in. Records you import stay in your browser."
+    }
+  ]
+}
