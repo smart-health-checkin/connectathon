@@ -54,7 +54,6 @@ body:
     attributes:
       label: Wallet
       options:
-        - "Demo Health Wallet (SMART Health IT, smart-demo-wallet)"
         - "SMART reference Android wallet (SMART Health IT, smart-android-wallet)"
         - "SMART Testing Wallet (SMART Health IT, smart-testing-wallet)"
         - "Other (say which in the note)"

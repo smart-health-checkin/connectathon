@@ -25,4 +25,20 @@ if compgen -G "testing-wallet/data/*.json" > /dev/null; then
   run "Wallet patient data against US Core and CARIN" .tools/wallet-data.json testing-wallet/data/*.json \
     -version 4.0.1 -ig hl7.fhir.us.core -ig hl7.fhir.us.insurance-card#1.1.0 || status=1
 fi
+if compgen -G "responses/*.sample.json" > /dev/null; then
+  # QuestionnaireResponses inside the sample responses, checked against their forms.
+  mkdir -p .tools/sample-qrs && rm -f .tools/sample-qrs/*.json
+  python3 - <<'PY'
+import json, glob, pathlib
+for f in glob.glob("responses/*.sample.json"):
+    for a in json.load(open(f))["artifacts"]:
+        v = a["value"]
+        if v.get("resourceType") == "QuestionnaireResponse":
+            pathlib.Path(f".tools/sample-qrs/{pathlib.Path(f).stem}-{a['id']}.json").write_text(json.dumps(v))
+PY
+  if compgen -G ".tools/sample-qrs/*.json" > /dev/null; then
+    igs=(); for q in Questionnaire/*.json; do igs+=(-ig "$q"); done
+    run "Sample QuestionnaireResponses against R4 and their forms" .tools/sample-qrs.json .tools/sample-qrs/*.json -version 4.0.1 "${igs[@]}" || status=1
+  fi
+fi
 exit $status

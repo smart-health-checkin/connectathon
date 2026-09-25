@@ -6,6 +6,7 @@
    "fullUrl": "urn:uuid:1e4be02a-300c-5ba6-8497-e81042d8d61f",
    "resource": {
     "resourceType": "Patient",
+    "id": "1e4be02a-300c-5ba6-8497-e81042d8d61f",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
@@ -108,6 +109,7 @@
    "fullUrl": "urn:uuid:4b4182ad-77a0-5fa3-aecf-32109d079570",
    "resource": {
     "resourceType": "Practitioner",
+    "id": "4b4182ad-77a0-5fa3-aecf-32109d079570",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-practitioner"
@@ -137,6 +139,7 @@
    "fullUrl": "urn:uuid:ab459f8e-87b8-5548-a654-f40396aa9e79",
    "resource": {
     "resourceType": "Organization",
+    "id": "ab459f8e-87b8-5548-a654-f40396aa9e79",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-organization",
@@ -176,6 +179,7 @@
    "fullUrl": "urn:uuid:d05fb767-ac71-5b5f-be30-caf3e400ac33",
    "resource": {
     "resourceType": "Condition",
+    "id": "d05fb767-ac71-5b5f-be30-caf3e400ac33",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns"
@@ -232,6 +236,7 @@
    "fullUrl": "urn:uuid:b5f35b47-826b-59ae-9d96-c133e4e775d3",
    "resource": {
     "resourceType": "Condition",
+    "id": "b5f35b47-826b-59ae-9d96-c133e4e775d3",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns"
@@ -288,6 +293,7 @@
    "fullUrl": "urn:uuid:05d29730-7926-53f6-8a86-ca631e0bf29b",
    "resource": {
     "resourceType": "Condition",
+    "id": "05d29730-7926-53f6-8a86-ca631e0bf29b",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-condition-problems-health-concerns"
@@ -344,6 +350,7 @@
    "fullUrl": "urn:uuid:b6f1654d-34d2-503d-bd41-1eb6e5dd3d45",
    "resource": {
     "resourceType": "AllergyIntolerance",
+    "id": "b6f1654d-34d2-503d-bd41-1eb6e5dd3d45",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"
@@ -403,6 +410,7 @@
    "fullUrl": "urn:uuid:8b328004-d794-5d70-a717-384e337004ab",
    "resource": {
     "resourceType": "AllergyIntolerance",
+    "id": "8b328004-d794-5d70-a717-384e337004ab",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-allergyintolerance"
@@ -462,6 +470,7 @@
    "fullUrl": "urn:uuid:bc44f838-aa8a-5ed5-adac-d1e460aa9ae3",
    "resource": {
     "resourceType": "MedicationRequest",
+    "id": "bc44f838-aa8a-5ed5-adac-d1e460aa9ae3",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest"
@@ -509,6 +518,7 @@
    "fullUrl": "urn:uuid:505a0f40-65ec-52e1-83e4-b1a0351725cb",
    "resource": {
     "resourceType": "MedicationRequest",
+    "id": "505a0f40-65ec-52e1-83e4-b1a0351725cb",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest"
@@ -556,6 +566,7 @@
    "fullUrl": "urn:uuid:6dc0d6c8-67ea-5c88-8f91-0c9cda1cc5e9",
    "resource": {
     "resourceType": "MedicationRequest",
+    "id": "6dc0d6c8-67ea-5c88-8f91-0c9cda1cc5e9",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-medicationrequest"
@@ -603,6 +614,7 @@
    "fullUrl": "urn:uuid:004f681a-be8f-5dac-a5a6-ba7b6e939eec",
    "resource": {
     "resourceType": "Immunization",
+    "id": "004f681a-be8f-5dac-a5a6-ba7b6e939eec",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
@@ -630,6 +642,7 @@
    "fullUrl": "urn:uuid:1761be54-ec56-58bc-b01b-be6c7fdf5576",
    "resource": {
     "resourceType": "Immunization",
+    "id": "1761be54-ec56-58bc-b01b-be6c7fdf5576",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
@@ -657,6 +670,7 @@
    "fullUrl": "urn:uuid:1d867ed1-1971-5fe8-bff2-835471300c8a",
    "resource": {
     "resourceType": "Immunization",
+    "id": "1d867ed1-1971-5fe8-bff2-835471300c8a",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-immunization"
@@ -684,6 +698,7 @@
    "fullUrl": "urn:uuid:b5c19ba5-6786-58a7-ada7-73ec7e63211d",
    "resource": {
     "resourceType": "Observation",
+    "id": "b5c19ba5-6786-58a7-ada7-73ec7e63211d",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-observation-lab"
@@ -732,6 +747,7 @@
    "fullUrl": "urn:uuid:745df6c7-35f6-52be-be7d-046e3d1cd0a3",
    "resource": {
     "resourceType": "Observation",
+    "id": "745df6c7-35f6-52be-be7d-046e3d1cd0a3",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-body-weight"
@@ -780,6 +796,7 @@
    "fullUrl": "urn:uuid:3c68b746-1c60-5d8f-82a5-ea4695411977",
    "resource": {
     "resourceType": "Observation",
+    "id": "3c68b746-1c60-5d8f-82a5-ea4695411977",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-bmi"
@@ -828,6 +845,7 @@
    "fullUrl": "urn:uuid:5f8e3d26-7c77-513f-b2c7-debb0d6984f5",
    "resource": {
     "resourceType": "Observation",
+    "id": "5f8e3d26-7c77-513f-b2c7-debb0d6984f5",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-blood-pressure"
@@ -906,6 +924,7 @@
    "fullUrl": "urn:uuid:1f363074-5dcc-5d07-b257-685edfbb4003",
    "resource": {
     "resourceType": "Coverage",
+    "id": "1f363074-5dcc-5d07-b257-685edfbb4003",
     "meta": {
      "profile": [
       "http://hl7.org/fhir/us/core/StructureDefinition/us-core-coverage",

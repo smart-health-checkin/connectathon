@@ -35,26 +35,16 @@
       "testPatient": "Aria Test, born 1981, with problems, allergies, medications, immunizations, and CARIN and US Core insurance; a second patient with a record over 512 KB"
     },
     {
-      "id": "smart-demo-wallet",
-      "role": "web-wallet",
-      "name": "Demo Health Wallet",
-      "description": "The client library's demo wallet. Quick to try, but it guesses what each item wants and doesn't render questionnaires.",
-      "status": "up",
-      "walletUrl": "https://smart-health-checkin.org/client/demo/wallet.html",
-      "target": "tab",
-      "testPatient": "Demo Health Wallet demo patient"
-    },
-    {
       "id": "smart-android-wallet",
       "role": "native-wallet",
       "name": "SMART reference Android wallet",
       "description": "Native wallet answering through Credential Manager. Renders questionnaires.",
-      "status": "not-yet",
+      "status": "up",
       "installUrl": "https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk",
       "platforms": [
         "android"
       ],
-      "testPatient": "Same two patients as the SMART Testing Wallet"
+      "testPatient": "Aria Test, or the large record, chosen on the app's home screen"
     }
   ]
 }

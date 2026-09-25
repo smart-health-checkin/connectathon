@@ -1,0 +1,179 @@
+{
+  "type": "smart-health-checkin-response",
+  "version": "1",
+  "requestId": "sample-baseline-3",
+  "artifacts": [
+    {
+      "id": "fhir-patient",
+      "mediaType": "application/fhir+json",
+      "fhirVersion": "4.0.1",
+      "fulfills": [
+        "patient"
+      ],
+      "value": {
+        "resourceType": "Bundle",
+        "type": "collection",
+        "entry": [
+          {
+            "fullUrl": "urn:uuid:1e4be02a-300c-5ba6-8497-e81042d8d61f",
+            "resource": {
+              "resourceType": "Patient",
+              "id": "1e4be02a-300c-5ba6-8497-e81042d8d61f",
+              "meta": {
+                "profile": [
+                  "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
+                  "http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Patient"
+                ],
+                "lastUpdated": "2026-09-25T12:00:00Z"
+              },
+              "extension": [
+                {
+                  "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+                  "extension": [
+                    {
+                      "url": "ombCategory",
+                      "valueCoding": {
+                        "system": "urn:oid:2.16.840.1.113883.6.238",
+                        "code": "2106-3",
+                        "display": "White"
+                      }
+                    },
+                    {
+                      "url": "text",
+                      "valueString": "White"
+                    }
+                  ]
+                },
+                {
+                  "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity",
+                  "extension": [
+                    {
+                      "url": "ombCategory",
+                      "valueCoding": {
+                        "system": "urn:oid:2.16.840.1.113883.6.238",
+                        "code": "2186-5",
+                        "display": "Not Hispanic or Latino"
+                      }
+                    },
+                    {
+                      "url": "text",
+                      "valueString": "Not Hispanic or Latino"
+                    }
+                  ]
+                }
+              ],
+              "identifier": [
+                {
+                  "system": "https://smart-health-checkin.org/connectathon/patient-id",
+                  "value": "aria-test-1981"
+                }
+              ],
+              "name": [
+                {
+                  "use": "official",
+                  "family": "Test",
+                  "given": [
+                    "Aria"
+                  ]
+                }
+              ],
+              "telecom": [
+                {
+                  "system": "phone",
+                  "value": "555-0100",
+                  "use": "mobile"
+                },
+                {
+                  "system": "email",
+                  "value": "aria.test@example.org"
+                }
+              ],
+              "gender": "female",
+              "birthDate": "1981-04-12",
+              "address": [
+                {
+                  "use": "home",
+                  "line": [
+                    "100 Example Street"
+                  ],
+                  "city": "Madison",
+                  "state": "WI",
+                  "postalCode": "53703",
+                  "country": "US"
+                }
+              ],
+              "communication": [
+                {
+                  "language": {
+                    "coding": [
+                      {
+                        "system": "urn:ietf:bcp:47",
+                        "code": "en",
+                        "display": "English"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "qr-phq2",
+      "mediaType": "application/fhir+json",
+      "fhirVersion": "4.0.1",
+      "fulfills": [
+        "phq2"
+      ],
+      "value": {
+        "resourceType": "QuestionnaireResponse",
+        "questionnaire": "https://smart-health-checkin.org/connectathon/Questionnaire/phq-2.json",
+        "status": "completed",
+        "subject": {
+          "reference": "urn:uuid:1e4be02a-300c-5ba6-8497-e81042d8d61f"
+        },
+        "authored": "2026-10-01T15:00:00Z",
+        "item": [
+          {
+            "linkId": "phq2-1",
+            "text": "Little interest or pleasure in doing things",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          },
+          {
+            "linkId": "phq2-2",
+            "text": "Feeling down, depressed, or hopeless",
+            "answer": [
+              {
+                "valueCoding": {
+                  "system": "http://loinc.org",
+                  "code": "LA6569-3",
+                  "display": "Several days"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "requestStatus": [
+    {
+      "item": "patient",
+      "status": "fulfilled"
+    },
+    {
+      "item": "phq2",
+      "status": "fulfilled"
+    }
+  ]
+}

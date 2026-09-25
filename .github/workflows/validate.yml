@@ -5,9 +5,9 @@ name: Validate FHIR
 on:
   push:
     branches: [main]
-    paths: ["Questionnaire/**", "testing-wallet/data/**", "scripts/validate-fhir.sh"]
+    paths: ["Questionnaire/**", "testing-wallet/data/**", "responses/**", "scripts/validate-fhir.sh"]
   pull_request:
-    paths: ["Questionnaire/**", "testing-wallet/data/**", "scripts/validate-fhir.sh"]
+    paths: ["Questionnaire/**", "testing-wallet/data/**", "responses/**", "scripts/validate-fhir.sh"]
   workflow_dispatch:
 
 jobs:

@@ -140,11 +140,15 @@ def base_record():
         (uid("coverage"), coverage()),
     ]
 
-def finish(r):
-    # CARIN's profiles require meta.lastUpdated; set it everywhere for consistency.
-    return {**r, "meta": {**r.get("meta", {}), "lastUpdated": "2026-09-25T12:00:00Z"}}
+def finish(u, r):
+    # Resource id is the fullUrl's UUID, so a wallet can re-bundle a subset and
+    # keep references resolvable. CARIN's profiles require meta.lastUpdated;
+    # set it everywhere for consistency.
+    return {"resourceType": r["resourceType"], "id": u.removeprefix("urn:uuid:"),
+            **{k: v for k, v in r.items() if k != "resourceType"},
+            "meta": {**r.get("meta", {}), "lastUpdated": "2026-09-25T12:00:00Z"}}
 def bundle(entries):
-    return {"resourceType": "Bundle", "type": "collection", "entry": [{"fullUrl": u, "resource": finish(r)} for u, r in entries]}
+    return {"resourceType": "Bundle", "type": "collection", "entry": [{"fullUrl": u, "resource": finish(u, r)} for u, r in entries]}
 
 def large_record():
     entries = base_record()

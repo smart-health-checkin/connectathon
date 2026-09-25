@@ -245,6 +245,9 @@ writeFileSync(
   ) + "\n",
 );
 
+// sample responses, raw
+if (existsSync(join(ROOT, "responses"))) cpSync(join(ROOT, "responses"), join(OUT, "responses"), { recursive: true });
+
 // participants and schema, raw
 mkdirSync(join(OUT, "participants"), { recursive: true });
 cpSync(join(ROOT, "participants"), join(OUT, "participants"), { recursive: true });
