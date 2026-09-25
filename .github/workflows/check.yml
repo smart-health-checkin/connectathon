@@ -2,6 +2,8 @@ name: Check
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
   check:
@@ -12,3 +14,5 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Validate participants, requests, questionnaires, and catalog
         run: bun run check
+      - name: Unit tests
+        run: bun test tests

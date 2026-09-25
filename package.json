@@ -5,7 +5,8 @@
   "scripts": {
     "build": "bun scripts/build.ts",
     "check": "bun scripts/build.ts --check-only",
-    "serve": "bun scripts/serve.ts"
+    "serve": "bun scripts/serve.ts",
+    "test": "bun test tests"
   },
   "dependencies": {
     "@smart-health-checkin/client": "github:smart-health-checkin/client",
