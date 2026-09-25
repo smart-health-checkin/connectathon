@@ -117,9 +117,15 @@ The full hand-off, with timeouts and a checklist, is at <https://smart-health-ch
 
 ## How we'll work together
 
-- **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](#shared-resources). An EHR lists a public check-in page URL. A web wallet adds its entry to the [registry](#wallet-registry). A native wallet lists an install link and the name of its test patient.
+- **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](#shared-resources):
+  - EHR: a public check-in page URL.
+  - Web wallet: an entry in the [registry](#wallet-registry).
+  - Native wallet: an install link and the name of its test patient.
 - **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people.
-- **Main room plus your own breakout rooms.** The event runs in one Zoom meeting. Kickoff, check-ins, and the report-out happen in the main room. When a pair needs to debug together, one of them starts a Slack huddle in a direct message with the other, which has video and screen sharing. For a group, or if someone isn't on the Slack, open a room at `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in `#kill-the-clipboard`.
+- **Main room plus your own breakout rooms.** The event runs in one Zoom meeting.
+  - Kickoff, check-ins, and the report-out happen in the main room.
+  - Two people debugging together: start a Slack huddle in a direct message. It has video and screen sharing.
+  - A group, or someone not on the Slack: open `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in `#kill-the-clipboard`.
 - **Try to test with every counterpart** over the course of the event.
 - **Record failures as well as passes** by [filing a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml). A failure often points to a spec gap or an interop bug, and its issue is where it gets discussed.
 - **Synthetic data only.** Never use real patient records, even your own.
@@ -340,8 +346,13 @@ Baseline 4, kept separate so size limits don't block the minimum scenarios.
 
 Two test tools let each participant run the scenarios above against a known-good counterpart without waiting for a partner.
 
-- **[Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/)** sends any baseline or scenario request, alone or combined, to any wallet in the registry or to the phone's own wallet. It checks the response against the spec and reports each check as pass or fail. When a response is malformed, it says what is wrong.
-- **[Testing wallet](https://smart-health-checkin.org/connectathon/testing-wallet/)** answers with chosen data, statuses, and artifact shapes. It can also send deliberately broken responses, such as a wrong canonical echo, a missing status, an unaccepted media type, or an oversized payload, so EHRs can test their error handling. It checks each incoming request against [§5](https://smart-health-checkin.org/spec/#5-clinical-request-model) and reports problems.
+- **[Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/)**
+  - Sends any scenario's request to any registry wallet, or to the phone's own wallet.
+  - Checks the response against the spec and lists each check as pass or fail, with what went wrong.
+- **[Testing wallet](https://smart-health-checkin.org/connectathon/testing-wallet/)**
+  - Answers with a choice of patient, statuses, and artifact shapes.
+  - Checks each incoming request against [§5](https://smart-health-checkin.org/spec/#5-clinical-request-model) and reports problems.
+  - Can send deliberately broken responses so EHRs can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, an oversized payload, and more. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md).
 
 Each scenario is a named test case in both tools, so a self-serve run gives a pass or fail, with a link that files it as a result.
 
