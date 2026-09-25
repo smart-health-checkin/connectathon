@@ -15,54 +15,105 @@ Event resources: <https://smart-health-checkin.org/connectathon/>, published fro
 
 ## Roles
 
+There are three kinds of participant. Each one's steps are below, with links to the spec sections that define them. The exact identifiers and message formats are in the expandable reference under each role.
+
 ### EHR
 
-The practice system. Its check-in page builds a request, offers the patient a choice of wallet, and processes the response in the same page.
+The practice system. Its check-in page builds a request, lets the patient choose a wallet, and handles the response in the same page.
 
-1. Build a SMART request: JSON with `type`, `version`, a unique `id`, and `items[]`. Each item has an `id`, a `title`, a `content` selector, and `accept[]` ([§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model)).
-2. Wrap it for the Digital Credentials API. Put the request JSON string in `ItemsRequest.requestInfo["org.smarthealthit.checkin.request"]`, with `docType` `org.smarthealthit.checkin.1`, namespace `org.smarthealthit.checkin`, and element `smart_health_checkin_response`. Tag-24 wrap it inside a version `1.0` `DeviceRequest`. Generate a fresh P-256 HPKE key and a CBOR `encryptionInfo` holding a nonce and the public key ([§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants), [§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction), [A.3](https://smart-health-checkin.org/spec/#a-3-devicerequest-docrequest-and-tag-24-itemsrequest)).
-3. Send `{protocol: "org-iso-mdoc", data: {deviceRequest, encryptionInfo}}` ([A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers)) to the wallet the patient picked. For a native wallet, call `navigator.credentials.get`. For a web wallet, use the [web wallet hand-off](#web-wallet) below.
-4. Open the response. Base64url-decode `data.response`, open the HPKE envelope with the private key and a `SessionTranscript` built from the exact `encryptionInfo` string and the page's origin, then check the `DeviceResponse`, the issuer and device signatures, and the digest over the response item ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript), [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing), [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist)).
-5. Check the SMART response against the request: `requestId` matches, there is exactly one status per item, and every artifact's media type was accepted by the items it claims to fulfill ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation)). Then show staff each item's status and data.
+1. **Build the request.** A small JSON document listing the items you want: records by FHIR profile, or a form to fill in. ([§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model))
+2. **Wrap it and create a one-time key.** The request goes inside an mdoc request, and the page makes a fresh encryption key for the answer. ([§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction))
+3. **Send it to the wallet the patient picked.** A native wallet goes through the browser's Digital Credentials API. A web wallet goes through the [web wallet hand-off](#web-wallet). ([A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers))
+4. **Decrypt the answer and check its signatures.** ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing), [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist))
+5. **Check the answer against the request, then show it to staff.** ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation))
 
-The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages. Install it from GitHub: `npm install github:smart-health-checkin/client`.
+The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages. Install it from GitHub with `npm install github:smart-health-checkin/client`.
+
+<details>
+<summary>Reference: identifiers and checks for EHR developers</summary>
+
+| What | Value | Spec |
+|---|---|---|
+| Request fields | `type`, `version`, `id`, `items[]`. Each item has `id`, `title`, `content`, `accept[]`. | [§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model) |
+| Where the request goes | `ItemsRequest.requestInfo["org.smarthealthit.checkin.request"]`, as a JSON string | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
+| mdoc `docType` | `org.smarthealthit.checkin.1` | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
+| mdoc namespace and element | `org.smarthealthit.checkin`, `smart_health_checkin_response` | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
+| `DeviceRequest` | version `1.0`, with the `ItemsRequest` tag-24 wrapped | [A.3](https://smart-health-checkin.org/spec/#a-3-devicerequest-docrequest-and-tag-24-itemsrequest) |
+| Encryption | a fresh P-256 HPKE key per request, sent in a CBOR `encryptionInfo` with a nonce | [§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction) |
+| Digital Credentials API argument | `{ protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } }` | [A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers) |
+| Session transcript | built from the exact `encryptionInfo` string and the page's origin | [§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript) |
+| Response checks | HPKE opens; `DeviceResponse` version and status; issuer signature; device signature; value digest | [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist) |
+| Cross-checks | `requestId` matches; one status per item; every artifact's media type accepted by the items it fulfills | [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) |
+
+</details>
 
 ### Native wallet
 
-A health app installed on the phone. The browser passes it the EHR's request through the Digital Credentials API, and the operating system shows it as a choice to the patient. On Android, the app registers with Credential Manager, and a matcher decides whether it can answer a request.
+A health app installed on the phone. The browser passes it the EHR's request through the Digital Credentials API, and the phone shows it as a choice to the patient. On Android, the app registers with Credential Manager, and a small matcher decides whether it can answer a request.
 
-1. Validate the request: the `DeviceRequest`, the `ItemsRequest`, the request carrier, and the SMART request inside it ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction)).
-2. Show the patient each item and let them choose, item by item. `required: true` is advice, not consent ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction)).
-3. Build a SMART response with one status per item and the artifacts the patient chose ([§6.1](https://smart-health-checkin.org/spec/#6-1-normative-typescript-model), [§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics)).
-4. Put the response JSON in an issuer-signed item, sign the MSO and device authentication, and HPKE-encrypt the `DeviceResponse` to the EHR's key, using the origin the platform supplies ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript), [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction), [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)).
+1. **Check the request.** ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction))
+2. **Ask the patient, item by item.** `required: true` is the clinic's advice, not consent.
+3. **Build the answer**, with one status per item and the records or form answers the patient chose. ([§6.1](https://smart-health-checkin.org/spec/#6-1-normative-typescript-model), [§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics))
+4. **Sign and encrypt it for the EHR**, bound to the origin the phone reports. ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction), [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing))
+
+<details>
+<summary>Reference: what the wallet checks and produces</summary>
+
+| What | Detail | Spec |
+|---|---|---|
+| Request checks | the `DeviceRequest`, the tag-24 `ItemsRequest`, the request carrier, and the SMART request inside it | [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) |
+| Origin | taken from the platform, never from the request | [§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript) |
+| Response location | the SMART response JSON as an issuer-signed item, element `smart_health_checkin_response` | [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) |
+| Signatures | issuer signature over the MSO; device signature over the session | [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) |
+| Encryption | HPKE to the EHR's key from `encryptionInfo`, with the session transcript as `info` | [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing) |
+
+</details>
 
 ### Web wallet
 
-A health app that runs as a website. It does the same work as a native wallet, but the EHR reaches it by opening a tab and exchanging `postMessage` messages instead of calling the Digital Credentials API. The request and response inside the messages are exactly the ones a native wallet gets and returns.
+A health app that runs as a website. It does the same work as a native wallet, but the EHR reaches it by opening it in a tab instead of through the Digital Credentials API. The two pages exchange three messages:
 
-1. The EHR opens the wallet's `walletUrl` from the [registry](#wallet-registry) in a new tab, during the patient's click.
-2. The wallet signals it has loaded:
-   ```js
-   window.opener.postMessage({ type: "digital-credentials/web-wallet/ready" }, "*");
-   ```
-3. The EHR sends the request, targeted at the wallet's origin:
-   ```js
-   { type: "digital-credentials/web-wallet/request",
-     requestId: "<opaque>",
-     credentialRequestOptions: { digital: { requests: [
-       { protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } } ] } } }
-   ```
-4. The wallet takes the EHR's origin from `event.origin` on that message, shows it to the patient, and uses it in the `SessionTranscript` ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript)). It never uses an origin written inside the message. It then does native-wallet steps 1 to 4.
-5. The wallet replies to that origin:
-   ```js
-   { type: "digital-credentials/web-wallet/response",
-     requestId: "<same>",
-     outcome: "approved",
-     credential: { protocol: "org-iso-mdoc", data: { response } } }
-   ```
-   `outcome` is `"declined"`, or `"error"` with a `message`, when the patient cancels or something fails.
+1. **Ready.** The wallet tells the EHR page it has loaded.
+2. **Request.** The EHR page sends the same request a native wallet would get.
+3. **Response.** The wallet sends back the same encrypted answer a native wallet would return, or says the patient declined or something failed.
 
-Full hand-off details: <https://smart-health-checkin.org/connectathon/web-wallet-handoff.html>.
+The wallet learns which page is asking from the browser (`event.origin`), never from the message itself. It shows that origin to the patient and binds the answer to it. ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript))
+
+<details>
+<summary>Reference: the three messages</summary>
+
+Ready, from the wallet to its opener:
+
+```js
+{ type: "digital-credentials/web-wallet/ready" }
+```
+
+Request, from the EHR page to the wallet's origin:
+
+```js
+{
+  type: "digital-credentials/web-wallet/request",
+  requestId: "<opaque>",
+  credentialRequestOptions: {
+    digital: { requests: [{ protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } }] }
+  }
+}
+```
+
+Response, from the wallet to the EHR page's origin:
+
+```js
+{
+  type: "digital-credentials/web-wallet/response",
+  requestId: "<same as the request>",
+  outcome: "approved",   // or "declined", or "error" with a message
+  credential: { protocol: "org-iso-mdoc", data: { response } }
+}
+```
+
+</details>
+
+The full hand-off, with timeouts and a checklist, is at <https://smart-health-checkin.org/connectathon/web-wallet-handoff.html>.
 
 ## How we'll work together
 

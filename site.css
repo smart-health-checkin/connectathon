@@ -11,7 +11,9 @@ a { color: var(--brand); }
 .doc h3 { font-size: var(--fs-md); margin: var(--space-6) 0 var(--space-2); }
 .doc p, .doc li { max-width: 72ch; }
 .doc li { margin: 4px 0; }
-code { font-family: var(--font-mono); font-size: 0.86em; background: var(--gray-100); padding: 1px 5px; border-radius: var(--radius-sm, 4px); overflow-wrap: anywhere; }
+code { font-family: var(--font-mono); font-size: 0.86em; background: var(--gray-100); padding: 1px 5px; border-radius: var(--radius-sm, 4px); overflow-wrap: break-word; }
+.doc td code { white-space: nowrap; }
+.doc td:last-child code { white-space: normal; }
 pre { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); overflow-x: auto; }
 pre code { background: none; padding: 0; font-size: 12.5px; line-height: 1.55; overflow-wrap: normal; }
 table { border-collapse: collapse; width: 100%; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
@@ -29,3 +31,7 @@ td.num { text-align: right; }
 .req h2 { font-size: var(--fs-md); margin: 0 0 var(--space-2); }
 .req ul { margin: 0 0 var(--space-2); padding-left: 20px; font-size: var(--fs-sm); }
 .draft { background: var(--warning-wash); border: 1px solid #F0C98A; border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); }
+details { margin: var(--space-3) 0; border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: 0 var(--space-4); }
+details > summary { cursor: pointer; padding: var(--space-3) 0; font-weight: 600; color: var(--fg-2); }
+details[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: var(--space-3); }
+details table { margin-bottom: var(--space-3); }
