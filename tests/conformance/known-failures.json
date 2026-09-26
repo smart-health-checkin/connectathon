@@ -16,6 +16,8 @@
     "mdoc-verify/missing-validity-info": "checks.ts doesn't require validityInfo",
     "mdoc-verify/mso-doc-type-mismatch": "checks.ts doesn't compare MSO docType with the document's",
     "mdoc-verify/unknown-alg": "checks.ts (via client verify) doesn't read the protected alg",
-    "mdoc-verify/unsupported-digest-algorithm": "checks.ts doesn't check MSO digestAlgorithm"
+    "mdoc-verify/unsupported-digest-algorithm": "checks.ts doesn't check MSO digestAlgorithm",
+    "mdoc-verify/duplicate-key-device-response": "client cborDecode keeps the last duplicate map key",
+    "mdoc-verify/two-documents": "checks.ts looks only at the first document"
   }
 }
