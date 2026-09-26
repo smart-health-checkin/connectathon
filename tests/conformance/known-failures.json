@@ -12,12 +12,14 @@
     "wallet-response": "The testing wallet uses the client library's wallet code; the client's own run covers it."
   },
   "knownFailures": {
-    "hpke-open/wrong-response-tag": "openWalletResponse (client) doesn't check the \"dcapi\" tag",
-    "mdoc-verify/missing-validity-info": "checks.ts doesn't require validityInfo",
-    "mdoc-verify/mso-doc-type-mismatch": "checks.ts doesn't compare MSO docType with the document's",
-    "mdoc-verify/unknown-alg": "checks.ts (via client verify) doesn't read the protected alg",
-    "mdoc-verify/unsupported-digest-algorithm": "checks.ts doesn't check MSO digestAlgorithm",
-    "mdoc-verify/duplicate-key-device-response": "client cborDecode keeps the last duplicate map key",
-    "mdoc-verify/two-documents": "checks.ts looks only at the first document"
+    "hpke-open/padded-base64url": "rejects instead of warning (VRS-2)",
+    "hpke-open/wrong-protocol": "rejects instead of warning (VRS-2)",
+    "mdoc-verify/attached-payload-other-session": "rejects instead of warning (VRS-7)",
+    "mdoc-verify/digest-mismatch": "rejects instead of warning (VRS-6)",
+    "mdoc-verify/digest-missing": "rejects instead of warning (VRS-6)",
+    "mdoc-verify/status-not-ok": "rejects instead of warning (VRS-4)",
+    "mdoc-verify/tampered-device-signature": "rejects instead of warning (VRS-7)",
+    "mdoc-verify/tampered-issuer-signature": "rejects instead of warning (VRS-5)",
+    "mdoc-verify/version-unknown": "rejects instead of warning (VRS-4)"
   }
 }

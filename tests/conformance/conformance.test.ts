@@ -17,7 +17,7 @@ if (process.env.SPEC_CONFORMANCE_DIR || !existsSync(join(ROOT, ".ref"))) {
   if (!fetched.success) throw new Error("could not fetch conformance cases: run scripts/fetch-conformance.sh");
 }
 
-type Case = { id: string; capability: string; description: string; inputs: Record<string, string>; expected: { valid: boolean }; status: string };
+type Case = { id: string; capability: string; description: string; inputs: Record<string, string>; expected: { outcome: string; warnings?: string[] }; status: string };
 const manifest = JSON.parse(readFileSync(join(ROOT, "manifest.json"), "utf8")) as { cases: Case[] };
 const config = JSON.parse(readFileSync(join(import.meta.dir, "known-failures.json"), "utf8")) as { claims: string[]; knownFailures: Record<string, string> };
 const text = (p: string) => readFileSync(join(ROOT, p), "utf8");
@@ -44,7 +44,16 @@ async function run(c: Case): Promise<boolean> {
   });
   // mdoc-verify covers the response element too, which the EHR files under "SMART response".
   const wireFailed = result.checks.some((ch) => ch.outcome === "fail" && (groupOf(ch.id) === "Wire" || ch.id === "element"));
-  return !wireFailed === c.expected.valid;
+  const accepted = !wireFailed;
+  // Warning reporting is advisory (RCV-1): note it, don't gate on it.
+  if (accepted && c.expected.outcome === "warn" && !result.checks.some((ch) => ch.outcome === "warn")) {
+    console.log(`advisory: ${c.id} accepted without reporting a warning (${c.expected.warnings?.join(", ")})`);
+  }
+  switch (c.expected.outcome) {
+    case "reject": return !accepted;
+    case "warn-or-reject": return true;
+    default: return accepted;
+  }
 }
 
 const claimed = new Set(config.claims);
