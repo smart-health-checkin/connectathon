@@ -184,3 +184,4 @@ code.clip { display: block; overflow-wrap: anywhere; word-break: break-all; }
 .tree .leaf { overflow-wrap: anywhere; word-break: break-word; }
 .tree .k { color: var(--accent-ink); } .tree .t { color: var(--ink-3); }
 .tree .s { color: var(--pass); } .tree .b { color: var(--warn); } .tree .v { color: var(--ink); }
+.actions .share-link { align-self: center; font-size: 13px; margin-left: auto; }

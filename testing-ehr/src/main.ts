@@ -393,7 +393,7 @@ function show(r: Run) {
   const verdict = `<section class="verdict ${r.verdict}"><div class="head"><span class="mark">${mark}</span><b>${esc(r.headline)}</b></div>
     <div class="meta"><span>${esc(r.label)}</span><span>→ ${esc(r.walletName)}</span>${r.faults.length ? `<span>faults: ${esc(r.faults.join(", "))}</span>` : ""}${kb ? `<span>${kb}</span>` : ""}<span>${(r.ms / 1000).toFixed(1)} s</span><span>${new Date(r.at).toLocaleTimeString()}</span></div>
     ${r.message ? `<p class="small">${esc(r.message)}</p>` : ""}
-    <div class="actions"><a id="file" class="btn primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="btn" data-act="download">Download run</button></div></section>`;
+    <div class="actions"><a id="file" class="btn primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="btn" data-act="download">Download run</button><a class="share-link" target="_blank" rel="noopener" href="${esc(shareLink("testing-ehr", r.verdict, r.at))}">Tell us how it went</a></div></section>`;
 
   const failCard = (c: Check, warn = false) =>
     `<div class="failure ${warn ? "warn" : ""}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec ${esc(c.rule ?? "")}</a>` : ""}${layerFor(c.id) && r.wire ? ` <a href="#layer-${layerFor(c.id)}" data-goto-layer="${layerFor(c.id)}">See the bytes</a>` : ""}</div>`;
@@ -495,6 +495,11 @@ function renderHistory() {
     b.onclick = () => show(r);
     return b;
   }));
+}
+
+/** The share page, with a note about what was just tried (not a structured report). */
+function shareLink(from: string, result: string, at: string): string {
+  return `https://smart-health-checkin.org/connectathon/share.html#${new URLSearchParams({ from, result, time: at })}`;
 }
 
 function resultLink(r: Run): string {

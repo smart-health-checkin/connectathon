@@ -339,6 +339,7 @@ async function showRequest(s: Session) {
       $("consent").hidden = true;
       $("done").hidden = false;
       $("done-text").textContent = settings.faults.size ? `Sent, with faults: ${[...settings.faults].join(", ")}.` : "Sent. You can close this tab.";
+      setShareLink("shared");
       if (!settings.testing) setTimeout(() => window.close(), 800);
     } catch (e) {
       showError(`Could not build the response: ${(e as Error).message}`);
@@ -361,6 +362,7 @@ async function showRequest(s: Session) {
       $("consent").hidden = true;
       $("done").hidden = false;
       $("done-text").textContent = "Declined every item; the clinic was told. You can close this tab.";
+      setShareLink("declined");
       if (!settings.testing) setTimeout(() => window.close(), 800);
     } catch (e) {
       showError(`Could not build the response: ${(e as Error).message}`);
@@ -397,4 +399,10 @@ renderTestingPanel();
 if (!served.opened) {
   $("waiting").hidden = true;
   $("standalone").hidden = false;
+}
+
+/** Point "Tell us how it went" at the share page, with a note about this answer. */
+function setShareLink(result: string) {
+  const params = new URLSearchParams({ from: "testing-wallet", result, time: new Date().toISOString() });
+  ($("share-link") as HTMLAnchorElement).href = `https://smart-health-checkin.org/connectathon/share.html#${params}`;
 }

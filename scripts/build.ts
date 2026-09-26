@@ -15,6 +15,7 @@
  */
 import { Marked } from "marked";
 import { gfmHeadingId } from "marked-gfm-heading-id";
+import { FORM_URL, PROMPTS } from "./links.ts";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
@@ -260,6 +261,101 @@ ${body}
 `;
 }
 
+/** The "Share your experience" page: prompts to copy into any AI assistant, and the form. */
+function sharePage(prompts: Array<{ file: string; title: string; who: string; what: string; text: string }>): string {
+  // Deep links carry the prompt only when it fits comfortably in a URL; otherwise they open a
+  // new chat and the page asks the person to paste what the button copied.
+  const MAX_URL = 6000;
+  const deep = (base: string, text: string) => {
+    const url = base + encodeURIComponent(text);
+    return url.length <= MAX_URL ? { url, prefilled: true } : { url: base.replace(/[?&]q=$/, ""), prefilled: false };
+  };
+  const data = prompts.map((pr) => ({
+    id: pr.file.replace(/\.md$/, ""),
+    text: pr.text,
+    claude: deep("https://claude.ai/new?q=", pr.text),
+    chatgpt: deep("https://chatgpt.com/?q=", pr.text),
+  }));
+  const cards = prompts.map((pr, i) => `
+<section class="prompt-card" data-prompt="${esc(data[i]!.id)}">
+  <h3>${esc(pr.title)}</h3>
+  <p class="who">${esc(pr.who)}</p>
+  <p>${esc(pr.what)}</p>
+  <div class="prompt-actions">
+    <button type="button" class="smart-btn primary" data-act="copy">Copy the whole prompt</button>
+    <button type="button" class="smart-btn" data-act="claude">Open in Claude</button>
+    <button type="button" class="smart-btn" data-act="chatgpt">Open in ChatGPT</button>
+    <a href="prompts/${esc(pr.file)}">View as text</a>
+  </div>
+  <p class="prompt-status" role="status"></p>
+</section>`).join("");
+  return `<article class="doc share">
+<h1>Share your experience</h1>
+<p>We want to hear how SMART Health Check-in worked for you: what was easy, what was confusing, and what would make you trust it. You can write in your own words, or use an AI assistant as a guide.</p>
+<div id="context" class="context-note" hidden>
+  <p><b>Your last try:</b> <span id="context-text"></span></p>
+  <button type="button" class="smart-btn" id="copy-context">Copy this note</button>
+  <span class="prompt-status" id="context-status" role="status"></span>
+</div>
+<h2 id="ai-guide">Use an AI assistant as your guide</h2>
+<p>Each prompt below turns an AI assistant into a guide for this event. Copy it and paste it into any assistant or tool you like, such as Claude, ChatGPT, Gemini, or Copilot. The buttons below copy the prompt and open a new chat; if the prompt doesn't appear in the chat, paste it (Ctrl+V or ⌘V, or press and hold, then Paste, on a phone).</p>
+${cards}
+<h2 id="send-your-report">Send your report</h2>
+<p>Paste your report, or just write a few sentences, into the <a href="${esc(FORM_URL)}">experience form</a>. You don't need an account.</p>
+<p>Reports are public by default: we may publish them on this site and in summaries, credited with the name and organization you give, or anonymously if you leave those blank. Your email address is never published. To keep your report private, so only the organizers see it, tick the box at the end of the form.</p>
+<h2>For developers: structured results</h2>
+<p>If you ran the formal test scenarios, you can also record each run as a <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">structured result</a>; they're collected on the <a href="results.html">results page</a>. That's optional. The experience report is what matters most here.</p>
+</article>
+<script type="application/json" id="prompt-data">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>
+<script>
+(() => {
+  const prompts = JSON.parse(document.getElementById("prompt-data").textContent);
+  const byId = Object.fromEntries(prompts.map((p) => [p.id, p]));
+  // Copy synchronously inside the click where possible (Safari drops permission after an await).
+  async function copy(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch {}
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch {}
+    ta.remove(); return ok;
+  }
+  for (const card of document.querySelectorAll(".prompt-card")) {
+    const p = byId[card.dataset.prompt];
+    const status = card.querySelector(".prompt-status");
+    card.addEventListener("click", async (e) => {
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (!act) return;
+      const link = act === "claude" ? p.claude : act === "chatgpt" ? p.chatgpt : null;
+      // Start the copy first, while this page still has focus, then open the chat.
+      const copying = copy(p.text);
+      let opened = null;
+      if (link) { opened = window.open(link.url, "_blank"); if (opened) opened.opener = null; }
+      const ok = await copying;
+      if (!link) status.textContent = ok ? "Copied. Paste it into any AI assistant to start." : "Couldn't copy automatically. Open View as text and copy it from there.";
+      else if (link.prefilled) status.textContent = "Opened a new chat with the prompt filled in. If it's empty, paste it: it's copied.";
+      else status.textContent = ok ? "Copied, and opened a new chat. Paste the prompt there to start." : "Opened a new chat. Copy the prompt from View as text and paste it there.";
+      if (link && !opened) status.textContent += " (If no new tab opened, your browser may have blocked it.)";
+    });
+  }
+  // A note from the app that sent you here, to paste into the chat or the form.
+  const h = new URLSearchParams(location.hash.slice(1));
+  const from = h.get("from");
+  if (from) {
+    const names = { "clinic-demo": "the clinic check-in demo", "demo-wallet": "the Demo wallet", "autofill-demo": "the allergy autofill demo", "kiosk-demo": "the kiosk demo", "testing-ehr": "the SMART Testing EHR", "testing-wallet": "the SMART Testing Wallet" };
+    const when = h.get("time") ? new Date(h.get("time")) : null;
+    const note = "I just tried " + (names[from] || from) + (h.get("result") ? " (outcome: " + h.get("result") + ")" : "") +
+      (when && !isNaN(when) ? " at " + when.toLocaleString() : "") + ".";
+    document.getElementById("context-text").textContent = note;
+    document.getElementById("context").hidden = false;
+    document.getElementById("copy-context").onclick = async () => {
+      document.getElementById("context-status").textContent = (await copy(note)) ? "Copied." : "Couldn't copy; select the text instead.";
+    };
+  }
+})();
+</script>`;
+}
+
 function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
   const md = readFileSync(join(ROOT, src), "utf8");
   const title = md.match(/^# (.+)$/m)?.[1] ?? fallbackTitle;
@@ -271,6 +367,17 @@ cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
 cpSync(join(ROOT, "nav.json"), join(OUT, "nav.json"));
 cpSync(join(ROOT, "icons"), join(OUT, "icons"), { recursive: true });
 renderMarkdownPage("scenarios.md", "index.html", "SMART Health Check-in connectathon");
+renderMarkdownPage("patients.md", "patients.html", "SMART Health Check-in for patients and community members");
+
+// Prompts people paste into an AI assistant, and the page that offers them.
+mkdirSync(join(OUT, "prompts"), { recursive: true });
+const promptTexts = PROMPTS.map((pr) => {
+  const text = readFileSync(join(ROOT, "prompts", pr.file), "utf8").replaceAll("{{FORM_URL}}", FORM_URL);
+  if (text.includes("{{")) throw new Error(`prompts/${pr.file}: unfilled placeholder`);
+  writeFileSync(join(OUT, "prompts", pr.file), text);
+  return { ...pr, text };
+});
+writeFileSync(join(OUT, "share.html"), page("Share your experience", sharePage(promptTexts)));
 
 // wallets.json
 writeFileSync(join(OUT, "wallets.json"), JSON.stringify(registry, null, 2) + "\n");

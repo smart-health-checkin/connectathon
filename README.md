@@ -4,14 +4,18 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 
 | Path | What it is |
 |---|---|
-| `scenarios.md` | The test scenarios. Rendered as the site's front page. |
+| `scenarios.md` | Who the event is for, how to join, and the test scenarios. Rendered as the site's front page. |
+| `patients.md` | Getting started for patients and community members. |
+| `prompts/` | Prompts people paste into any AI assistant: a patient guide and an implementer debrief. Offered on the generated [share page](https://smart-health-checkin.org/connectathon/share.html). |
 | `participants/` | One file per organization. [How to register](CONTRIBUTING.md). |
 | `requests/` | Baseline and optional-scenario requests. |
 | `Questionnaire/` | Example FHIR Questionnaires, served at their canonical URLs. |
 | `catalog.json` | Test cases used by the testing EHR and testing wallet. |
 | `testing-ehr/`, `testing-wallet/` | The test tools. |
+| `scripts/links.ts` | The experience-form URL and the prompt list, used by the share page and the prompts. |
+| `tools/experience-form/` | Apps Script that builds the experience-report Google Form. |
 
-`wallets.json`, the directory, and the results page are generated at build time.
+`wallets.json`, the directory, the results page, and the share page are generated at build time.
 
 ```
 bun install

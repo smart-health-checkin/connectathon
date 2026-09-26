@@ -43,3 +43,18 @@ details table { margin-bottom: var(--space-3); }
   .doc details td:first-child { font-weight: 600; }
   .doc details td code { white-space: normal; }
 }
+
+/* Share your experience */
+.share .prompt-card { border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: var(--space-4); margin: var(--space-4) 0; }
+.share .prompt-card h3 { margin-top: 0; }
+.share .who { color: var(--fg-3); font-size: var(--fs-sm); margin-top: -4px; }
+.share .prompt-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-top: var(--space-3); }
+.share .prompt-status { font-size: var(--fs-sm); color: var(--fg-2); min-height: 1.2em; margin: var(--space-2) 0 0; }
+.share .context-note { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); margin: var(--space-4) 0; }
+.share .context-note p { margin: 0 0 var(--space-2); }
+/* Pick your path */
+.paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--space-3); margin: var(--space-4) 0; }
+.paths a.path { display: block; border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); text-decoration: none; color: var(--fg-1); }
+.paths a.path:hover { border-color: var(--brand); }
+.paths a.path b { display: block; color: var(--brand); margin-bottom: 2px; }
+.paths a.path span { font-size: var(--fs-sm); color: var(--fg-2); }
