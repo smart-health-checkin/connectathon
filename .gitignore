@@ -4,3 +4,7 @@ _site/
 .DS_Store
 .tools/
 android-e2e-evidence/
+
+# The spec's conformance cases (scripts/fetch-conformance.sh)
+spec-conformance/
+.cache/

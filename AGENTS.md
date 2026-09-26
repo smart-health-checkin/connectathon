@@ -8,6 +8,9 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
 
 - Check: `bun install && bun run check && bun test tests && bunx tsc --noEmit -p .`.
   Build: `bun run build`.
+- Conformance: `tests/conformance/` runs the spec's conformance cases
+  (`hpke-open`, `mdoc-verify`) through the Testing EHR's own checks;
+  `known-failures.json` lists what fails today and must shrink as fixes land.
 - After changing the Testing EHR or testing wallet: `bun scripts/self-test.ts`
   (the live site), or `bun scripts/self-test.ts http://localhost:8794/` against
   a local build whose `_site/wallets.json` points at the local testing wallet.

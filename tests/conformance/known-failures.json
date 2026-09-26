@@ -1,0 +1,21 @@
+{
+  "claims": [
+    "hpke-open",
+    "mdoc-verify"
+  ],
+  "notClaimed": {
+    "request-json": "The Testing EHR builds requests; it doesn't validate them.",
+    "response-json": "Uses the client library's validator; the client's own run covers it.",
+    "cross-validation": "Uses the client library's validator; the client's own run covers it.",
+    "request-cbor": "Wallet side; the Testing EHR is a verifier.",
+    "transcript": "Uses the client library's transcript builder; the client's own run covers it.",
+    "wallet-response": "The testing wallet uses the client library's wallet code; the client's own run covers it."
+  },
+  "knownFailures": {
+    "hpke-open/wrong-response-tag": "openWalletResponse (client) doesn't check the \"dcapi\" tag",
+    "mdoc-verify/missing-validity-info": "checks.ts doesn't require validityInfo",
+    "mdoc-verify/mso-doc-type-mismatch": "checks.ts doesn't compare MSO docType with the document's",
+    "mdoc-verify/unknown-alg": "checks.ts (via client verify) doesn't read the protected alg",
+    "mdoc-verify/unsupported-digest-algorithm": "checks.ts doesn't check MSO digestAlgorithm"
+  }
+}
