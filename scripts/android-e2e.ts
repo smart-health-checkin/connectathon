@@ -192,6 +192,11 @@ async function setup() {
   step("waiting for the user to unlock");
   await waitForUnlock();
   step("unlocked");
+  // Gesture navigation makes SurfaceFlinger sample the screen behind the
+  // handle, and on software-rendered CI emulators that CPU read-back aborts
+  // SurfaceFlinger (GoldfishMapper::readFromHost), restarting the system every
+  // ~20 s. Three-button navigation has no sampled handle.
+  await adb("shell", "cmd", "overlay", "enable-exclusive", "--category", "com.android.internal.systemui.navbar.threebutton");
   if (APK || RELEASE) {
     let path = APK;
     if (RELEASE) { path = "/tmp/smart-checkin-wallet.apk"; await $`curl -sL -o ${path} ${RELEASE_APK}`; }
