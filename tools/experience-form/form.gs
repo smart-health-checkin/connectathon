@@ -28,11 +28,12 @@ function buildForm() {
     .setHelpText('Paste the report your assistant drafted, or write what happened in your own words.')
     .setRequired(true);
 
-  const role = form.addMultipleChoiceItem().setTitle('Which best describes you?');
+  const role = form.addCheckboxItem().setTitle('Which describe you? (choose all that apply)');
   role.setChoices([
     role.createChoice('Patient or caregiver'),
     role.createChoice('Clinic or practice staff'),
-    role.createChoice('Developer or implementer'),
+    role.createChoice('Developer of an EHR, portal, or other Verifier (the side that asks for data)'),
+    role.createChoice('Developer of a wallet (the side that shares data)'),
   ]).showOtherOption(true);
 
   form.addTextItem().setTitle('Your name (optional)');
