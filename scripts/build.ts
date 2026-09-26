@@ -545,7 +545,7 @@ writeFileSync(
   page(
     "Questionnaires",
     `<article class="doc"><h1>Questionnaires</h1><p>FHIR R4 Questionnaires for the connectathon. Each one's <code>url</code> is the address it is served from, so a wallet can fetch it by reference.</p></article>
-<div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>Form</th><th class="num">Questions</th><th>Item types</th><th>Canonical</th></tr></thead><tbody>${qRows}</tbody></table></div>`,
+<div class="smart-table-wrap"><table><thead><tr><th>Form</th><th class="num">Questions</th><th>Item types</th><th>Canonical</th></tr></thead><tbody>${qRows}</tbody></table></div>`,
   ),
 );
 
@@ -601,7 +601,7 @@ const dirSections = DIRECTORY_SECTIONS.map((sec) => {
   const rows = participants.flatMap((p) => p.components.filter((c) => c.role === sec.role).map((c) => dirRow(p, c, sec.cols))).join("");
   const head = ["Organization", sec.noun, ...(sec.cols.details ? ["Runs on"] : []), "How to test", ...(sec.cols.patient ? ["Test patient"] : []), "Status", "Contacts"];
   const table = rows
-    ? `<div class="smart-table-wrap"><table class="smart-table directory"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
+    ? `<div class="smart-table-wrap"><table class="directory"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
     : `<p class="muted">None registered yet.</p>`;
   return { ...sec, count: rows ? rows.split("<tr>").length - 1 : 0, html: `<section class="doc dir-section"><h2 id="${sec.id}">${sec.title}</h2><p>${sec.intro}</p></section>${table}` };
 });
@@ -677,7 +677,7 @@ if (!results) {
         const r = rs.find((x) => x.fields["Verifier"] === e && `${x.fields["Wallet"]} (${x.fields["Path"]})` === w);
         return r ? `<td><a class="smart-pill ${cls(r.fields["Result"])}" href="${r.url}">${esc(r.fields["Result"] || "?")} #${r.number}</a></td>` : "<td></td>";
       };
-      return `<h2>${esc(scenario)}</h2><div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>Verifier \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
+      return `<h2>${esc(scenario)}</h2><div class="smart-table-wrap"><table><thead><tr><th>Verifier \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
     })
     .join("");
 }

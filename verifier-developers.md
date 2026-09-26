@@ -42,7 +42,7 @@ The practice system. Its check-in page builds a request, lets the patient choose
 
 The [client library](https://smart-health-checkin.org/client/) does [steps 2 to 5 above](#what-you-build) for JavaScript pages: drop in `<smart-checkin-picker>`, or call `runCheckin`. Install it from its [latest release](https://github.com/smart-health-checkin/client/releases/latest); each release lists its install line.
 
-<details class="smart-details">
+<details>
 <summary>Reference: identifiers and checks</summary>
 
 | What | Value | Spec |

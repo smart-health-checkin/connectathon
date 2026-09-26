@@ -41,7 +41,7 @@ A health app installed on the phone. The browser passes it the EHR's request thr
 3. **Build the answer**, with one status per item and the records or form answers the patient chose. ([§6.1](https://smart-health-checkin.org/spec/#6-1-normative-typescript-model), [§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics))
 4. **Sign and encrypt it for the EHR**, bound to the origin the phone reports. ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction), [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing))
 
-<details class="smart-details">
+<details>
 <summary>Reference: what the wallet checks and produces</summary>
 
 | What | Detail | Spec |
@@ -66,7 +66,7 @@ A health app that runs as a website. It does the same work as a native wallet, b
 
 The wallet learns which page is asking from the browser (`event.origin`), never from the message itself. It shows that origin to the patient and binds the answer to it. ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript))
 
-<details class="smart-details">
+<details>
 <summary>Reference: the three messages</summary>
 
 Ready, from the wallet to its opener:

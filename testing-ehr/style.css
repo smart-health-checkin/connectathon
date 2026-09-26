@@ -4,7 +4,6 @@ html, body { margin: 0; }
 body { background: var(--bg-alt); font: 14px/1.5 var(--font-sans); }
 a { color: var(--brand); }
 button, input, select, textarea { font: inherit; color: inherit; }
-[hidden] { display: none !important; }
 
 /* The page's name, compact: the tool bar above already names the tool. */
 .tool-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px; }
@@ -102,8 +101,8 @@ input[type=checkbox], input[type=radio] { accent-color: var(--brand); }
 .failure .got { font-family: var(--font-mono); font-size: 12px; background: var(--surface); padding: 6px 8px; border-radius: 6px; overflow-wrap: anywhere; white-space: pre-wrap; }
 .failure .fix { font-size: 13px; color: var(--fg-2); }
 .failure a { font-size: 12px; }
-/* Links on a status wash: --brand-ink keeps 4.5:1 on every wash. */
-.verdict a:not(.smart-btn), .failure a { color: var(--brand-ink); }
+/* Links on the verdict's status wash: --brand-ink keeps 4.5:1 on every wash (the failures are callouts, which do this already). */
+.verdict a:not(.smart-btn) { color: var(--brand-ink); }
 
 /* Disclosures: the shared details, a little tighter, with a count on the right. */
 details.group { margin: 0; min-width: 0; }

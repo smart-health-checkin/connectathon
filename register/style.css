@@ -37,7 +37,6 @@ fieldset.choices legend { font-size:14px; font-weight:600; padding:0; margin-bot
 fieldset.choices label { font-weight:400; display:flex; gap:6px; align-items:flex-start; margin:0; }
 fieldset.choices input { margin-top:5px; flex:none; }
 .advice { margin:0; font-size:14px; }
-.advice[hidden] { display:none; }
 .examples { display:grid; gap:8px; }
 .examples > * { min-width:0; }
 .examples .smart-details { margin:0; }
