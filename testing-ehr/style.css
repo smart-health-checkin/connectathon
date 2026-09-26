@@ -88,9 +88,15 @@ textarea { font-family: var(--mono); font-size: 12px; resize: vertical; }
 
 .empty { color: var(--ink-3); font-size: 13px; padding: 30px 12px; text-align: center; border: 1px dashed var(--line-2); border-radius: 10px; }
 .waiting { display: flex; gap: 12px; align-items: center; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
-.spinner { width: 24px; height: 24px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); animation: spin 1s linear infinite; flex: none; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+/* Waiting: the picker's motion (client 0.4, motion="subtle"). A dim wedge in
+   the surface color turns round the starburst; only its transform animates. */
+.wait-mark { position: relative; width: 44px; height: 36px; flex: none; }
+.wait-mark svg { display: block; width: 100%; height: 100%; }
+[data-motion="subtle"] .wait-mark .veil { position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%; pointer-events: none;
+  background: conic-gradient(from 0deg, transparent 0deg, color-mix(in srgb, var(--surface) 58%, transparent) 50deg, color-mix(in srgb, var(--surface) 58%, transparent) 70deg, transparent 130deg, transparent 360deg);
+  animation: sweep 2.6s linear infinite; }
+@keyframes sweep { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .wait-mark .veil { display: none; } }
 
 .verdict { border-radius: 10px; padding: 12px; display: grid; gap: 8px; border: 1px solid; }
 .verdict.pass { background: var(--pass-wash); border-color: color-mix(in srgb, var(--pass) 40%, transparent); }

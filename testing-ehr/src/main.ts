@@ -281,6 +281,9 @@ function send() {
   void run({ request, label: r.label, caseId: r.caseId, wallet: chosen, session, faults });
 }
 
+// The SMART starburst, as <smart-checkin-picker> shows it while waiting.
+const STARBURST = `<svg viewBox="59 -1 91 75" aria-hidden="true" focusable="false"><polygon fill="#722772" points="83.91 0 93.42 0 104.56 18.47 116.03 0 125.28 0 104.58 33.96"/><polygon fill="#e24a31" points="60.61 35.72 65.37 28.16 87.76 28.16 76.67 9.49 81.3 1.87 101.89 35.72"/><polygon fill="#e77d26" points="128 1.73 132.76 9.55 121.5 28.16 144.06 28.16 148.69 35.72 107.4 35.72"/><polygon fill="#89bf44" points="148.72 38.78 143.97 46.33 121.57 46.33 132.66 65.16 128.03 72.78 107.44 38.78"/><polygon fill="#f1b42a" points="81.28 72.77 76.53 64.94 87.78 46.33 65.23 46.33 60.6 38.78 101.89 38.78"/><polygon fill="#64aed0" points="125.46 73.22 115.89 73.22 104.68 54.63 93.14 73.22 83.82 73.22 104.66 39.04"/></svg>`;
+
 async function run(input: { request: SmartCheckinRequest; label: string; caseId?: string; wallet: Wallet; session: WalletSession; faults: string[] }) {
   const { request, wallet } = input;
   const started = performance.now();
@@ -288,7 +291,7 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
   const path: Run["path"] = wallet.kind === "platform" ? "native" : "web";
   ($("send") as HTMLButtonElement).disabled = true;
   $("status").textContent = "Waiting for the wallet…";
-  $("result").innerHTML = `<div class="waiting"><span class="spinner"></span><div><b>Waiting for ${esc(wallet.name)}</b><p class="small">${path === "web" ? "It opened in a new tab. Share there, and the result shows here." : "The system sheet should be open."}</p></div></div>`;
+  $("result").innerHTML = `<div class="waiting" data-motion="subtle"><span class="wait-mark">${STARBURST}<span class="veil"></span></span><div><b>Waiting for ${esc(wallet.name)}</b><p class="small">${path === "web" ? "It opened in a new tab. Share there, and the result shows here." : "The system sheet should be open."}</p></div></div>`;
   $("log").textContent = "";
   if (matchMedia("(max-width: 860px)").matches) ($("setup") as HTMLDetailsElement).open = false;
 
