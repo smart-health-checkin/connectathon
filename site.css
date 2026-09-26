@@ -81,8 +81,11 @@ details table { margin-bottom: var(--space-3); }
 .paths a.path span { display: block; font-size: var(--fs-sm); color: var(--fg-2); }
 .paths a.path em { display: block; margin-top: var(--space-2); font-style: normal; font-size: var(--fs-sm); font-weight: 600; color: var(--brand); }
 
-/* Directory: below 40rem each component is a card (organization, role, component, Open). */
+/* Directory: one table per kind of component; below 40rem each component is a card. */
 .directory .open { font-weight: 600; }
+.directory .d-notes { font-size: var(--fs-sm); }
+.directory .d-details { color: var(--fg-2); }
+.dir-section h2 { scroll-margin-top: 80px; }
 @media (max-width: 40rem) {
   .table-wrap:has(.directory) { overflow: visible; background: none; }
   .directory, .directory tbody, .directory tr, .directory td { display: block; }
@@ -91,8 +94,7 @@ details table { margin-bottom: var(--space-3); }
   .directory td { border: 0; padding: 0; grid-column: 1 / -1; }
   .directory td.d-org { grid-column: 1; font-weight: 700; }
   .directory td.d-status { grid-column: 2; grid-row: 1; }
-  .directory td.d-role { color: var(--fg-2); }
-  .directory td.d-link:empty, .directory td.d-patient:empty, .directory td.d-contacts:empty { display: none; }
+  .directory td.d-link:empty, .directory td.d-details:empty, .directory td.d-patient:empty, .directory td.d-contacts:empty { display: none; }
   .directory td.d-link { margin: var(--space-2) 0; }
   .directory td.d-link .open { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-5); border: 1px solid var(--brand); border-radius: var(--radius-md, 8px); text-decoration: none; }
   .directory td[data-label]::before { content: attr(data-label) ": "; color: var(--fg-3); }

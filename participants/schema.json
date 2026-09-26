@@ -2,11 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://smart-health-checkin.org/connectathon/participants/schema.json",
   "title": "Connectathon participant",
-  "description": "One file per organization, named participants/<organization-id>.json.",
+  "description": "One file per organization, named participants/<organization-id>.json. Everything in it is public.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "organization",
+    "contacts",
     "components"
   ],
   "properties": {
@@ -21,12 +22,18 @@
     },
     "contacts": {
       "type": "array",
-      "description": "Who to reach during testing. Everything here is public.",
+      "minItems": 1,
+      "description": "Who to reach during testing. Everything here is public. Pull requests by a contact with a GitHub username merge automatically; only these contacts can change the file.",
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
           "name"
+        ],
+        "anyOf": [
+          { "required": ["github"] },
+          { "required": ["slack"] },
+          { "required": ["email"] }
         ],
         "properties": {
           "name": {
@@ -35,10 +42,12 @@
           },
           "github": {
             "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9-]*$",
             "description": "GitHub username, without @"
           },
           "slack": {
             "type": "string",
+            "minLength": 1,
             "description": "Display name in the CMS Health Tech Ecosystem Slack"
           },
           "email": {
@@ -64,14 +73,15 @@
           "id": {
             "type": "string",
             "pattern": "^[a-z0-9][a-z0-9-]*$",
-            "description": "Unique across all participants. For a web wallet this is also its registry id."
+            "description": "Unique across all participants. Used in result reports, and for a web wallet it is also its registry id."
           },
           "role": {
             "enum": [
               "ehr",
               "web-wallet",
               "native-wallet"
-            ]
+            ],
+            "description": "ehr: a Verifier (check-in page, portal, kiosk, or app); the value is ehr for compatibility. web-wallet: a wallet that runs as a website, listed in wallets.json. native-wallet: a phone app reached through the phone's wallet chooser; not in wallets.json."
           },
           "name": {
             "type": "string",
@@ -79,7 +89,7 @@
           },
           "description": {
             "type": "string",
-            "description": "One or two sentences for the directory, and for EHR wallet menus when this is a web wallet."
+            "description": "One or two sentences for the directory, and for wallet menus when this is a web wallet."
           },
           "status": {
             "enum": [
@@ -87,100 +97,115 @@
               "not-yet",
               "broken"
             ],
-            "description": "Whether others can test against it right now."
+            "description": "up: ready to test now. For a web page or web wallet, anyone can open it without you. For a phone app, it works and testers can get it the way access says. not-yet: not ready. broken: was up, isn't now. Only web wallets that are up go into wallets.json."
           },
           "url": {
             "type": "string",
             "format": "uri",
-            "description": "EHR: the public check-in page."
+            "description": "Verifier that runs as a web page: the public page that starts a check-in."
           },
           "walletUrl": {
             "type": "string",
             "format": "uri",
-            "description": "Web wallet: the page the EHR opens. Goes into wallets.json."
+            "description": "Web wallet: the page a Verifier opens. Goes into wallets.json."
           },
           "iconUrl": {
             "type": "string",
             "format": "uri",
-            "description": "Web wallet: icon shown in EHR wallet menus."
+            "description": "Web wallet: icon shown in wallet menus."
           },
           "homepage": {
             "type": "string",
             "format": "uri",
-            "description": "Web wallet: the product's home page, shown in EHR wallet menus. Defaults to the organization's homepage."
+            "description": "Web wallet: the product's home page, shown in wallet menus. Defaults to the organization's homepage."
           },
           "target": {
             "enum": [
               "tab",
               "popup"
             ],
-            "description": "Web wallet: how the EHR opens it. Default tab."
-          },
-          "installUrl": {
-            "type": "string",
-            "format": "uri",
-            "description": "Native wallet: where to install it."
+            "description": "Web wallet: how the Verifier opens it. Default tab."
           },
           "platforms": {
             "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
             "items": {
               "enum": [
                 "android",
                 "ios"
               ]
             },
-            "description": "Native wallet: which phones it runs on."
+            "description": "Phone app (a native wallet, or a Verifier that is an app): which phones it runs on."
+          },
+          "access": {
+            "enum": [
+              "install",
+              "invite",
+              "team-device"
+            ],
+            "description": "Phone app: how testers get it. install: anyone can install it from installUrl (the default when access is left out). invite: testers ask a contact for an invite or a build. team-device: there's no build to share; testers try it with the team, on the team's phone."
+          },
+          "installUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Phone app: where to install it (an APK, a public TestFlight link, or a store page). Required unless access is invite or team-device."
+          },
+          "requirements": {
+            "type": "string",
+            "description": "Phone app: what a tester's phone needs, such as the OS and browser versions."
+          },
+          "largeResponses": {
+            "type": "boolean",
+            "description": "Native wallet: it can answer with responses over 512 KB, the larger-data scenario L2. On Android that means the large-payload response API."
           },
           "testPatient": {
             "type": "string",
-            "description": "Wallets: the synthetic patient it holds, so EHR testers know what to expect."
+            "description": "Wallets: the synthetic patient it holds, so Verifier testers know what to expect."
           },
           "notes": {
-            "type": "string"
+            "type": "string",
+            "description": "Anything else a tester needs to know, such as a sign-in step or how to ask for an invite."
           }
         },
         "allOf": [
           {
             "if": {
-              "properties": {
-                "role": {
-                  "const": "ehr"
-                }
-              }
+              "properties": { "role": { "const": "ehr" } }
             },
             "then": {
-              "required": [
-                "url"
+              "anyOf": [
+                { "required": ["url"] },
+                { "required": ["platforms"] }
               ]
             }
           },
           {
             "if": {
-              "properties": {
-                "role": {
-                  "const": "web-wallet"
-                }
-              }
+              "properties": { "role": { "const": "web-wallet" } }
             },
             "then": {
-              "required": [
-                "walletUrl"
-              ]
+              "required": ["walletUrl"]
             }
           },
           {
             "if": {
-              "properties": {
-                "role": {
-                  "const": "native-wallet"
-                }
+              "properties": { "role": { "const": "native-wallet" } }
+            },
+            "then": {
+              "required": ["platforms"]
+            }
+          },
+          {
+            "if": {
+              "required": ["platforms"],
+              "not": {
+                "required": ["access"],
+                "properties": { "access": { "enum": ["invite", "team-device"] } }
               }
             },
             "then": {
-              "required": [
-                "installUrl",
-                "platforms"
-              ]
+              "required": ["installUrl"]
             }
           }
         ]

@@ -41,11 +41,15 @@
       "name": "SMART reference Android wallet",
       "description": "Native wallet answering through Credential Manager. Renders questionnaires.",
       "status": "up",
-      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk",
       "platforms": [
         "android"
       ],
-      "testPatient": "Aria Test, or the large record, chosen on the app's home screen"
+      "access": "install",
+      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk",
+      "requirements": "Android 8 or later, with a Chrome version that has the Digital Credentials API (Chrome 150 or later for responses over 512 KB)",
+      "largeResponses": true,
+      "testPatient": "Aria Test, or the large record, chosen on the app's home screen",
+      "notes": "Open the app once after installing so it registers with the phone's Credential Manager. Installing over a build older than 0.3.6 needs an uninstall first."
     }
   ]
 }

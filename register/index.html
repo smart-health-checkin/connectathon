@@ -14,7 +14,17 @@
 </div>
 <main id="main">
   <h1>Register</h1>
-  <p class="intro">Fill this in for your organization. It builds your participant file, which puts you in the <a href="../directory.html">directory</a> and your web wallets in the <a href="../wallets.json">wallet registry</a>. When you're done, the button at the bottom opens GitHub with the file filled in, ready to propose as a pull request. Everything you enter is public.</p>
+  <p class="intro">Fill this in once for your organization, listing each piece of software you'll test. It builds your participant file and, from the button at the bottom, opens GitHub with the file filled in, ready to propose as a pull request. Everything you enter is public.</p>
+
+  <section id="what-goes-where" class="where">
+    <h2>Where your entries appear</h2>
+    <ul>
+      <li><b>Every component</b> is listed in the <a href="../directory.html">directory</a>, where other teams find what to test against and whom to ask.</li>
+      <li><b>Web wallets</b> also go into the <a href="../scenarios.html#wallet-registry">wallet registry</a> (<code>wallets.json</code>), because Verifier pages open them directly from their wallet menus. Only web wallets whose status is Up are included.</li>
+      <li><b>Native wallets</b> aren't in the registry: the patient reaches them through the phone's own wallet chooser. They're listed in the directory with how testers get them, and you don't need a public build (see the <a href="#native-wallet-example">native wallet example</a>).</li>
+      <li><b>Verifiers</b> (check-in pages, portals, kiosks, and apps) are listed in the directory. A Verifier that is a phone app registers its platforms and how testers get it instead of a URL (see the <a href="#verifier-examples">Verifier examples</a>).</li>
+    </ul>
+  </section>
 
   <section class="load">
     <label for="existing">Start from</label>
@@ -26,23 +36,25 @@
       <legend>Organization</legend>
       <label for="organization">Name <span class="req">required</span></label>
       <input id="organization" required>
+      <p class="hint">Also names your file, as <code>participants/&lt;name&gt;.json</code>.</p>
       <label for="homepage">Home page</label>
       <input id="homepage" type="url" placeholder="https://">
     </fieldset>
 
     <fieldset>
       <legend>Contacts</legend>
-      <p class="hint">Who to reach during testing. Include your GitHub username: pull requests from a file's contacts merge automatically, and only they can change the file.</p>
+      <p class="hint">Who testers reach during the event. At least one, each with a GitHub username, Slack display name, or email. <b>All of it is public</b>, so list only details you're happy to publish.</p>
+      <p class="hint">Include your GitHub username. A pull request from anyone listed here with a GitHub username merges automatically once the file passes the checks, and only they can change the file later. Without one, a maintainer reviews each change.</p>
       <div id="contacts"></div>
       <button type="button" id="add-contact" class="secondary">Add a contact</button>
     </fieldset>
 
     <fieldset>
       <legend>Components</legend>
-      <p class="hint">Each EHR check-in page, web wallet, or native wallet you'll test.</p>
+      <p class="hint">Each piece of software others can test with you. Add one for each; a clinic with a web check-in page and an app adds two.</p>
       <div id="components"></div>
       <div class="add-row">
-        <button type="button" data-add="ehr" class="secondary">Add an EHR</button>
+        <button type="button" data-add="ehr" class="secondary">Add a Verifier (check-in page, portal, kiosk, or app)</button>
         <button type="button" data-add="web-wallet" class="secondary">Add a web wallet</button>
         <button type="button" data-add="native-wallet" class="secondary">Add a native wallet</button>
       </div>
@@ -53,6 +65,7 @@
     <h2>Your participant file</h2>
     <p>File name: <code id="filename"></code></p>
     <div id="problems" class="problems" role="status"></div>
+    <p id="advice" class="advice" hidden></p>
     <pre id="json" class="json"></pre>
     <div class="actions">
       <button type="button" id="submit">Open a pull request on GitHub</button>
@@ -60,7 +73,13 @@
       <button type="button" id="download" class="secondary">Download the file</button>
     </div>
     <p id="submit-note" class="hint"></p>
-    <p class="hint">Not using GitHub? Copy the JSON and post it in <code>#kill-the-clipboard</code> on the CMS Health Tech Ecosystem Slack, and a maintainer will add it.</p>
+    <p class="hint">Not using GitHub? Copy the JSON and post it in <a href="https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT">#kill-the-clipboard</a> on the CMS Health Tech Ecosystem Slack, and a maintainer will add it.</p>
+  </section>
+
+  <section id="examples" class="examples">
+    <h2>Example files</h2>
+    <p class="hint">Complete files that pass the checks. Open one to read it, or load it into the form to start from it.</p>
+    <div id="example-list"></div>
   </section>
 </main>
 <div data-smart-footer></div>

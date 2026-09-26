@@ -94,7 +94,7 @@ jobs:
         with:
           script: |
             const out = require("fs").readFileSync("check.txt", "utf8").slice(-4000);
-            await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.pull_request.number, body: `The participant files don't pass the checks yet:\n\n\`\`\`\n${out}\n\`\`\`\nPush a fix to this branch and it will be checked again.` });
+            await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.pull_request.number, body: `The participant files don't pass the checks yet:\n\n\`\`\`\n${out}\n\`\`\`\nPush a fix to this branch and it will be checked again. The [registration form](https://smart-health-checkin.org/connectathon/register/) checks the same rules as you fill it in, and explains each problem. The fields are described in [CONTRIBUTING.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md#fields-for-each-component).` });
       - if: steps.owners.outputs.result == 'not-owner'
         uses: actions/github-script@v7
         env:

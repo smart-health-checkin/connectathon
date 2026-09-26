@@ -7,9 +7,9 @@ The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/);
 ## How to test
 
 - **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](directory.html) by [registering](register/):
-  - EHR or portal: a public check-in page URL.
+  - Verifier (EHR, portal, or kiosk): a public check-in page URL. A Verifier that is a phone app lists its platforms and how testers get it.
   - Web wallet: an entry in the [registry](#wallet-registry).
-  - Native wallet: an install link and the name of its test patient.
+  - Native wallet: its platforms, how testers get it (an install link, an invite on request, or testing with you on your phone), and the name of its test patient. Native wallets aren't in the registry: the phone's own wallet chooser reaches them.
 - **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people. The [SMART Testing EHR and SMART Testing Wallet](#testing-ehr-and-testing-wallet) are always available as counterparts.
 - **Try to test with every counterpart** over the course of the event.
 - **Record failures as well as passes.** A failure often points to a spec gap or an interop bug. See [recording results](#recording-results).
@@ -29,7 +29,7 @@ Everything the event provides, in one place. The event's own resources are all u
 
 | Resource | Link |
 |---|---|
-| Participant directory: your check-in URL, install link, or registry entry, and your test patient | [Directory](directory.html). Get listed with the [registration form](register/), which opens a pull request for you. |
+| Participant directory: your check-in URL, your registry entry, or how testers get your app, and your test patient | [Directory](directory.html). Get listed with the [registration form](register/), which opens a pull request for you. |
 | Test results: one GitHub issue per run, filed through a form | [File a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml); [all results](results.html) |
 | Wallet registry | [wallets.json](wallets.json) ([details](#wallet-registry)) |
 | Web wallet hand-off | [Web wallet hand-off guide](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html) |
@@ -44,7 +44,7 @@ Everything the event provides, in one place. The event's own resources are all u
 
 ### Wallet registry
 
-The event registry lists every participating web wallet, at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallet registries](https://smart-health-checkin.org/client/docs/registry.html)):
+The event registry lists every participating web wallet whose status is up in the [directory](directory.html#web-wallets), at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallet registries](https://smart-health-checkin.org/client/docs/registry.html)):
 
 ```json
 {
@@ -63,7 +63,7 @@ The event registry lists every participating web wallet, at <https://smart-healt
 }
 ```
 
-You don't edit this file directly. Add your web wallet on the [registration form](https://smart-health-checkin.org/connectathon/register/), which fills in every registry field and opens a pull request with your organization's participant file. The registry is regenerated from those files ([details](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md)).
+You don't edit this file directly. Add your web wallet on the [registration form](https://smart-health-checkin.org/connectathon/register/), which fills in every registry field and opens a pull request with your organization's participant file. The registry is regenerated from those files ([details](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md#fields-for-each-component)). Native wallets aren't in it: the phone's own wallet chooser reaches them, so they're listed in the [directory](directory.html#native-wallets) only.
 
 The list will change during testing. EHRs should load it from the registry URL each time the check-in page opens, or sync it automatically, so changes need no redeploy.
 

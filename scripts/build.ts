@@ -6,7 +6,7 @@
  *
  * Inputs (all in this repo):
  *   index.md, the per-type pages, scenarios.md   rendered to HTML pages
- *   participants/*.json                    validated; web wallets become wallets.json
+ *   participants/*.json                    validated; web wallets that are up become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
  *   catalog.json                           test cases, cross-checked against requests
@@ -21,6 +21,7 @@ import addFormats from "ajv-formats";
 import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join } from "node:path";
+import { PLATFORM_LABEL, accessOf, isApp, participantProblems, type Component, type Participant as ParticipantFile } from "../register/src/participant.ts";
 
 const ROOT = join(import.meta.dir, "..");
 const OUT = join(ROOT, "_site");
@@ -53,12 +54,7 @@ addFormats(ajv);
 const participantSchema = readJson(join(ROOT, "participants/schema.json"));
 const validateParticipant = ajv.compile(participantSchema);
 
-type Component = {
-  id: string; role: "ehr" | "web-wallet" | "native-wallet"; name: string; status: string;
-  description?: string; url?: string; walletUrl?: string; iconUrl?: string; target?: "tab" | "popup";
-  installUrl?: string; platforms?: string[]; testPatient?: string; notes?: string; homepage?: string;
-};
-type Participant = { file: string; organization: string; homepage?: string; contacts?: any[]; components: Component[] };
+type Participant = ParticipantFile & { file: string };
 
 const participants: Participant[] = [];
 const componentIds = new Map<string, string>();
@@ -66,17 +62,14 @@ for (const file of jsonFiles("participants").filter((f) => f !== "schema.json"))
   const path = `participants/${file}`;
   const data = readJson(join(ROOT, path)) as any;
   if (!data) continue;
-  if (!validateParticipant(data)) {
-    for (const e of validateParticipant.errors ?? []) fail(`${path}${e.instancePath}: ${e.message}`);
+  const problems = participantProblems(data, validateParticipant);
+  if (problems.length) {
+    for (const msg of problems) fail(`${path}: ${msg}`);
     continue;
   }
   for (const c of (data as any).components as Component[]) {
-    if (componentIds.has(c.id)) fail(`${path}: component id "${c.id}" is already used in ${componentIds.get(c.id)}`);
+    if (componentIds.has(c.id)) fail(`${path}: short id "${c.id}" is already used in ${componentIds.get(c.id)}`);
     componentIds.set(c.id, path);
-    for (const key of ["url", "walletUrl", "installUrl", "iconUrl", "homepage"] as const) {
-      const v = c[key];
-      if (v && !v.startsWith("https://")) fail(`${path}: ${c.id}.${key} must be an https URL`);
-    }
   }
   participants.push({ file, ...(data as any) });
 }
@@ -119,7 +112,8 @@ async function inlineIcon(url: string, who: string): Promise<string | undefined>
 
 const webWallets = await Promise.all(participants.flatMap((p) =>
   p.components
-    .filter((c) => c.role === "web-wallet")
+    // Only wallets others can open now: EHR pages show every registry entry to patients.
+    .filter((c) => c.role === "web-wallet" && c.status === "up")
     .map(async (c) => {
       const icon = c.iconUrl ? await inlineIcon(c.iconUrl, `${p.file} ${c.id}`) : undefined;
       return {
@@ -539,32 +533,68 @@ writeFileSync(
   ),
 );
 
-// directory
+// directory: one table per kind of component, so each shows what a tester of that kind needs.
 const statusPill = (s: string) => `<span class="pill ${esc(s)}">${esc({ up: "Up", "not-yet": "Not yet", broken: "Broken" }[s] ?? s)}</span>`;
-const roleName = { ehr: "EHR", "web-wallet": "Web wallet", "native-wallet": "Native wallet" } as const;
-let dirRows = "";
-for (const p of participants) {
-  for (const c of p.components) {
-    const link = c.url ?? c.walletUrl ?? c.installUrl;
-    const contacts = (p.contacts ?? [])
-      .map((x: any) => [esc(x.name), x.github ? `<a href="https://github.com/${esc(x.github)}">@${esc(x.github)}</a>` : "", x.slack ? `Slack: ${esc(x.slack)}` : "", x.email ? esc(x.email) : ""].filter(Boolean).join(" · "))
-      .join("<br>");
-    const org = p.homepage ? `<a href="${esc(p.homepage)}">${esc(p.organization)}</a>` : esc(p.organization);
-    dirRows += `<tr><td class="d-org">${org}</td>` +
-      `<td class="d-role">${roleName[c.role]}${c.platforms ? ` (${esc(c.platforms.join(", "))})` : ""}</td>` +
-      `<td class="d-comp"><b>${esc(c.name)}</b>${c.description ? `<br><span class="muted">${esc(c.description)}</span>` : ""}<br><code>${esc(c.id)}</code></td>` +
-      `<td class="d-link">${link ? `<a class="open" href="${esc(link)}">${c.role === "native-wallet" ? "Install" : "Open"}</a>` : ""}</td>` +
-      `<td class="d-patient" data-label="Test patient">${esc(c.testPatient ?? "")}</td>` +
-      `<td class="d-status">${statusPill(c.status)}</td>` +
-      `<td class="d-contacts" data-label="Contacts">${contacts}</td></tr>`;
-  }
+const platformsOf = (c: Component) => (c.platforms ?? []).map((x) => PLATFORM_LABEL[x] ?? x).join(" and ");
+function howToTest(c: Component): string {
+  const open = (href: string, text: string) => `<a class="open" href="${esc(href)}">${text}</a>`;
+  if (!isApp(c)) return c.url ? open(c.url, "Open") : c.walletUrl ? open(c.walletUrl, "Open") : "";
+  const access = accessOf(c);
+  if (access === "install") return c.installUrl ? open(c.installUrl, "Install") : "";
+  const how = access === "invite" ? "Ask a contact for an invite" : "Test with the team, on their phone";
+  return `${how}${c.installUrl ? ` (<a href="${esc(c.installUrl)}">invite page</a>)` : ""}`;
 }
+function details(c: Component): string {
+  const out: string[] = [];
+  if (c.role === "ehr") out.push(isApp(c) ? `${esc(platformsOf(c))} app` : "Web page");
+  else if (isApp(c)) out.push(esc(platformsOf(c)));
+  if (c.requirements) out.push(`Needs ${esc(c.requirements)}`);
+  if (c.largeResponses) out.push(`Answers over 512 KB (<a href="scenarios.html#larger-data-scenarios">L2</a>)`);
+  return out.join("<br>");
+}
+function dirRow(p: Participant, c: Component, cols: { details: boolean; patient: boolean }): string {
+  const contacts = (p.contacts ?? [])
+    .map((x) => [esc(x.name), x.github ? `<a href="https://github.com/${esc(x.github)}">@${esc(x.github)}</a>` : "", x.slack ? `Slack: ${esc(x.slack)}` : "", x.email ? `<a href="mailto:${esc(x.email)}">${esc(x.email)}</a>` : ""].filter(Boolean).join(" · "))
+    .join("<br>");
+  const org = p.homepage ? `<a href="${esc(p.homepage)}">${esc(p.organization)}</a>` : esc(p.organization);
+  return `<tr><td class="d-org">${org}</td>` +
+    `<td class="d-comp"><b>${esc(c.name)}</b>${c.description ? `<br><span class="muted">${esc(c.description)}</span>` : ""}` +
+    `${c.notes ? `<br><span class="d-notes">Notes: ${esc(c.notes)}</span>` : ""}<br><code>${esc(c.id)}</code></td>` +
+    (cols.details ? `<td class="d-details">${details(c)}</td>` : "") +
+    `<td class="d-link">${howToTest(c)}</td>` +
+    (cols.patient ? `<td class="d-patient" data-label="Test patient">${esc(c.testPatient ?? "")}</td>` : "") +
+    `<td class="d-status">${statusPill(c.status)}</td>` +
+    `<td class="d-contacts" data-label="Contacts">${contacts}</td></tr>`;
+}
+const DIRECTORY_SECTIONS = [
+  {
+    id: "verifiers", title: "Verifiers", role: "ehr", noun: "Verifier", cols: { details: true, patient: false },
+    intro: "Check-in pages, portals, kiosks, and apps that ask a wallet for data. Wallet teams test against these.",
+  },
+  {
+    id: "web-wallets", title: "Web wallets", role: "web-wallet", noun: "Wallet", cols: { details: false, patient: true },
+    intro: `Wallets that run as websites. The ones that are up are in the <a href="wallets.json">wallet registry</a>, so Verifier pages list them in their wallet menus (<a href="scenarios.html#wallet-registry">how the registry works</a>).`,
+  },
+  {
+    id: "native-wallets", title: "Native wallets", role: "native-wallet", noun: "Wallet", cols: { details: true, patient: true },
+    intro: "Phone apps. The patient reaches them through the phone's own wallet chooser, so they aren't in the wallet registry. To test one, get it the way its row says: install it, ask for an invite, or test with the team on their phone.",
+  },
+] as const;
+const dirSections = DIRECTORY_SECTIONS.map((sec) => {
+  const rows = participants.flatMap((p) => p.components.filter((c) => c.role === sec.role).map((c) => dirRow(p, c, sec.cols))).join("");
+  const head = ["Organization", sec.noun, ...(sec.cols.details ? ["Runs on"] : []), "How to test", ...(sec.cols.patient ? ["Test patient"] : []), "Status", "Contacts"];
+  const table = rows
+    ? `<div class="table-wrap"><table class="directory"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
+    : `<p class="muted">None registered yet.</p>`;
+  return { ...sec, count: rows ? rows.split("<tr>").length - 1 : 0, html: `<section class="doc dir-section"><h2 id="${sec.id}">${sec.title}</h2><p>${sec.intro}</p></section>${table}` };
+});
 writeFileSync(
   join(OUT, "directory.html"),
   page(
     "Directory",
-    `<article class="doc"><h1>Directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Web wallets listed here are in the <a href="wallets.json">wallet registry</a>.</p></article>
-<div class="table-wrap"><table class="directory"><thead><tr><th>Organization</th><th>Role</th><th>Component</th><th>Link</th><th>Test patient</th><th>Status</th><th>Contacts</th></tr></thead><tbody>${dirRows}</tbody></table></div>`,
+    `<article class="doc"><h1>Directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Status Up means ready to test now: a web page or web wallet anyone can open, or a phone app testers can get the way its row says.</p>` +
+      `<p>${dirSections.map((s) => `<a href="#${s.id}">${s.title}</a> (${s.count})`).join(" · ")}</p></article>` +
+      dirSections.map((s) => s.html).join("\n"),
   ),
 );
 

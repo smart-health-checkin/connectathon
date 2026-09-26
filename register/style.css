@@ -35,3 +35,17 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline:2px so
 .problems.ok { background:var(--okbg); color:var(--ok); }
 .problems ul { margin:4px 0 0; padding-left:18px; }
 main h2 { font-size:18px; margin:0; }
+.where { display:grid; gap:6px; }
+.where ul { margin:0; padding-left:20px; display:grid; gap:4px; }
+fieldset.choices { border:0; padding:0; margin:6px 0 0; display:flex; gap:6px 16px; flex-wrap:wrap; min-width:0; }
+fieldset.choices legend { font-size:14px; font-weight:600; padding:0; margin-bottom:4px; width:100%; float:left; }
+fieldset.choices label { font-weight:400; display:flex; gap:6px; align-items:flex-start; margin:0; }
+fieldset.choices input { margin-top:5px; flex:none; }
+.advice { background:var(--soft); border-left:3px solid var(--accent); padding:6px 10px; font-size:14px; margin:0; }
+.advice[hidden] { display:none; }
+.examples { display:grid; gap:8px; }
+.example { border:1px solid var(--line); border-radius:8px; padding:8px 12px; }
+.example summary { cursor:pointer; }
+.example p { margin:6px 0; }
+.example .json { margin:6px 0 8px; }
+.card { scroll-margin-top: 80px; }
