@@ -20,16 +20,11 @@ function buildForm() {
     'and what would make you trust it. Everything in the demos is made up, so please do not ' +
     'include real health information.\n\n' +
     'If an AI assistant helped you write a report (see smart-health-checkin.org/connectathon/share.html), ' +
-    'paste it below. Or just write in your own words.\n\n' +
+    'paste it in the last box. Or just write in your own words.\n\n' +
     'Reports are public: we may publish them on the connectathon site and in summaries, credited ' +
     'with the name and organization you give below, or anonymously if you leave those blank. Your email ' +
     'address is never published.'
   );
-
-  form.addParagraphTextItem()
-    .setTitle('Your report')
-    .setHelpText('Paste the report your assistant drafted, or write what happened in your own words.')
-    .setRequired(true);
 
   const role = form.addCheckboxItem().setTitle('Which describe you? (choose all that apply)');
   role.setChoices([
@@ -46,6 +41,11 @@ function buildForm() {
   form.addTextItem()
     .setTitle('Email, if we may follow up (optional)')
     .setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
+
+  form.addParagraphTextItem()
+    .setTitle('Your report')
+    .setHelpText('Paste the report your assistant drafted, or write what happened in your own words.')
+    .setRequired(true);
 
   form.setConfirmationMessage('Thank you. Your report helps shape SMART Health Check-in.');
   form.setCollectEmail(false);
