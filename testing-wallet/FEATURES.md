@@ -81,14 +81,20 @@ default. A testing panel adds controls for exercising EHR error handling.
 - `required: true` is shown as "the clinic says this is required" and changes
   nothing else.
 - Items the patient switches off become `declined`.
-- "Not now" replies `declined` for the whole request.
+- "Decline all" answers with every item `declined` and no artifacts
+  ([HOLD-4](https://smart-health-checkin.org/spec/#HOLD-4)). Closing the tab
+  without answering is the cancel path: the EHR's call fails.
 
 ## Response (§6)
 
 - Exactly one status per item.
-- Selection items become one `application/fhir+json` Bundle per item, or a
-  SMART Health Card when the item lists `application/smart-health-card` first
-  in `accept`.
+- Only media types the item accepts
+  ([ACC-2](https://smart-health-checkin.org/spec/#ACC-2)). Selection items use
+  the earliest type in `accept` this wallet can produce
+  ([ACC-3](https://smart-health-checkin.org/spec/#ACC-3)): one
+  `application/fhir+json` Bundle per item, or a SMART Health Card. An item that
+  accepts neither type, or a form that doesn't accept `application/fhir+json`,
+  is answered `unsupported`.
 - Form items become one QuestionnaireResponse.
 - One artifact for several items (O7), on the testing panel: allergies and
   medications share one Bundle whose `fulfills` lists both.
@@ -112,17 +118,23 @@ open the wallet preconfigured, for example
 
 - Force a status per item: fulfilled, partial, unavailable, declined,
   unsupported, or error.
-- Faults:
-  - `wrong-canonical`: QuestionnaireResponse.questionnaire drops the version or changes the URL
-  - `missing-status`: one item has no status
-  - `duplicate-status`: one item has two statuses
-  - `wrong-request-id`: requestId doesn't match
-  - `unaccepted-media-type`: an artifact in a type the item didn't accept
-  - `oversized`: pads the response past 3 MB
-  - `bad-signature`: corrupts the issuer signature
-  - `bad-encryption`: corrupts the HPKE ciphertext
-  - `wrong-origin`: binds the transcript to a different origin
-  - `bad-shc-signature`: a SMART Health Card with a broken signature
+- Faults, each with how an EHR that follows the spec reacts
+  ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation),
+  [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
+
+  | Fault | What it does | The EHR |
+  | --- | --- | --- |
+  | `wrong-canonical` | QuestionnaireResponse.questionnaire doesn't match the request | sets that record aside ([XV-10](https://smart-health-checkin.org/spec/#XV-10)) |
+  | `missing-status` | one item has no status | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
+  | `duplicate-status` | one item has two statuses | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
+  | `wrong-request-id` | requestId doesn't match | rejects the response ([XV-2](https://smart-health-checkin.org/spec/#XV-2)) |
+  | `unaccepted-media-type` | a record in a type the item didn't accept | sets that record aside ([XV-7](https://smart-health-checkin.org/spec/#XV-7)) |
+  | `oversized` | pads the response past 3 MB | passes |
+  | `bad-signature` | corrupts the issuer signature | warns and continues ([VRS-5](https://smart-health-checkin.org/spec/#VRS-5)) |
+  | `bad-encryption` | corrupts the HPKE ciphertext | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
+  | `wrong-origin` | binds the transcript to the origin with a trailing slash | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
+  | `bad-shc-signature` | a SMART Health Card with a broken signature | sets that card aside ([XV-13](https://smart-health-checkin.org/spec/#XV-13)) |
+  | `combine-allergies-meds` | allergies and medications share one Bundle (O7) | passes |
 - Shows the parsed request, and the SMART response as sent.
 
 ## Limitations in this version

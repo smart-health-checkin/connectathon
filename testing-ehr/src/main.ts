@@ -4,14 +4,27 @@
 import { platformWallet, wallets as registryWallets, webWallet, type Wallet, type WalletSession, type SmartCheckinRequest } from "@smart-health-checkin/client";
 import { validateSmartCheckinRequest } from "@smart-health-checkin/client/model";
 import { buildOrgIsoMdocRequest, extractDcapiResponse } from "@smart-health-checkin/client/wire";
-import { checkResponse, fixFor, groupOf, type Check, type WireLayers } from "./checks.ts";
+import { checkResponse, fixFor, groupOf, type ArtifactOutcome, type Check, type WireLayers } from "./checks.ts";
 import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
 const TESTING_WALLET_ID = "smart-testing-wallet";
-const WALLET_FAULTS = ["wrong-canonical", "missing-status", "duplicate-status", "wrong-request-id", "unaccepted-media-type", "oversized", "bad-signature", "bad-encryption", "wrong-origin", "bad-shc-signature", "combine-allergies-meds"];
+/** The testing wallet's faults, and how a spec-following EHR reacts to each. */
+const WALLET_FAULTS: Record<string, string> = {
+  "wrong-canonical": "sets one record aside",
+  "missing-status": "leaves one item unknown",
+  "duplicate-status": "leaves one item unknown",
+  "wrong-request-id": "rejects the response",
+  "unaccepted-media-type": "sets one record aside",
+  "oversized": "passes",
+  "bad-signature": "warning",
+  "bad-encryption": "rejects the response",
+  "wrong-origin": "rejects the response",
+  "bad-shc-signature": "sets one record aside",
+  "combine-allergies-meds": "passes",
+};
 const RUNS_KEY = "testing-ehr:runs";
 const URLS_KEY = "testing-ehr:wallet-urls";
 
@@ -25,6 +38,10 @@ type Run = {
   verdict: "pass" | "fail" | "declined";
   headline: string; message?: string;
   request: SmartCheckinRequest; checks: Check[]; smartResponse?: any; responseChars?: number; wire?: WireLayers;
+  /** The whole response couldn't be used. */
+  rejected?: boolean;
+  /** Per item, its valid status or "unknown"; per record, whether it was used. */
+  items?: Record<string, string>; artifacts?: Record<string, ArtifactOutcome>;
   cards?: Record<string, CardView>; log: string;
 };
 
@@ -76,10 +93,10 @@ async function load() {
   $("paste").addEventListener("input", refresh);
   for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.onclick = () => setMode(b.dataset.mode as typeof mode);
 
-  $("faults").replaceChildren(...WALLET_FAULTS.map((f) => {
+  $("faults").replaceChildren(...Object.entries(WALLET_FAULTS).map(([f, effect]) => {
     const label = document.createElement("label");
     label.className = "fault";
-    label.innerHTML = `<input type="checkbox" value="${f}"> ${f}`;
+    label.innerHTML = `<input type="checkbox" value="${f}"> ${f} <small>${esc(effect)}</small>`;
     return label;
   }));
   $("faults").addEventListener("change", refresh);
@@ -286,12 +303,11 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
     const checked = await checkResponse({ request, credential, verifierKeyPair: bundle.verifierKeyPair, verifierPublicJwk: bundle.verifierPublicJwk, encryptionInfoBytes: bundle.encryptionInfoBytes, origin: location.origin,
       navigatorArgument: bundle.navigatorArgument, deviceRequestBytes: bundle.deviceRequestBytes, pageUrl: location.href,
       walletOrigin: wallet.entry ? new URL(wallet.entry.walletUrl).origin : undefined });
-    const failed = checked.checks.filter((c) => c.outcome === "fail");
-    const total = checked.checks.filter((c) => c.outcome !== "info").length;
     result = {
       ...base, ms: Math.round(performance.now() - started),
-      verdict: failed.length ? "fail" : "pass",
-      headline: failed.length ? `${failed.length} of ${total} checks failed` : `All ${total} checks passed`,
+      verdict: checked.checks.some((c) => c.outcome === "fail") ? "fail" : "pass",
+      headline: headlineFor(checked.checks, checked.rejected),
+      rejected: checked.rejected, items: checked.items, artifacts: checked.artifacts,
       checks: checked.checks, smartResponse: checked.smartResponse, responseChars: checked.responseBytes, wire: checked.wire,
       cards: await decodeCards(checked.smartResponse, checked.checks),
       log: "",
@@ -308,14 +324,26 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
   }
   result.log = logFor(result);
   const failedCount = result.checks.filter((c) => c.outcome === "fail").length;
+  const warnCount = result.checks.filter((c) => c.outcome === "warn").length;
   $("status").textContent =
-    result.verdict === "pass" ? "All checks passed."
+    result.verdict === "pass" ? (warnCount ? `Passed with ${warnCount} warning(s).` : "All checks passed.")
     : result.verdict === "declined" ? `The wallet declined or was closed: ${result.message}`
-    : result.checks.length ? `${failedCount} check(s) failed.` : `Error: ${result.message}`;
+    : result.checks.length ? `${failedCount} check(s) failed${result.rejected ? "; response rejected" : ""}.` : `Error: ${result.message}`;
   runs = [result, ...runs].slice(0, 20);
   saveRuns();
   show(result);
   refresh();
+}
+
+/** One line saying what happened: rejected, usable with problems, or passed (with warnings). */
+function headlineFor(checks: Check[], rejected: boolean): string {
+  const fails = checks.filter((c) => c.outcome === "fail");
+  const warns = checks.filter((c) => c.outcome === "warn").length;
+  const w = warns ? `, ${warns} warning${warns === 1 ? "" : "s"}` : "";
+  if (rejected) return `Response rejected: ${fails.find((c) => c.scope === "response")?.title ?? "see below"}`;
+  if (fails.length) return `Response usable, ${fails.length} problem${fails.length === 1 ? "" : "s"} with items or records${w}`;
+  const total = checks.filter((c) => c.outcome !== "info").length;
+  return warns ? `Passed with ${warns} warning${warns === 1 ? "" : "s"}` : `All ${total} checks passed`;
 }
 
 function logFor(r: Run): string {
@@ -323,7 +351,7 @@ function logFor(r: Run): string {
     `Testing EHR run ${r.at}`,
     `Scenario ${r.label}; wallet ${r.walletId}; path ${r.path}${r.faults.length ? `; faults ${r.faults.join(",")}` : ""}`,
     ...(r.checks.length
-      ? r.checks.map((c) => `[${c.outcome.toUpperCase()}] ${c.title}${c.detail ? ` — ${c.detail}` : ""}`)
+      ? r.checks.map((c) => `[${c.outcome.toUpperCase()}] ${c.id}${c.rule ? ` (${c.rule})` : ""}: ${c.title}${c.detail ? ` — ${c.detail}` : ""}`)
       : [`${r.verdict === "declined" ? "DECLINED" : "ERROR"}: ${r.message}`]),
   ].join("\n");
 }
@@ -368,8 +396,11 @@ function show(r: Run) {
     <div class="actions"><a id="file" class="btn primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="btn" data-act="download">Download run</button></div></section>`;
 
   const failCard = (c: Check, warn = false) =>
-    `<div class="failure ${warn ? "warn" : ""}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec section</a>` : ""}${layerFor(c.id) && r.wire ? ` <a href="#layer-${layerFor(c.id)}" data-goto-layer="${layerFor(c.id)}">See the bytes</a>` : ""}</div>`;
-  const failuresHtml = failures.length ? `<section class="card"><h2>Failed checks <span>${failures.length}</span></h2>${failures.map((c) => failCard(c)).join("")}</section>` : "";
+    `<div class="failure ${warn ? "warn" : ""}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec ${esc(c.rule ?? "")}</a>` : ""}${layerFor(c.id) && r.wire ? ` <a href="#layer-${layerFor(c.id)}" data-goto-layer="${layerFor(c.id)}">See the bytes</a>` : ""}</div>`;
+  const whole = failures.filter((c) => c.scope === "response");
+  const partial = failures.filter((c) => c.scope !== "response");
+  const failuresHtml = (whole.length ? `<section class="card"><h2>Why the response was rejected <span>${whole.length}</span></h2>${whole.map((c) => failCard(c)).join("")}</section>` : "")
+    + (partial.length ? `<section class="card"><h2>Problems with items or records <span>${partial.length}</span></h2><p class="small">The rest of the response is still used.</p>${partial.map((c) => failCard(c)).join("")}</section>` : "");
   const warningsHtml = warnings.length ? `<section class="card"><h2>Warnings <span>${warnings.length}</span></h2>${warnings.map((c) => failCard(c, true)).join("")}</section>` : "";
 
   const groups = new Map<string, Check[]>();
@@ -377,10 +408,10 @@ function show(r: Run) {
   const passedHtml = passed.length
     ? `<section class="card"><h2>Passed checks <span>${passed.length}</span></h2>${[...groups].map(([g, list]) =>
         `<details class="group"><summary>${esc(g)}<span class="n">${list.length}</span></summary>${list.map((c) =>
-          `<div class="check"><span class="dot ${c.outcome}"></span><span>${esc(c.title)}${c.section ? ` <a href="${esc(c.section)}" target="_blank" rel="noopener">spec</a>` : ""}</span>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</div>`).join("")}</details>`).join("")}</section>`
+          `<div class="check"><span class="dot ${c.outcome}"></span><span>${esc(c.title)}${c.section ? ` <a href="${esc(c.section)}" target="_blank" rel="noopener">${esc(c.rule ?? "spec")}</a>` : ""}</span>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</div>`).join("")}</details>`).join("")}</section>`
     : "";
 
-  $("result").innerHTML = verdict + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, failures) : "");
+  $("result").innerHTML = verdict + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, [...failures, ...warnings]) : "");
   $("log").textContent = r.log;
   $("result").querySelector('[data-act="download"]')?.addEventListener("click", () => download(r));
   if (r.wire?.layers) bindWire($("result"), r.wire, `${r.label} → ${r.walletName}`);
@@ -402,8 +433,13 @@ function itemsHtml(r: Run): string {
   const artifacts: any[] = smart.artifacts ?? [];
   const cards = r.request.items.map((item) => {
     const status = statuses.filter((s) => s.item === item.id);
-    const statusText = status.length === 1 ? status[0].status : status.length ? `${status.length} statuses` : "no status";
-    const mine = artifacts.filter((a) => (a.fulfills ?? []).includes(item.id));
+    const outcome = r.items?.[item.id];
+    const statusText = outcome === "unknown"
+      ? `unknown (${status.length === 1 ? `code ${status[0].status}` : status.length ? `${status.length} statuses` : "no status"})`
+      : outcome ?? (status.length === 1 ? status[0].status : status.length ? `${status.length} statuses` : "no status");
+    const listed = artifacts.filter((a) => (a.fulfills ?? []).includes(item.id));
+    const setAside = r.artifacts ? listed.filter((a) => r.artifacts![a.id] === "rejected") : [];
+    const mine = listed.filter((a) => !setAside.includes(a));
     const fhir = mine.filter((a) => a.mediaType === "application/fhir+json").flatMap((a) => resourcesOf(a.value));
     const cardViews = mine
       .filter((a) => a.mediaType === "application/smart-health-card")
@@ -418,9 +454,10 @@ function itemsHtml(r: Run): string {
       ].join("") || `<p class="small">Nothing returned${status[0]?.message ? `: ${esc(status[0].message)}` : "."}</p>`;
     const json = JSON.stringify(mine, null, 2);
     const shown = json.length > 400_000 ? json.slice(0, 400_000) + "\n… (truncated; download the run for all of it)" : json;
-    return `<article class="item"><div class="item-head"><b>${esc(item.title)}</b><span class="st ${esc(status.length === 1 ? status[0].status : "missing")}">${esc(statusText)}</span><span class="src">${count} resource${count === 1 ? "" : "s"} · ${esc(sources)}</span>
+    const asideHtml = setAside.length ? `<p class="small">Set aside: ${setAside.map((a) => `<code>${esc(String(a.id))}</code>`).join(", ")} (see Problems with items or records).</p>` : "";
+    return `<article class="item"><div class="item-head"><b>${esc(item.title)}</b><span class="st ${esc(outcome === "unknown" ? "missing" : status.length === 1 ? status[0].status : "missing")}">${esc(statusText)}</span><span class="src">${count} resource${count === 1 ? "" : "s"} · ${esc(sources)}</span>
       <span class="view"><button type="button" aria-pressed="true" data-v="readable">Readable</button><button type="button" aria-pressed="false" data-v="json">JSON</button></span></div>
-      <div class="item-body" data-body="readable">${readableHtml}</div>
+      <div class="item-body" data-body="readable">${asideHtml}${readableHtml}</div>
       <div class="item-body" data-body="json" hidden><div class="json-tools"><button type="button" class="btn" data-copy>Copy</button></div><pre class="json">${esc(shown)}</pre></div></article>`;
   });
   return `<section class="card"><h2>What came back <span>${r.request.items.length} item${r.request.items.length === 1 ? "" : "s"}</span></h2>${cards.join("")}</section>`;

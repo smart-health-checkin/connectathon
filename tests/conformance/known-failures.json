@@ -1,25 +1,15 @@
 {
   "claims": [
     "hpke-open",
-    "mdoc-verify"
+    "mdoc-verify",
+    "cross-validation"
   ],
   "notClaimed": {
     "request-json": "The Testing EHR builds requests; it doesn't validate them.",
-    "response-json": "Uses the client library's validator; the client's own run covers it.",
-    "cross-validation": "Uses the client library's validator; the client's own run covers it.",
+    "response-json": "Its cases have no request, and the Testing EHR validates responses only against the request it sent; cross-validation covers the same rules.",
     "request-cbor": "Wallet side; the Testing EHR is a verifier.",
     "transcript": "Uses the client library's transcript builder; the client's own run covers it.",
     "wallet-response": "The testing wallet uses the client library's wallet code; the client's own run covers it."
   },
-  "knownFailures": {
-    "hpke-open/padded-base64url": "rejects instead of warning (VRS-2)",
-    "hpke-open/wrong-protocol": "rejects instead of warning (VRS-2)",
-    "mdoc-verify/attached-payload-other-session": "rejects instead of warning (VRS-7)",
-    "mdoc-verify/digest-mismatch": "rejects instead of warning (VRS-6)",
-    "mdoc-verify/digest-missing": "rejects instead of warning (VRS-6)",
-    "mdoc-verify/status-not-ok": "rejects instead of warning (VRS-4)",
-    "mdoc-verify/tampered-device-signature": "rejects instead of warning (VRS-7)",
-    "mdoc-verify/tampered-issuer-signature": "rejects instead of warning (VRS-5)",
-    "mdoc-verify/version-unknown": "rejects instead of warning (VRS-4)"
-  }
+  "knownFailures": {}
 }

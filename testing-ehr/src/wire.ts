@@ -39,13 +39,13 @@ export const LAYER_INFO: Record<LayerId, { title: string; side: "Sent" | "Receiv
   "device-response": { title: "DeviceResponse", side: "Received", about: "The decrypted mdoc response: issuerSigned items, issuerAuth over the MSO, and deviceSigned." },
 };
 
-/** Which layer a failing check is about. */
+/** Which layer a failing or warning check is about. */
 export function layerFor(checkId: string): LayerId | "digests" | undefined {
-  if (/^(protocol|wrapper)/.test(checkId)) return "dcapi-response";
+  if (/^(protocol|wrapper|dcapi)/.test(checkId)) return "dcapi-response";
   if (/^hpke/.test(checkId)) return "session-transcript";
   if (/^device-sig/.test(checkId)) return "session-transcript";
   if (/^digests/.test(checkId)) return "digests";
-  if (/^(dr-|doctype|issuer-sig|element)/.test(checkId)) return "device-response";
+  if (/^(dr-|document|issuer-sig|mso|alg-|validity|element)/.test(checkId)) return "device-response";
   return undefined;
 }
 
@@ -175,13 +175,13 @@ export const deviceSigTester = (deviceResponseBytes: Uint8Array) => async (t: Ui
 
 const size = (n: number) => (n < 1024 ? `${n} bytes` : `${(n / 1024).toFixed(1)} KB`);
 
-export function wireHtml(w: WireLayers, failing: { id: string; title: string }[]): string {
-  const byLayer = new Map<string, string[]>();
-  for (const c of failing) {
+export function wireHtml(w: WireLayers, flagged: { id: string; title: string; outcome?: string }[]): string {
+  const byLayer = new Map<string, { title: string; warn: boolean }[]>();
+  for (const c of flagged) {
     const l = layerFor(c.id);
-    if (l) byLayer.set(l, [...(byLayer.get(l) ?? []), c.title]);
+    if (l) byLayer.set(l, [...(byLayer.get(l) ?? []), { title: c.title, warn: c.outcome === "warn" }]);
   }
-  const flags = (id: string) => (byLayer.get(id) ?? []).map((t) => `<span class="layer-fail">✕ ${esc(t)}</span>`).join("");
+  const flags = (id: string) => (byLayer.get(id) ?? []).map((f) => `<span class="layer-fail${f.warn ? " warn" : ""}">${f.warn ? "!" : "✕"} ${esc(f.title)}</span>`).join("");
   const layer = (l: Layer) => {
     const info = LAYER_INFO[l.id];
     const n = base64UrlDecodeBytes(l.b64u).length;

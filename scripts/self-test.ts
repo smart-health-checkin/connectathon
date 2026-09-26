@@ -1,7 +1,8 @@
 /**
  * Self-test (plan step 5.4): drives the live testing EHR against the live
  * SMART Testing Wallet for every web-path scenario and every injected fault,
- * and checks that each run gets the expected verdict.
+ * and checks that each run gets the expected verdict: the checks that fail and
+ * the checks that warn (spec §8.5: mdoc-layer problems are warnings).
  *
  *   bun scripts/self-test.ts [base-url] [--only substring]
  */
@@ -13,13 +14,14 @@ const ONLY = onlyAt >= 0 ? args.splice(onlyAt, 2)[1] : undefined;
 const BASE = args[0] ?? "https://smart-health-checkin.org/connectathon/";
 const WALLET = "smart-testing-wallet";
 
-type Run = { name: string; caseId: string; faults?: string[]; patient?: string; decline?: string[]; expectFail?: string[]; expectText?: RegExp };
-// expectFail: check ids (or id prefixes) that must fail. Everything else must not fail.
+type Run = { name: string; caseId: string; faults?: string[]; patient?: string; decline?: string[]; declineAll?: boolean; expectFail?: string[]; expectWarn?: string[]; expectText?: RegExp };
+// expectFail / expectWarn: check ids (or id prefixes) that must fail / warn. No other check may fail or warn.
 const ALL_RUNS: Run[] = [
   { name: "M1 baseline 1", caseId: "M1" },
   { name: "M3 insurance", caseId: "M3" },
   { name: "M4 PHQ-2 inline", caseId: "M4" },
   { name: "M5 decline immunizations", caseId: "M5", decline: ["immunizations"] },
+  { name: "decline all (HOLD-4)", caseId: "M1", declineAll: true, expectText: /declined/i },
   { name: "L1 USCDI small", caseId: "L1" },
   { name: "L2 USCDI large", caseId: "L2", patient: "large" },
   { name: "O1 by reference", caseId: "O1" },
@@ -30,16 +32,16 @@ const ALL_RUNS: Run[] = [
   { name: "O6 health card", caseId: "O6" },
   { name: "O7 combined artifact", caseId: "O7", faults: ["combine-allergies-meds"] },
   { name: "O12 unknown selector", caseId: "O12" },
-  { name: "fault wrong-canonical", caseId: "M4", faults: ["wrong-canonical"], expectFail: ["canonical-", "cross"] },
-  { name: "fault missing-status", caseId: "M1", faults: ["missing-status"], expectFail: ["one-status", "cross"] },
-  { name: "fault duplicate-status", caseId: "M1", faults: ["duplicate-status"], expectFail: ["one-status", "shape", "cross"] },
-  { name: "fault wrong-request-id", caseId: "M1", faults: ["wrong-request-id"], expectFail: ["request-id", "cross"] },
-  { name: "fault unaccepted-media-type", caseId: "M1", faults: ["unaccepted-media-type"], expectFail: ["media", "cross"] },
-  { name: "fault oversized", caseId: "M1", faults: ["oversized"], expectFail: [] },
-  { name: "fault bad-signature", caseId: "M1", faults: ["bad-signature"], expectFail: ["issuer-sig"] },
-  { name: "fault bad-encryption", caseId: "M1", faults: ["bad-encryption"], expectFail: ["hpke"] },
+  { name: "fault wrong-canonical", caseId: "M4", faults: ["wrong-canonical"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
+  { name: "fault missing-status", caseId: "M1", faults: ["missing-status"], expectFail: ["status-"] },
+  { name: "fault duplicate-status", caseId: "M1", faults: ["duplicate-status"], expectFail: ["status-"] },
+  { name: "fault wrong-request-id", caseId: "M1", faults: ["wrong-request-id"], expectFail: ["request-id"], expectText: /Response rejected/ },
+  { name: "fault unaccepted-media-type", caseId: "M1", faults: ["unaccepted-media-type"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
+  { name: "fault oversized", caseId: "M1", faults: ["oversized"] },
+  { name: "fault bad-signature", caseId: "M1", faults: ["bad-signature"], expectWarn: ["issuer-sig"], expectText: /Passed with 1 warning/ },
+  { name: "fault bad-encryption", caseId: "M1", faults: ["bad-encryption"], expectFail: ["hpke"], expectText: /Response rejected/ },
   { name: "fault wrong-origin", caseId: "M1", faults: ["wrong-origin"], expectFail: ["hpke"], expectText: /Likely cause[\s\S]*trailing slash/ },
-  { name: "fault bad-shc-signature", caseId: "O6", faults: ["bad-shc-signature"], expectFail: ["shc-"] },
+  { name: "fault bad-shc-signature", caseId: "O6", faults: ["bad-shc-signature"], expectFail: ["shc-"], expectWarn: ["fulfilled-"] },
 ];
 
 const RUNS = ONLY ? ALL_RUNS.filter((r) => r.name.includes(ONLY)) : ALL_RUNS;
@@ -82,24 +84,16 @@ async function runOne(browser: Browser, run: Run) {
     });
     if (!clicked) break;
   }
-  await wallet.$eval("#share", (b) => (b as HTMLButtonElement).click());
-  await page.waitForFunction(() => /passed|failed|Error|declined/.test(document.getElementById("status")!.textContent ?? ""), { timeout: 120000 });
+  await wallet.$eval(run.declineAll ? "#decline" : "#share", (b) => (b as HTMLButtonElement).click());
+  await page.waitForFunction(() => /passed|Passed|failed|Error|declined/.test(document.getElementById("status")!.textContent ?? ""), { timeout: 120000 });
   const status = await page.$eval("#status", (e) => e.textContent ?? "");
   const log = await page.$eval("#log", (e) => e.textContent ?? "");
   const result = await page.$eval("#result", (e) => (e as HTMLElement).innerText);
   await page.close();
-  const failedIds = [...log.matchAll(/^\[FAIL\] (.+?)(?: — |$)/gm)].map((m) => m[1]!);
-  return { status, log, failedIds, errors, result };
+  // Log lines read "[FAIL] <id> (<rule>): <title> — <detail>".
+  const idsWith = (outcome: string) => [...log.matchAll(new RegExp(`^\\[${outcome}\\] ([^\\s:(]+)`, "gm"))].map((m) => m[1]!);
+  return { status, log, failedIds: idsWith("FAIL"), warnedIds: idsWith("WARN"), errors, result };
 }
-
-// Map check titles in the log back to their ids via a title fragment table.
-const TITLE_TO_ID: Array<[RegExp, string]> = [
-  [/decrypts with this page/, "hpke"], [/Issuer signature/, "issuer-sig"], [/Device signature/, "device-sig"],
-  [/Value digests/, "digests"], [/requestId echoes/, "request-id"], [/Exactly one status/, "one-status"],
-  [/consistent with the request/, "cross"], [/media type is accepted/, "media"], [/echoes the canonical/, "canonical-"],
-  [/SMART Health Card signature/, "shc-"], [/well formed/, "shape"],
-];
-const idFor = (title: string) => TITLE_TO_ID.find(([re]) => re.test(title))?.[1] ?? title;
 
 const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/usr/bin/chromium", headless: true, args: ["--no-sandbox"] });
 let bad = 0;
@@ -107,14 +101,18 @@ try {
   for (const run of RUNS) {
     try {
       const r = await runOne(browser, run);
-      const failed = r.failedIds.map(idFor);
-      const expected = run.expectFail ?? [];
-      const missing = expected.filter((e) => !failed.some((f) => f.startsWith(e)));
-      const unexpected = failed.filter((f) => !expected.some((e) => f.startsWith(e)));
+      const compare = (got: string[], want: string[]) => ({
+        missing: want.filter((e) => !got.some((f) => f.startsWith(e))),
+        unexpected: got.filter((f) => !want.some((e) => f.startsWith(e))),
+      });
+      const fails = compare(r.failedIds, run.expectFail ?? []);
+      const warns = compare(r.warnedIds, run.expectWarn ?? []);
+      const missing = [...fails.missing, ...warns.missing.map((w) => `${w} (warn)`)];
+      const unexpected = [...fails.unexpected, ...warns.unexpected.map((w) => `${w} (warn)`)];
       if (run.expectText && !run.expectText.test(r.result)) r.errors.push(`result doesn't match ${run.expectText}`);
       const ok = !missing.length && !unexpected.length && !r.errors.length;
       if (!ok) bad++;
-      console.log(`${ok ? "ok  " : "FAIL"} ${run.name}: ${r.status}${missing.length ? ` | expected to fail: ${missing.join(", ")}` : ""}${unexpected.length ? ` | unexpected failures: ${unexpected.join(", ")}` : ""}${r.errors.length ? ` | page errors: ${r.errors.join("; ")}` : ""}`);
+      console.log(`${ok ? "ok  " : "FAIL"} ${run.name}: ${r.status}${missing.length ? ` | expected but absent: ${missing.join(", ")}` : ""}${unexpected.length ? ` | unexpected: ${unexpected.join(", ")}` : ""}${r.errors.length ? ` | page errors: ${r.errors.join("; ")}` : ""}`);
       if (!ok) console.log(r.log.split("\n").map((l) => "     " + l).join("\n"));
     } catch (e) {
       bad++;

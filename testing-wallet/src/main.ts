@@ -27,6 +27,22 @@ const FAULTS: Record<string, string> = {
   "bad-shc-signature": "Break the SMART Health Card signature",
   "combine-allergies-meds": "Answer allergies and medications with one shared Bundle (O7)",
 };
+/** How an EHR that follows the spec reacts to each fault (§6.4, §8.5). */
+const FAULT_EFFECT: Record<string, string> = {
+  "wrong-canonical": "the EHR sets that record aside",
+  "missing-status": "the EHR treats that item as unknown",
+  "duplicate-status": "the EHR treats that item as unknown",
+  "wrong-request-id": "the EHR rejects the response",
+  "unaccepted-media-type": "the EHR sets that record aside",
+  "oversized": "passes",
+  "bad-signature": "the EHR warns and continues",
+  "bad-encryption": "the EHR rejects the response",
+  "wrong-origin": "the EHR rejects the response",
+  "bad-shc-signature": "the EHR sets that card aside",
+  "combine-allergies-meds": "passes",
+};
+/** Media types this wallet can produce. */
+const PRODUCIBLE = ["application/fhir+json", "application/smart-health-card"];
 const PATIENTS: Record<string, { label: string; file: string }> = {
   aria: { label: "Aria Test", file: "data/aria-test.json" },
   large: { label: "Aria Test, large record (over 2 MB)", file: "data/large-record.json" },
@@ -114,6 +130,9 @@ async function prepare(s: Session): Promise<Prepared[]> {
   return Promise.all(
     s.request.items.map(async (item): Promise<Prepared> => {
       if (s.unknownKinds.has(item.id)) return { kind: "unsupported", item, reason: `selector kind "${(item.content as any).kind}" is not supported`, share: false };
+      // [ACC-2] Only media types the item accepts; a form is always a QuestionnaireResponse in FHIR JSON.
+      const producible = item.content.kind === "form.fhir" ? ["application/fhir+json"] : PRODUCIBLE;
+      if (!item.accept.some((m) => producible.includes(m))) return { kind: "unsupported", item, reason: `it accepts only ${item.accept.join(", ")}`, share: false };
       if (item.content.kind === "selection.fhir") {
         const picked = selectEntries(item.content as SelectionContent, entries, { exclude: [patient.fullUrl] }) as Entry[];
         return { kind: "selection", item, entries: picked, share: true };
@@ -173,7 +192,8 @@ async function buildResponse(s: Session, items: Prepared[]): Promise<SmartChecki
       continue;
     }
     const accept = p.item.accept;
-    const wantsCard = accept[0] === "application/smart-health-card";
+    // [ACC-3] The earliest accepted type this wallet can produce.
+    const wantsCard = accept.find((m) => PRODUCIBLE.includes(m)) === "application/smart-health-card";
     if (settings.faults.has("unaccepted-media-type")) {
       const other = accept.includes("application/fhir+json") ? "application/smart-health-card" : "application/fhir+json";
       artifacts.push(other === "application/smart-health-card"
@@ -236,7 +256,7 @@ function renderTestingPanel() {
         input.checked ? settings.faults.add(k) : settings.faults.delete(k);
         writeSettings();
       };
-      return el("label", { htmlFor: `fault-${k}`, className: "fault" }, input, " ", el("code", {}, k), " ", text);
+      return el("label", { htmlFor: `fault-${k}`, className: "fault" }, input, " ", el("code", {}, k), " ", text, el("small", {}, ` (${FAULT_EFFECT[k] ?? ""})`));
     }),
   );
 }
@@ -324,12 +344,28 @@ async function showRequest(s: Session) {
       button.textContent = "Share";
     }
   };
-  ($("decline") as HTMLButtonElement).onclick = () => {
-    reply(s, { outcome: "declined" });
-    $("consent").hidden = true;
-    $("done").hidden = false;
-    $("done-text").textContent = "Declined. You can close this tab.";
-    if (!settings.testing) setTimeout(() => window.close(), 800);
+  // [HOLD-4] The patient reviewed the request and declined everything: answer
+  // with every item declined. (Closing the tab without answering is the
+  // cancel path; the EHR's call then fails.)
+  ($("decline") as HTMLButtonElement).onclick = async () => {
+    const button = $("decline") as HTMLButtonElement;
+    button.disabled = true;
+    try {
+      const smartResponse: SmartCheckinResponse = {
+        type: "smart-health-checkin-response", version: "1", requestId: s.request.id, artifacts: [],
+        requestStatus: s.request.items.map((i) => ({ item: i.id, status: "declined" as const })),
+      };
+      $("raw-response").textContent = JSON.stringify(smartResponse, null, 2);
+      const credential = await seal({ smartResponse, encryptionInfoBytes: s.encryptionInfoBytes, ehrOrigin: s.ehrOrigin, faults: new Set() });
+      reply(s, { outcome: "approved", credential });
+      $("consent").hidden = true;
+      $("done").hidden = false;
+      $("done-text").textContent = "Declined every item; the clinic was told. You can close this tab.";
+      if (!settings.testing) setTimeout(() => window.close(), 800);
+    } catch (e) {
+      showError(`Could not build the response: ${(e as Error).message}`);
+      reply(s, { outcome: "error", message: (e as Error).message });
+    }
   };
 }
 

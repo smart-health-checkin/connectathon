@@ -348,11 +348,12 @@ Two test tools let each participant run the scenarios above against a known-good
 
 - **[Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/)**
   - Sends any scenario's request to any registry wallet, or to the phone's own wallet.
-  - Checks the response against the spec and lists each check as pass or fail, with what went wrong.
+  - Checks the response against the spec, each check linked to its requirement. The verdict says whether the response was rejected, usable with problems in some items or records, or passed (possibly with warnings).
+  - As the spec says for receivers, problems in the mdoc layer (signatures, digests, validity dates) are warnings, not failures.
 - **[Testing wallet](https://smart-health-checkin.org/connectathon/testing-wallet/)**
   - Answers with a choice of patient, statuses, and artifact shapes.
   - Checks each incoming request against [§5](https://smart-health-checkin.org/spec/#5-clinical-request-model) and reports problems.
-  - Can send deliberately broken responses so EHRs can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, an oversized payload, and more. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md).
+  - Can send deliberately broken responses so EHRs can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, a bad signature, and more. Each is labeled with how an EHR that follows the spec reacts: reject the response, set one record aside, treat one item as unknown, or warn. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md).
 
 Each scenario is a named test case in both tools, so a self-serve run gives a pass or fail, with a link that files it as a result.
 
@@ -369,7 +370,7 @@ Download: <https://github.com/smart-health-checkin/android-wallet/releases/lates
 - **Requirements:** Android 8 or later, and a Chrome version with the Digital Credentials API. Open the app once after installing so it registers with the phone's Credential Manager.
 - **Test patient:** the same synthetic patients as the SMART Testing Wallet. Choose Aria Test, or the large record for L2, on the app's home screen.
 
-New builds install over old ones without uninstalling.
+From `wallet-v0.3.6` on, new builds install over old ones. Earlier builds were signed with a different key: uninstall one of those once (`adb uninstall org.smarthealthit.checkin.wallet`) before installing a newer build.
 
 ## What to record
 
