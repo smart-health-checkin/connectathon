@@ -17,8 +17,22 @@ Your answer is signed and encrypted to a key the clinic's page made for that req
 5. **Test against the Testing EHR.** The [Testing EHR](testing-ehr/) sends any scenario's request to your wallet and checks the answer against the spec, each check linked to its requirement.
 6. <a id="register"></a>**Register your wallet** with the [registration form](register/): a web wallet goes into the event [registry](scenarios.html#wallet-registry); a native wallet lists its install link and test patient. The form opens a pull request that adds you to the [directory](directory.html).
 7. **Run the scenarios.** The [test scenarios](scenarios.html) list the [baseline requests](scenarios.html#baseline-requests) and what passing looks like, starting with the [minimum scenarios](scenarios.html#minimum-scenarios), M1 to M6.
+8. **Share what you found** from the [developer track](share.html#developers) of the share page ([details below](#share-what-you-found)).
 
-## Native wallets
+## Joining
+
+- **Register:** [register your wallet](register/) ([step 6 of Get started](#register)), ideally a week before the event.
+- **The live event:** on Zoom; the date, time, and link are on the [main page](./). Join the main room for the opening, the hourly check-ins, and the closing report-out. Pair with EHR teams in breakout rooms you start yourself ([how](./#how-the-event-works)).
+- **Questions:** ask in the [#kill-the-clipboard channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT) on the CMS Health Tech Ecosystem Slack.
+- **Devices:** native-wallet testing needs your own phone: Android with Chrome, or an iPhone with Safari 26.
+
+## Share what you found
+
+Debrief your testing from the [developer track](share.html#developers) of the share page: it has a debrief prompt for any AI assistant, and the experience form. Record each formal scenario run as a [structured result](scenarios.html#recording-results) too. Reports are public, credited with the name and organization you give.
+
+## Reference
+
+### Native wallets
 
 A health app installed on the phone. The browser passes it the EHR's request through the Digital Credentials API, and the phone shows it as a choice to the patient. On Android, the app [registers with Credential Manager](https://smart-health-checkin.org/spec/platform-notes.html#android), and a small matcher decides whether it can answer a request.
 
@@ -42,7 +56,7 @@ A health app installed on the phone. The browser passes it the EHR's request thr
 
 For Android, see the [platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android): registering with Credential Manager, the matcher, the browser allowlist, and the large-response API. The same page covers iOS, where a wallet needs Apple's approval for this document type.
 
-## Web wallets
+### Web wallets
 
 A health app that runs as a website. It does the same work as a native wallet, but the EHR reaches it by opening it in a tab instead of through the Digital Credentials API. The two pages exchange three messages:
 
@@ -87,11 +101,3 @@ Response, from the wallet to the EHR page's origin:
 </details>
 
 The full hand-off, with timeouts and a checklist, is at <https://smart-health-checkin.org/client/docs/web-wallet-handoff.html>.
-
-## Joining
-
-[Register your wallet](register/) ([step 6 of Get started](#register)), ideally a week before the event, then join the Zoom main room (date, time, and link on the [main page](./)) and the [Slack channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT). Native-wallet testing needs your own phone: Android with Chrome, or an iPhone with Safari 26.
-
-## Sharing what you found
-
-Record each formal scenario run as a [result](scenarios.html#recording-results). Then tell us how the whole thing went: the [share page](share.html) has a [debrief prompt](share.html#ai-guide) for any AI assistant, and the [form](share.html#send-your-report). Reports are public, credited with the name and organization you give.

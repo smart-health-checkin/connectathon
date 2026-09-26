@@ -264,4 +264,4 @@ From 0.3.6 on, new builds install over old ones. Earlier builds were signed with
 
 Record each run of a formal scenario through the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml): EHR, wallet, path (web or native), scenario, device and browser, pass or fail, and a note. Attach a screenshot of the EHR display and, where possible, the captured request and response, or the testing tool's log. The [results page](results.html) collects them.
 
-Then tell us how the whole thing went in a short experience report. The [share page](share.html) has a [debrief prompt](share.html#ai-guide) for any AI assistant, and the [form](share.html#send-your-report).
+Then tell us how the whole thing went in a short experience report. The [developer track](share.html#developers) of the share page has a debrief prompt for any AI assistant, and the experience form.

@@ -277,36 +277,78 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
     claude: deep("https://claude.ai/new?q=", pr.text),
     chatgpt: deep("https://chatgpt.com/?q=", pr.text),
   }));
-  const cards = prompts.map((pr, i) => `
-<section class="prompt-card" data-prompt="${esc(data[i]!.id)}">
-  <h3>${esc(pr.title)}</h3>
-  <p class="who">${esc(pr.who)}</p>
-  <p>${esc(pr.what)}</p>
+  // One prompt's buttons; a track can show the same prompt as another track.
+  const card = (i: number) => `
+<div class="prompt-card" data-prompt="${esc(data[i]!.id)}">
+  <p><b>Prompt: ${esc(prompts[i]!.title)}</b></p>
   <div class="prompt-actions">
     <button type="button" class="smart-btn primary" data-act="copy">Copy the whole prompt</button>
     <button type="button" class="smart-btn" data-act="claude">Open in Claude</button>
     <button type="button" class="smart-btn" data-act="chatgpt">Open in ChatGPT</button>
-    <a href="prompts/${esc(pr.file)}">View as text</a>
+    <a href="prompts/${esc(prompts[i]!.file)}">View as text</a>
   </div>
   <p class="prompt-status" role="status"></p>
-  <p class="small">Claude shows a caution banner for any prompt opened from a link. That's expected for this prompt; read it, then send it.</p>
-</section>`).join("");
+</div>`;
+  const patient = prompts.findIndex((pr) => pr.file === "try-it-as-a-patient.md");
+  const debrief = prompts.findIndex((pr) => pr.file === "debrief.md");
+  const form = `<a href="${esc(FORM_URL)}">experience form</a>`;
   return `<article class="doc share">
 <h1>Share your experience</h1>
-<p>We want to hear how SMART Health Check-in worked for you: what was easy, what was confusing, and what would make you trust it. You can write in your own words, or use an AI assistant as a guide.</p>
+<p>We want to hear how SMART Health Check-in worked for you: what was easy, what was confusing, and what would make you trust it. Pick your track below. Each one ends with a short report you send through the ${form}.</p>
 <div id="context" class="context-note" hidden>
   <p><b>Your last try:</b> <span id="context-text"></span></p>
   <button type="button" class="smart-btn" id="copy-context">Copy this note</button>
   <span class="prompt-status" id="context-status" role="status"></span>
 </div>
-<h2 id="ai-guide">Use an AI assistant as your guide</h2>
-<p>Each prompt below turns an AI assistant into a guide for this event. Copy it and paste it into any assistant or tool you like, such as Claude, ChatGPT, Gemini, or Copilot. The buttons below copy the prompt and open a new chat; if the prompt doesn't appear in the chat, paste it (Ctrl+V or ⌘V, or press and hold, then Paste, on a phone).</p>
-${cards}
-<h2 id="send-your-report">Send your report</h2>
-<p>Paste your report, or just write a few sentences, into the <a href="${esc(FORM_URL)}">experience form</a>. You don't need an account.</p>
+<h2 id="which">Which one is for you?</h2>
+<a id="ai-guide"></a>
+<ul class="tracks">
+  <li><a href="#patients">Patients and community members</a>: try the demos with an AI guide, then send what you found.</li>
+  <li><a href="#clinic-staff">Clinic and front-desk staff</a>: the same demos, from the front desk's point of view.</li>
+  <li><a href="#developers">Verifier and wallet developers</a>: debrief your testing with an AI assistant, and record formal scenario runs.</li>
+  <li><a href="#observers">Observers</a>: tell us what you noticed.</li>
+</ul>
+<p>The prompts work in any AI assistant: copy one and paste it into Claude, ChatGPT, Gemini, Copilot, or whatever you use. The Open buttons copy the prompt and start a new chat with it filled in; if the chat is empty, paste it (Ctrl+V or ⌘V, or press and hold on a phone). Claude shows a caution banner for any prompt opened from a link; that's expected here.</p>
+
+<section class="track" id="patients">
+<h2>Patients and community members</h2>
+<ol>
+  <li><b>Start the guide.</b> Copy the patient guide prompt, or open it in an assistant:${card(patient)}</li>
+  <li><b>Follow it.</b> It walks you through three short demos, about 15 minutes, and asks how each one went.</li>
+  <li><b>Send your report.</b> Paste the report it drafts into the ${form}. You don't need an account.</li>
+</ol>
+</section>
+
+<section class="track" id="clinic-staff">
+<h2>Clinic and front-desk staff</h2>
+<ol>
+  <li><b>Start the guide.</b> The patient guide works from the front desk too: paste it, then tell the assistant you work at a front desk. It takes you through the same demos, including the kiosk.${card(patient)}</li>
+  <li><b>Follow it,</b> and say what would and wouldn't fit your front desk.</li>
+  <li><b>Send your report</b> through the ${form}. Or skip the guide and write a few sentences in your own words.</li>
+</ol>
+</section>
+
+<section class="track" id="developers">
+<h2>Verifier and wallet developers</h2>
+<ol>
+  <li><b>Start the debrief.</b> Copy the debrief prompt, or open it in an assistant:${card(debrief)}</li>
+  <li><b>Answer its questions.</b> Paste in your notes, logs, or Testing EHR runs. It asks what worked, what was hard, and where the spec or tools fell short, then drafts a short report.</li>
+  <li><b>Send your report</b> through the ${form}.</li>
+  <li><b>Formal scenario runs:</b> also record each one as a <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">structured result</a>. They're collected on the <a href="results.html">results page</a>.</li>
+</ol>
+</section>
+
+<section class="track" id="observers">
+<h2>Observers</h2>
+<ol>
+  <li><b>Try it, if you like.</b> The <a href="#patients">patient track</a> takes about 15 minutes on any phone or computer.</li>
+  <li><b>Send what you noticed</b> through the ${form}: a few sentences in your own words is plenty.</li>
+</ol>
+</section>
+
+<h2 id="send-your-report">About the form</h2>
+<p>The ${form} asks which describes you, your name and organization (optional), an email if we may follow up (optional), and your report. You don't need an account.</p>
 <p>Reports are public: we may publish them on this site and in summaries, credited with the name and organization you give, or anonymously if you leave those blank. Your email address is never published. Leave out anything you wouldn't want public.</p>
-<h2>For developers: structured results</h2>
-<p>If you ran the formal test scenarios, you can also record each run as a <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">structured result</a>; they're collected on the <a href="results.html">results page</a>. That's optional. The experience report is what matters most here.</p>
 </article>
 <script type="application/json" id="prompt-data">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>
 <script>
@@ -349,7 +391,16 @@ ${cards}
     const note = "I just tried " + (names[from] || from) + (h.get("result") ? " (outcome: " + h.get("result") + ")" : "") +
       (when && !isNaN(when) ? " at " + when.toLocaleString() : "") + ".";
     document.getElementById("context-text").textContent = note;
-    document.getElementById("context").hidden = false;
+    const ctx = document.getElementById("context");
+    ctx.hidden = false;
+    // Put the note in the track for the app they came from, and go there.
+    const track = { "testing-ehr": "developers", "testing-wallet": "developers" }[from] || "patients";
+    const section = document.getElementById(track);
+    if (section) {
+      section.querySelector("h2").after(ctx);
+      section.classList.add("current");
+      section.scrollIntoView({ block: "start" });
+    }
     document.getElementById("copy-context").onclick = async () => {
       document.getElementById("context-status").textContent = (await copy(note)) ? "Copied." : "Couldn't copy; select the text instead.";
     };

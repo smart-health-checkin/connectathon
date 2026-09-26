@@ -38,4 +38,4 @@ The connectathon is about experience with a new way of checking in, not a formal
 
 ## Sharing what you found
 
-Everyone is invited to write a short experience report: what you tried, what worked, what was hard, and what you'd change. The [share page](share.html) has prompts that turn any AI assistant into a guide for writing one, and the form to send it. Reports are public, credited with the name and organization you give, or anonymous.
+Everyone is invited to write a short experience report: what you tried, what worked, what was hard, and what you'd change. The [share page](share.html) has a track for each kind of participant, [patients](share.html#patients), [clinic staff](share.html#clinic-staff), [developers](share.html#developers), and [observers](share.html#observers), with prompts that turn any AI assistant into a guide and the form to send your report. Reports are public, credited with the name and organization you give, or anonymous.

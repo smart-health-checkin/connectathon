@@ -16,8 +16,21 @@ The answer comes back encrypted to a key your page made for that request, and bo
 4. **Building a native app instead of a web page?** The [Native apps guide](https://smart-health-checkin.org/client/docs/native-apps.html) shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
 5. <a id="register"></a>**Register your check-in page** with the [registration form](register/). It opens a pull request that adds you to the [directory](directory.html), so wallet teams can test against you.
 6. **Run the scenarios.** The [test scenarios](scenarios.html) list the [baseline requests](scenarios.html#baseline-requests) and what passing looks like, starting with the [minimum scenarios](scenarios.html#minimum-scenarios), M1 to M6.
+7. **Share what you found** from the [developer track](share.html#developers) of the share page ([details below](#share-what-you-found)).
 
-## What you build
+## Joining
+
+- **Register:** [register your check-in page](register/) ([step 5 of Get started](#register)), ideally a week before the event.
+- **The live event:** on Zoom; the date, time, and link are on the [main page](./). Join the main room for the opening, the hourly check-ins, and the closing report-out. Pair with wallet teams in breakout rooms you start yourself ([how](./#how-the-event-works)).
+- **Questions:** ask in the [#kill-the-clipboard channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT) on the CMS Health Tech Ecosystem Slack.
+
+## Share what you found
+
+Debrief your testing from the [developer track](share.html#developers) of the share page: it has a debrief prompt for any AI assistant, and the experience form. Record each formal scenario run as a [structured result](scenarios.html#recording-results) too. Reports are public, credited with the name and organization you give.
+
+## Reference
+
+### What you build
 
 The practice system. Its check-in page builds a request, lets the patient choose a wallet, and handles the response in the same page.
 
@@ -46,11 +59,3 @@ The [client library](https://smart-health-checkin.org/client/) does [steps 2 to 
 | Cross-checks | `requestId` matches; one status per item; every artifact's media type accepted by the items it fulfills | [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) |
 
 </details>
-
-## Joining
-
-[Register your check-in page](register/) ([step 5 of Get started](#register)), ideally a week before the event, then join the Zoom main room (date, time, and link on the [main page](./)) and the [Slack channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT). Pair with wallet teams in breakout rooms you start yourself.
-
-## Sharing what you found
-
-Record each formal scenario run as a [result](scenarios.html#recording-results). Then tell us how the whole thing went: the [share page](share.html) has a [debrief prompt](share.html#ai-guide) for any AI assistant, and the [form](share.html#send-your-report). Reports are public, credited with the name and organization you give.
