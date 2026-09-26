@@ -48,7 +48,7 @@ jobs:
           disk-size: 6G
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
           disable-animations: true
-          script: bun scripts/android-e2e.ts --release ${{ github.event.inputs.cases || 'M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12' }} > out.txt 2>&1; s=$?; cat out.txt; exit $s
+          script: bun scripts/android-e2e.ts --out out.txt --release ${{ github.event.inputs.cases || 'M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12' }}
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

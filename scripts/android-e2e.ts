@@ -25,7 +25,14 @@ const APK = opt("--apk");
 const RELEASE = flag("--release");
 const BASE = opt("--base") ?? "https://smart-health-checkin.org/connectathon/";
 const PORT = Number(opt("--port") ?? 9477);
+const OUT = opt("--out"); // also append every result line to this file
 const CASES = args.length ? args : ["M1", "M3", "M4", "O6"];
+if (OUT) {
+  const { appendFileSync, writeFileSync } = await import("node:fs");
+  writeFileSync(OUT, "");
+  const log = console.log;
+  console.log = (...a: unknown[]) => { log(...a); appendFileSync(OUT, a.join(" ") + "\n"); };
+}
 const ADB = `${process.env.ANDROID_HOME ?? `${process.env.HOME}/Android/Sdk`}/platform-tools/adb`;
 const WALLET_PKG = "org.smarthealthit.checkin.wallet";
 const RELEASE_APK = "https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk";
@@ -253,6 +260,7 @@ for (const c of CASES) {
     console.log(`skip ${c}: Chrome ${chrome} can't receive responses over about 500 KB from an Android wallet (needs Chrome 150 or later)`);
     continue;
   }
+  console.log(`...  ${c}: running`);
   try {
     const r = await runCase(c).catch(async (e) => {
       if (!/detached|Target closed|Session closed|socket|ECONNRESET|webSocket/i.test((e as Error).message)) throw e;
