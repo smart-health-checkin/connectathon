@@ -4,7 +4,7 @@ For teams building the clinic side: the check-in page, portal, kiosk, or app tha
 
 ## Background
 
-In the spec's terms you build a **Verifier**. Your page sends a request listing the items you'd like, and the patient's wallet answers with the records and form answers the patient chose to share, plus a status for every item. The wallet can be an app on the phone, reached through the browser's Digital Credentials API, or a website, opened in a tab.
+In the spec's terms you build a **Verifier**. Your page sends a request listing the items you'd like, and the patient's wallet answers with the records and form answers the patient chose to share, plus a status for every item. The wallet can be an app on the phone, reached through the browser's Digital Credentials API, or a website, opened in a tab (the [web wallet hand-off](wallet-developers.html#web-wallets)).
 
 The answer comes back encrypted to a key your page made for that request, and bound to your page's origin. You check it against your request, then show it to staff. Each item and record is judged on its own, so one bad record doesn't lose the rest.
 
@@ -15,7 +15,7 @@ The answer comes back encrypted to a key your page made for that request, and bo
 3. **Test against known-good wallets.** Point your page at the event's [wallet registry](scenarios.html#wallet-registry) and check in with the [SMART Testing Wallet](testing-wallet/). It can also send deliberately broken responses, so you can test your error handling.
 4. **Building a native app instead of a web page?** The [Native apps guide](https://smart-health-checkin.org/client/docs/native-apps.html) shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
 5. <a id="register"></a>**Register your check-in page** with the [registration form](register/). It opens a pull request that adds you to the [directory](directory.html), so wallet teams can test against you.
-6. **Run the scenarios.** The [test scenarios](scenarios.html) list the baseline requests and what passing looks like, starting with M1 to M6.
+6. **Run the scenarios.** The [test scenarios](scenarios.html) list the [baseline requests](scenarios.html#baseline-requests) and what passing looks like, starting with the [minimum scenarios](scenarios.html#minimum-scenarios), M1 to M6.
 
 ## What you build
 
@@ -49,8 +49,8 @@ The [client library](https://smart-health-checkin.org/client/) does [steps 2 to 
 
 ## Joining
 
-[Register your check-in page](register/) ([step 5 of Get started](#register)), ideally a week before the event, then join the Zoom main room and the Slack channel on the [main page](./). Pair with wallet teams in breakout rooms you start yourself.
+[Register your check-in page](register/) ([step 5 of Get started](#register)), ideally a week before the event, then join the Zoom main room (date, time, and link on the [main page](./)) and the [Slack channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT). Pair with wallet teams in breakout rooms you start yourself.
 
 ## Sharing what you found
 
-Record each formal scenario run as a [result](scenarios.html#recording-results). Then tell us how the whole thing went: the [share page](share.html) has a debrief prompt for any AI assistant, and the form. Reports are public, credited with the name and organization you give.
+Record each formal scenario run as a [result](scenarios.html#recording-results). Then tell us how the whole thing went: the [share page](share.html) has a [debrief prompt](share.html#ai-guide) for any AI assistant, and the [form](share.html#send-your-report). Reports are public, credited with the name and organization you give.

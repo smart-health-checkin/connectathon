@@ -21,8 +21,8 @@ The [kiosk flow explainer](https://smart-health-checkin.org/spec/kiosk-flow-expl
 
 ## Joining
 
-You don't need to register. The demos work any time. The live event is on Zoom; the date, time, and link are on the [main page](./), along with the Slack channel for questions.
+You don't need to register. The demos work any time. The live event is on Zoom; the date, time, and link are on the [main page](./). Ask questions in the [Slack channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT).
 
 ## Sharing what you found
 
-Tell us what would and wouldn't fit your workflow through the [share page](share.html): send a few sentences through the form, or use the patient guide prompt with any AI assistant to walk through the demos and write it up. Reports are public, credited with the name and organization you give, or anonymous.
+Tell us what would and wouldn't fit your workflow through the [share page](share.html): send a few sentences through the [form](share.html#send-your-report), or use the [patient guide prompt](share.html#ai-guide) with any AI assistant to walk through the demos and write it up. Reports are public, credited with the name and organization you give, or anonymous.

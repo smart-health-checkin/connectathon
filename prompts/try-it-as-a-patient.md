@@ -103,6 +103,6 @@ Before they send it, tell them plainly: reports are public. The organizers may p
 When they're ready, tell them:
 
 - Copy the report and paste it into the form at {{FORM_URL}}. The form doesn't need an account. Name, organization, and email are all optional.
-- If they'd rather, they can post it in the event's chat or send it to the organizers directly.
+- If they'd rather, they can post it in the event's chat, the #kill-the-clipboard channel on the CMS Health Tech Ecosystem Slack (https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT), or find the organizers on the connectathon page: https://smart-health-checkin.org/connectathon/
 
 Thank them. Their experience is what shapes how this works for real patients.

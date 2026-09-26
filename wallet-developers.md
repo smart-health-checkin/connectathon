@@ -6,7 +6,7 @@ For teams building the patient side: a health app on a phone, or a web wallet th
 
 In the spec's terms you build a **Wallet**. A clinic's page sends a request listing the items it would like. Your app shows it to the patient, lets them choose what to share item by item, and answers with the chosen records and form answers, plus one status for every item.
 
-Your answer is signed and encrypted to a key the clinic's page made for that request, and bound to that page's origin, which you take from the platform, never from the request. Build exactly what the spec describes; a strict mdoc verifier should accept it.
+Your answer is signed and encrypted to a key the clinic's page made for that request, and bound to that page's origin, which you take from the platform, never from the request ([TR-3](https://smart-health-checkin.org/spec/#TR-3)). Build exactly what [§8](https://smart-health-checkin.org/spec/#8-same-device-presentation-flow) describes; a strict mdoc verifier should accept it.
 
 ## Get started
 
@@ -16,14 +16,14 @@ Your answer is signed and encrypted to a key the clinic's page made for that req
 4. **Run the conformance cases.** The spec's [conformance cases](https://github.com/smart-health-checkin/spec/tree/main/conformance) test one capability at a time, without a browser or a partner.
 5. **Test against the Testing EHR.** The [Testing EHR](testing-ehr/) sends any scenario's request to your wallet and checks the answer against the spec, each check linked to its requirement.
 6. <a id="register"></a>**Register your wallet** with the [registration form](register/): a web wallet goes into the event [registry](scenarios.html#wallet-registry); a native wallet lists its install link and test patient. The form opens a pull request that adds you to the [directory](directory.html).
-7. **Run the scenarios.** The [test scenarios](scenarios.html) list the baseline requests and what passing looks like, starting with M1 to M6.
+7. **Run the scenarios.** The [test scenarios](scenarios.html) list the [baseline requests](scenarios.html#baseline-requests) and what passing looks like, starting with the [minimum scenarios](scenarios.html#minimum-scenarios), M1 to M6.
 
 ## Native wallets
 
-A health app installed on the phone. The browser passes it the EHR's request through the Digital Credentials API, and the phone shows it as a choice to the patient. On Android, the app registers with Credential Manager, and a small matcher decides whether it can answer a request.
+A health app installed on the phone. The browser passes it the EHR's request through the Digital Credentials API, and the phone shows it as a choice to the patient. On Android, the app [registers with Credential Manager](https://smart-health-checkin.org/spec/platform-notes.html#android), and a small matcher decides whether it can answer a request.
 
 1. **Check the request.** ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction))
-2. **Ask the patient, item by item.** `required: true` is the clinic's advice, not consent.
+2. **Ask the patient, item by item.** `required: true` is the clinic's advice, not consent ([HOLD-3](https://smart-health-checkin.org/spec/#HOLD-3)).
 3. **Build the answer**, with one status per item and the records or form answers the patient chose. ([§6.1](https://smart-health-checkin.org/spec/#6-1-normative-typescript-model), [§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics))
 4. **Sign and encrypt it for the EHR**, bound to the origin the phone reports. ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction), [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing))
 
@@ -90,8 +90,8 @@ The full hand-off, with timeouts and a checklist, is at <https://smart-health-ch
 
 ## Joining
 
-[Register your wallet](register/) ([step 6 of Get started](#register)), ideally a week before the event, then join the Zoom main room and the Slack channel on the [main page](./). Native-wallet testing needs your own phone: Android with Chrome, or an iPhone with Safari 26.
+[Register your wallet](register/) ([step 6 of Get started](#register)), ideally a week before the event, then join the Zoom main room (date, time, and link on the [main page](./)) and the [Slack channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT). Native-wallet testing needs your own phone: Android with Chrome, or an iPhone with Safari 26.
 
 ## Sharing what you found
 
-Record each formal scenario run as a [result](scenarios.html#recording-results). Then tell us how the whole thing went: the [share page](share.html) has a debrief prompt for any AI assistant, and the form. Reports are public, credited with the name and organization you give.
+Record each formal scenario run as a [result](scenarios.html#recording-results). Then tell us how the whole thing went: the [share page](share.html) has a [debrief prompt](share.html#ai-guide) for any AI assistant, and the [form](share.html#send-your-report). Reports are public, credited with the name and organization you give.

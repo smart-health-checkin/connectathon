@@ -15,11 +15,11 @@ Everything below works in a web browser on any phone, tablet, or computer, and t
 1. **Check in for a visit:** [clinic check-in demo](https://smart-health-checkin.org/client/demo/#wallet=demo). Press **Check in with Demo wallet**, choose what to share in the Demo wallet, and press **Share selected**.
 2. **Fill in a form from your health app:** [allergy form demo](https://smart-health-checkin.org/client/demo/autofill.html#wallet=demo). Press **Prefill from your health app**, share, and look over what was filled in.
 3. **Check in at a front-desk kiosk:** open the [kiosk demo](https://smart-health-checkin.org/client/demo/kiosk.html) on a computer and scan its QR code with your phone. No second device? Use the link under the QR code.
-4. **Optional, on an Android phone:** try a real wallet app. The [patient guide](share.html) walks you through installing it.
+4. **Optional, on an Android phone:** try a real wallet app. The [patient guide prompt](share.html#ai-guide) walks you through installing it, or follow the [install steps](scenarios.html#reference-android-wallet).
 
 ## Try it with a guide
 
-If you'd like a guide, the [patient guide prompt](share.html) turns an AI assistant into one. Copy it and paste it into any assistant you use, such as Claude, ChatGPT, Gemini, or Copilot. It walks you through the demos one step at a time, asks how each went, and helps you write a short report.
+If you'd like a guide, the [patient guide prompt](share.html#ai-guide) turns an AI assistant into one. Copy it and paste it into any assistant you use, such as Claude, ChatGPT, Gemini, or Copilot. It walks you through the demos one step at a time, asks how each went, and helps you write a short report.
 
 ## Joining
 

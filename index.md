@@ -21,13 +21,13 @@ The connectathon is about experience with a new way of checking in, not a formal
 - **One Zoom meeting.** Everyone joins the main room for the opening, the hourly check-ins, and the closing report-out, where participants share what they found.
 - **One chat.** Questions, pairing, and links go in `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)).
 - **Breakout rooms you start yourself.** Two people debugging together: start a Slack huddle in a direct message; it has video and screen sharing. A group, or someone not on the Slack: open `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in the channel.
-- **Registration is for software.** Teams bringing an EHR, portal, or wallet register it so others can test against it ([developer pages](verifier-developers.html) explain how). Everyone else just joins.
+- **Registration is for software.** Teams bringing an EHR, portal, or wallet [register it](register/) so others can test against it (see the register step for [Verifier developers](verifier-developers.html#register) or [wallet developers](wallet-developers.html#register)). Everyone else just joins.
 - **Made-up data only.** Every patient, record, and clinic in the demos and test tools is synthetic. Never use real health information, even your own.
 
 ## Schedule
 
-- **{{TBD: date, 3 weeks before}}:** reference implementations, test tools, the wallet registry, example questionnaires, and baseline requests are live.
-- **{{TBD: date, 1 week before}}:** software teams aim to have their component up for self-serve testing and to have tried a first connection.
+- **{{TBD: date, 3 weeks before}}:** reference implementations, [test tools](scenarios.html#testing-ehr-and-testing-wallet), the [wallet registry](scenarios.html#wallet-registry), [example questionnaires](scenarios.html#example-questionnaires), and [baseline requests](scenarios.html#baseline-requests) are live.
+- **{{TBD: date, 1 week before}}:** software teams aim to have their component up for [self-serve testing](scenarios.html#how-to-test) and to have tried a first connection.
 - **The event:** ideally spent on the harder problems and live debugging. Some people will still be finishing basic setup, and that's fine.
 
 ## For developers: scenarios and tools

@@ -15,7 +15,7 @@ SMART Health Check-in lets a clinic's check-in page ask a patient's own health a
 
 ## Joining
 
-You don't need to register. Join the Zoom main room and the Slack channel (details on the [main page](./)); the closing report-out is where participants share what they found.
+You don't need to register. Join the Zoom main room (date, time, and link on the [main page](./)) and the [Slack channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT); the closing report-out is where participants share what they found.
 
 ## Sharing what you found
 

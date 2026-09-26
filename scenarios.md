@@ -20,7 +20,7 @@ The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/);
 - **No patient matching.** Each wallet holds its own synthetic patient. EHRs display what arrives and do not match it to a chart.
 - **Handoff is a plain link.** The patient opens the EHR's check-in page in a browser. Portal buttons, SMS, and QR codes are product choices outside the spec ([§1.3](https://smart-health-checkin.org/spec/#1-3-handoffs-as-on-ramps)).
 - **Bring your own devices.** Native-wallet testing needs an Android phone with Chrome, or an iPhone with Safari 26, with a wallet installed. There is a [reference Android wallet](#reference-android-wallet). There is no reference iOS wallet, so iOS testing uses participants' own wallets.
-- **Small responses first.** Every minimum scenario stays under 512 KB per response, so size limits in browsers and phone APIs don't get in the way of the basics. Larger payloads have their own scenarios.
+- **Small responses first.** Every minimum scenario stays under 512 KB per response, so size limits in browsers and phone APIs don't get in the way of the basics. Larger payloads have their own [scenarios](#larger-data-scenarios).
 - **FHIR R4 and US Core.** Requests use `fhirVersions: ["4.0.1"]` and `accept: ["application/fhir+json"]`. The insurance item also accepts a SMART Health Card ([§5.6](https://smart-health-checkin.org/spec/#5-6-accepted-media-types)).
 
 ## Shared resources
@@ -73,7 +73,7 @@ There is no single intake form for this event. These examples give EHRs somethin
 
 | Form | Kind | Link |
 |---|---|---|
-| PHQ-2 depression screen, 2 questions | Standard screening instrument, used in Baseline 3 | <https://smart-health-checkin.org/connectathon/Questionnaire/phq-2.json> |
+| PHQ-2 depression screen, 2 questions | Standard screening instrument, used in [Baseline 3](#baseline-3) | <https://smart-health-checkin.org/connectathon/Questionnaire/phq-2.json> |
 | GAD-7 anxiety screen, 7 questions | Standard screening instrument | <https://smart-health-checkin.org/connectathon/Questionnaire/gad-7.json> |
 | Semaglutide 4-week check-in, 13 questions | Written by a physician for patients starting this one medication | <https://smart-health-checkin.org/connectathon/Questionnaire/semaglutide-4-week-checkin.json> |
 
@@ -81,9 +81,9 @@ The semaglutide form asks only what the patient's record can't answer: how the w
 
 ## Baseline requests
 
-EHRs should be able to send Baselines 1 to 3, and wallets should be able to answer them with responses under 512 KB. Baseline 4 is for the larger-data scenarios. Each is published at `https://smart-health-checkin.org/connectathon/requests/baseline-N.json`. `…` stands for `http://hl7.org/fhir/us/core/StructureDefinition`.
+EHRs should be able to send Baselines 1 to 3, and wallets should be able to answer them with responses under 512 KB. [Baseline 4](#baseline-4) is for the [larger-data scenarios](#larger-data-scenarios). Each is published at `https://smart-health-checkin.org/connectathon/requests/baseline-N.json`. `…` stands for `http://hl7.org/fhir/us/core/StructureDefinition`.
 
-**Baseline 1: demographics and PAMI** (problems, allergies, medications, immunizations)
+<a id="baseline-1"></a>**Baseline 1: demographics and PAMI** (problems, allergies, medications, immunizations)
 
 | Item id | Title | Selector ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)) |
 |---|---|---|
@@ -93,7 +93,7 @@ EHRs should be able to send Baselines 1 to 3, and wallets should be able to answ
 | `medications` | Medications | `profiles: ["…/us-core-medicationrequest"]` |
 | `immunizations` | Immunizations | `profiles: ["…/us-core-immunization"]` |
 
-**Baseline 2: demographics and insurance**
+<a id="baseline-2"></a>**Baseline 2: demographics and insurance**
 
 | Item id | Title | Selector | Accept |
 |---|---|---|---|
@@ -102,14 +102,14 @@ EHRs should be able to send Baselines 1 to 3, and wallets should be able to answ
 
 The two coverage profiles are alternatives: a wallet may hold the CARIN digital insurance card, US Core Coverage, or both ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)).
 
-**Baseline 3: demographics and a pre-visit questionnaire**
+<a id="baseline-3"></a>**Baseline 3: demographics and a pre-visit questionnaire**
 
 | Item id | Title | Selector |
 |---|---|---|
 | `patient` | Demographics | `profiles: ["…/us-core-patient"]` |
 | `phq2` | Two questions about your mood | `form.fhir` with the PHQ-2 Questionnaire inline and its `questionnaireCanonical` ([§5.4.2](https://smart-health-checkin.org/spec/#5-4-2-form-fhir)) |
 
-**Baseline 4: anything in USCDI**
+<a id="baseline-4"></a>**Baseline 4: anything in USCDI**
 
 | Item id | Title | Selector |
 |---|---|---|
@@ -155,12 +155,14 @@ All canonicals are unversioned, so any US Core version matches ([§5.5](https://
 
 ## Minimum scenarios
 
-Use Baselines 1 to 3, with responses under 512 KB. Run them for every EHR and wallet pairing you can reach.
+Use [Baselines 1 to 3](#baseline-requests), with responses under 512 KB. Run them for every EHR and wallet pairing you can reach.
+
+<a id="m1"></a>
 
 ### M1. Web wallet from the registry
 
 1. The EHR loads the registry and shows every listed wallet, with the phone's own wallet alongside.
-2. The tester picks a web wallet. The EHR opens it and sends Baseline 1 through the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html).
+2. The tester picks a web wallet. The EHR opens it and sends [Baseline 1](#baseline-1) through the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html).
 3. In the wallet, the tester shares everything.
 4. The response arrives back in the EHR's page.
 
@@ -168,19 +170,21 @@ Pass:
 - **EHR:** the response opens and verifies ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)), passes cross-validation ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation)), and the page shows each item's status and data.
 - **Wallet:** shows the EHR's origin during consent, returns `fulfilled` for each item, and the returned resources carry the matching US Core `meta.profile`.
 
+<a id="m2"></a>
+
 ### M2. Native wallet through the Digital Credentials API
 
-Same as M1, but the tester picks the phone's own wallet, and the EHR calls `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)). Record the phone, OS version, browser, and wallet app.
+Same as [M1](#m1), but the tester picks the phone's own wallet, and the EHR calls `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)). Record the phone, OS version, browser, and wallet app.
 
 ### M3. Insurance
 
-Baseline 2, through either path.
+[Baseline 2](#baseline-2), through either path ([M1](#m1) or [M2](#m2)).
 
 Pass: the EHR displays the member, payer, and plan from the returned Coverage, whichever profile or format the wallet chose. If the wallet returns a SMART Health Card, the EHR verifies its signature before showing it.
 
 ### M4. Pre-visit questionnaire, inline
 
-Baseline 3, through either path.
+[Baseline 3](#baseline-3), through either path ([M1](#m1) or [M2](#m2)).
 
 Pass:
 - **Wallet:** renders the inline PHQ-2 and returns a QuestionnaireResponse whose `questionnaire` is exactly the requested canonical ([§5.5](https://smart-health-checkin.org/spec/#5-5-canonical-version-handling)).
@@ -188,7 +192,7 @@ Pass:
 
 ### M5. One item declined
 
-Baseline 1. In the wallet, decline `immunizations` and share the rest.
+[Baseline 1](#baseline-1). In the wallet, decline `immunizations` and share the rest.
 
 Pass:
 - **Wallet:** returns `declined` for `immunizations`, and exactly one status for every other item ([§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics)).
@@ -202,12 +206,12 @@ Pass: the EHR handles a whole-request decline and an `unavailable` item without 
 
 ## Larger data scenarios
 
-Baseline 4, kept separate so size limits don't block the minimum scenarios.
+[Baseline 4](#baseline-4), kept separate so size limits don't block the [minimum scenarios](#minimum-scenarios).
 
 | # | Scenario | Pass |
 |---|---|---|
 | L1 | Anything in USCDI, small patient: a modest record, under 512 KB | The EHR shows every returned resource under `uscdi`, whatever the resource types. The wallet lets the patient choose what to include ([§5.4](https://smart-health-checkin.org/spec/#5-4-content-selectors)). |
-| L2 | Anything in USCDI, large patient: a full history with notes, well over 512 KB | The response arrives intact. On Android, this needs Chrome 150 or later and a wallet that uses the large-payload response API; with older Chrome, responses over about 520 KB are dropped silently and the page waits forever. Record the browser, phone, and wallet version. |
+| L2 | Anything in USCDI, large patient: a full history with notes, well over 512 KB | The response arrives intact. On Android, this needs Chrome 150 or later and a wallet that uses the [large-payload response API](https://smart-health-checkin.org/spec/trust-and-limits.html#size); with older Chrome, responses over about 520 KB are dropped silently and the page waits forever. Record the browser, phone, and wallet version. |
 
 ## Optional and stretch scenarios
 
@@ -215,13 +219,13 @@ Baseline 4, kept separate so size limits don't block the minimum scenarios.
 |---|---|---|---|
 | O1 | Questionnaire by reference only | `form.fhir` with `questionnaireCanonical` and no inline body. The wallet fetches the hosted form ([§5.4.2](https://smart-health-checkin.org/spec/#5-4-2-form-fhir)). | Wallet renders the fetched form, or reports `unsupported` rather than inventing one. |
 | O2 | Versioned canonical | `questionnaireCanonical` with a version suffix, such as …/phq-2.json&#124;1, body inline | Wallet echoes the versioned canonical exactly in `QuestionnaireResponse.questionnaire` ([§5.5](https://smart-health-checkin.org/spec/#5-5-canonical-version-handling)). |
-| O3 | Physician-authored form | The semaglutide check-in form, inline | Wallet renders every item type, shows the missed-dose follow-up and the call-us note only when their conditions are met, accepts typed answers on the pen question, and returns every answer given. |
+| O3 | Physician-authored form | The [semaglutide check-in form](#example-questionnaires), inline | Wallet renders every item type, shows the missed-dose follow-up and the call-us note only when their conditions are met, accepts typed answers on the pen question, and returns every answer given. |
 | O4 | Narrowed family | `profilesFrom` US Core plus `resourceTypes: ["Observation"]`, for recent labs and vitals ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)) | Only Observations come back. |
 | O5 | No selector | `selection.fhir` with no arrays, meaning whatever the patient thinks is relevant ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)) | Wallet lets the patient choose, and the EHR displays whatever arrives. |
 | O6 | SMART Health Card | `accept: ["application/smart-health-card", "application/fhir+json"]` for immunizations | EHR verifies the card's signature and shows its contents. |
 | O7 | One artifact, several items | Wallet answers `allergies` and `medications` with one Bundle whose `fulfills[]` lists both ([§6.3](https://smart-health-checkin.org/spec/#6-3-many-to-many-fulfillment)) | EHR attributes the resources to both items without double-counting. |
 | O8 | Cross-device | Desktop Chrome or Safari 26 sends Baseline 1 and shows a QR code, and the phone's wallet answers | Response arrives in the desktop page. |
-| O9 | In-person handoff | A front-desk QR code or kiosk lands the patient's phone on the EHR's check-in page | Same as M2, with the handoff shown. |
+| O9 | In-person handoff | A front-desk QR code or kiosk lands the patient's phone on the EHR's check-in page | Same as [M2](#m2), with the handoff shown. |
 | O10 | Prefilled form | Wallet prefills answers it can from the patient's records and lets the patient edit | Prefilled answers are visible to the patient before sending. |
 | O11 | Write back | EHR files returned data or answers into the chart after staff review | Staff can accept or reject each item. |
 | O12 | Unknown selector | An item with `kind: "example.ktc-test"` ([§5.4.3](https://smart-health-checkin.org/spec/#5-4-3-extension-selectors)) | Wallet reports `unsupported` for that item and still answers the others. |
@@ -252,7 +256,7 @@ Download: <https://github.com/smart-health-checkin/android-wallet/releases/lates
   adb install -r smart-health-checkin-wallet-debug.apk
   ```
 - **Requirements:** Android 8 or later, and a Chrome version with the Digital Credentials API. Open the app once after installing so it registers with the phone's Credential Manager.
-- **Test patient:** the same synthetic patients as the SMART Testing Wallet. Choose Aria Test, or the large record for L2, on the app's home screen.
+- **Test patient:** the same synthetic patients as the SMART Testing Wallet. Choose Aria Test, or the large record for [L2](#larger-data-scenarios), on the app's home screen.
 
 From 0.3.6 on, new builds install over old ones. Earlier builds were signed with a different key: uninstall one of those once (`adb uninstall org.smarthealthit.checkin.wallet`) before installing a newer build.
 
@@ -260,4 +264,4 @@ From 0.3.6 on, new builds install over old ones. Earlier builds were signed with
 
 Record each run of a formal scenario through the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml): EHR, wallet, path (web or native), scenario, device and browser, pass or fail, and a note. Attach a screenshot of the EHR display and, where possible, the captured request and response, or the testing tool's log. The [results page](results.html) collects them.
 
-Then tell us how the whole thing went in a short experience report. The [share page](share.html) has a debrief prompt for any AI assistant, and the form.
+Then tell us how the whole thing went in a short experience report. The [share page](share.html) has a [debrief prompt](share.html#ai-guide) for any AI assistant, and the [form](share.html#send-your-report).

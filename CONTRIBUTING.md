@@ -15,7 +15,7 @@ Fill in the [registration form](https://smart-health-checkin.org/connectathon/re
    - A file can only be changed by its own contacts. For an existing file, that means the contacts already on `main`. To add a colleague, add their GitHub username to `contacts` first.
    - Anything else waits for a maintainer.
 
-If you'd rather not use GitHub, post your file's contents in `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack and a maintainer will add it.
+If you'd rather not use GitHub, post your file's contents in [`#kill-the-clipboard`](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT) on the CMS Health Tech Ecosystem Slack and a maintainer will add it.
 
 Everything in your file is public. Only list contact details you're happy to publish.
 
