@@ -74,7 +74,7 @@ Ask:
 
 Offer this only if they have an Android phone and are comfortable installing an app from outside the Play Store. Skip it otherwise.
 
-1. On the Android phone, open https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk and download the file.
+1. On the Android phone, open https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk and download the file.
 2. Open the downloaded file. Android may ask to allow installing apps from this source; allow it for this one install.
 3. Open the new app, **SMART Health Check-in Wallet**, once, so the phone knows about it. It holds a made-up patient's records.
 4. In Chrome on the same phone, open https://smart-health-checkin.org/client/demo/, press the small arrow next to the check-in button, choose **Your phone's health app**, then press the button. The phone shows its own choice of apps; pick the wallet app and share.

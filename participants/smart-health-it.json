@@ -34,7 +34,7 @@
         "android"
       ],
       "access": "install",
-      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-verifier-app.apk",
+      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-verifier.apk",
       "requirements": "Android 8 or later with a Chrome version that has the Digital Credentials API",
       "notes": "Two buttons: \"Check in with a wallet on this phone\" calls Credential Manager directly (install a native wallet, such as the SMART reference Android wallet, first); \"Check in through the browser\" opens the bridge page, which lists the connectathon's web wallets and the phone's wallets. The developer guide is https://smart-health-checkin.org/client/docs/native-apps.html."
     },
@@ -59,7 +59,7 @@
         "android"
       ],
       "access": "install",
-      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk",
+      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk",
       "requirements": "Android 8 or later, with a Chrome version that has the Digital Credentials API (Chrome 150 or later for responses over 512 KB)",
       "largeResponses": true,
       "testPatient": "Aria Test, or the large record, chosen on the app's home screen",

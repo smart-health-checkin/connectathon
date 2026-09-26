@@ -37,7 +37,7 @@ Everything the event provides, in one place. The event's own resources are all u
 | Example questionnaires | [Questionnaires](Questionnaire/) |
 | Reference EHR check-in page | [Reference EHR demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
 | Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
-| Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk); [install steps](#reference-android-wallet) |
+| Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk); [install steps](#reference-android-wallet) |
 | SMART Testing EHR | [SMART Testing EHR](testing-ehr/) ([details](#testing-ehr-and-testing-wallet)) |
 | SMART Testing Wallet: the reference web wallet, also usable for fault testing | [SMART Testing Wallet](testing-wallet/), also in the registry; [what it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) |
 | Chat for questions and pairing | `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)) |
@@ -247,13 +247,13 @@ Each scenario is a named test case in both tools, so a self-serve run gives a pa
 
 ## Reference Android wallet
 
-Download: [the latest APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk)
+Download: [the latest APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk)
 
 - **On the phone:** open the link, download the file, and allow installs from your browser when Android asks.
 - **With adb:** download the file first, since adb cannot install from a URL:
   ```
-  curl -LO https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk
-  adb install -r smart-health-checkin-wallet-debug.apk
+  curl -LO https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk
+  adb install -r smart-health-checkin-wallet.apk
   ```
 - **Requirements:** Android 8 or later, and a Chrome version with the Digital Credentials API. Open the app once after installing so it registers with the phone's Credential Manager.
 - **Test patient:** the same synthetic patients as the SMART Testing Wallet. Choose Aria Test, or the large record for [L2](#larger-data-scenarios), on the app's home screen.

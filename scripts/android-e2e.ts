@@ -36,7 +36,7 @@ if (OUT) {
 }
 const ADB = `${process.env.ANDROID_HOME ?? `${process.env.HOME}/Android/Sdk`}/platform-tools/adb`;
 const WALLET_PKG = "org.smarthealthit.checkin.wallet";
-const RELEASE_APK = "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk";
+const RELEASE_APK = "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk";
 
 const adb = (...a: string[]) => $`${ADB} -s ${SERIAL} ${a}`.quiet().nothrow();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
