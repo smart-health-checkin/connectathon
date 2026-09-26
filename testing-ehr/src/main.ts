@@ -7,6 +7,7 @@ import { buildOrgIsoMdocRequest, extractDcapiResponse } from "@smart-health-chec
 import { checkResponse, fixFor, groupOf, type ArtifactOutcome, type Check, type WireLayers } from "./checks.ts";
 import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
+import { jsonHtml } from "../../shared/smart-json.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
@@ -396,10 +397,10 @@ function show(r: Run) {
   const verdict = `<section class="verdict ${r.verdict}"><div class="head"><span class="mark">${mark}</span><b>${esc(r.headline)}</b></div>
     <div class="meta"><span>${esc(r.label)}</span><span>→ ${esc(r.walletName)}</span>${r.faults.length ? `<span>faults: ${esc(r.faults.join(", "))}</span>` : ""}${kb ? `<span>${kb}</span>` : ""}<span>${(r.ms / 1000).toFixed(1)} s</span><span>${new Date(r.at).toLocaleTimeString()}</span></div>
     ${r.message ? `<p class="small">${esc(r.message)}</p>` : ""}
-    <div class="actions"><a id="file" class="btn primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="btn" data-act="download">Download run</button><a class="share-link" target="_blank" rel="noopener" href="${esc(shareLink("testing-ehr", r.verdict, r.at))}">Tell us how it went</a></div></section>`;
+    <div class="actions"><a id="file" class="smart-btn sm primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="smart-btn sm" data-act="download">Download run</button><a class="share-link" target="_blank" rel="noopener" href="${esc(shareLink("testing-ehr", r.verdict, r.at))}">Tell us how it went</a></div></section>`;
 
   const failCard = (c: Check, warn = false) =>
-    `<div class="failure ${warn ? "warn" : ""}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec ${esc(c.rule ?? "")}</a>` : ""}${layerFor(c.id) && r.wire ? ` <a href="#layer-${layerFor(c.id)}" data-goto-layer="${layerFor(c.id)}">See the bytes</a>` : ""}</div>`;
+    `<div class="failure smart-callout ${warn ? "warn" : "bad"}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec ${esc(c.rule ?? "")}</a>` : ""}${layerFor(c.id) && r.wire ? ` <a href="#layer-${layerFor(c.id)}" data-goto-layer="${layerFor(c.id)}">See the bytes</a>` : ""}</div>`;
   const whole = failures.filter((c) => c.scope === "response");
   const partial = failures.filter((c) => c.scope !== "response");
   const failuresHtml = (whole.length ? `<section class="card"><h2>Why the response was rejected <span>${whole.length}</span></h2>${whole.map((c) => failCard(c)).join("")}</section>` : "")
@@ -410,8 +411,8 @@ function show(r: Run) {
   for (const c of passed) groups.set(groupOf(c.id), [...(groups.get(groupOf(c.id)) ?? []), c]);
   const passedHtml = passed.length
     ? `<section class="card"><h2>Passed checks <span>${passed.length}</span></h2>${[...groups].map(([g, list]) =>
-        `<details class="group"><summary>${esc(g)}<span class="n">${list.length}</span></summary>${list.map((c) =>
-          `<div class="check"><span class="dot ${c.outcome}"></span><span>${esc(c.title)}${c.section ? ` <a href="${esc(c.section)}" target="_blank" rel="noopener">${esc(c.rule ?? "spec")}</a>` : ""}</span>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</div>`).join("")}</details>`).join("")}</section>`
+        `<details class="group smart-details"><summary>${esc(g)}<span class="n">${list.length}</span></summary><div class="checks">${list.map((c) =>
+          `<div class="check"><span class="dot ${c.outcome}"></span><span>${esc(c.title)}${c.section ? ` <a href="${esc(c.section)}" target="_blank" rel="noopener">${esc(c.rule ?? "spec")}</a>` : ""}</span>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</div>`).join("")}</div></details>`).join("")}</section>`
     : "";
 
   $("result").innerHTML = verdict + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, [...failures, ...warnings]) : "");
@@ -426,9 +427,11 @@ function show(r: Run) {
     target.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   for (const b of $("result").querySelectorAll<HTMLButtonElement>(".view button")) b.onclick = () => toggleView(b);
-  for (const b of $("result").querySelectorAll<HTMLButtonElement>("[data-copy]")) b.onclick = () => copyJson(b);
   renderHistory();
 }
+
+// Item statuses as the shared pill tones.
+const STATUS_TONE: Record<string, string> = { fulfilled: "ok", declined: "warn", unavailable: "warn", partial: "warn", unsupported: "warn", error: "bad", missing: "bad" };
 
 function itemsHtml(r: Run): string {
   const smart = r.smartResponse;
@@ -458,10 +461,10 @@ function itemsHtml(r: Run): string {
     const json = JSON.stringify(mine, null, 2);
     const shown = json.length > 400_000 ? json.slice(0, 400_000) + "\n… (truncated; download the run for all of it)" : json;
     const asideHtml = setAside.length ? `<p class="small">Set aside: ${setAside.map((a) => `<code>${esc(String(a.id))}</code>`).join(", ")} (see Problems with items or records).</p>` : "";
-    return `<article class="item"><div class="item-head"><b>${esc(item.title)}</b><span class="st ${esc(outcome === "unknown" ? "missing" : status.length === 1 ? status[0].status : "missing")}">${esc(statusText)}</span><span class="src">${count} resource${count === 1 ? "" : "s"} · ${esc(sources)}</span>
-      <span class="view"><button type="button" aria-pressed="true" data-v="readable">Readable</button><button type="button" aria-pressed="false" data-v="json">JSON</button></span></div>
+    return `<article class="item"><div class="item-head"><b>${esc(item.title)}</b><span class="smart-pill ${STATUS_TONE[outcome === "unknown" ? "missing" : status.length === 1 ? status[0].status : "missing"] ?? ""}">${esc(statusText)}</span><span class="src">${count} resource${count === 1 ? "" : "s"} · ${esc(sources)}</span>
+      <span class="view smart-tabs"><button type="button" aria-pressed="true" data-v="readable">Readable</button><button type="button" aria-pressed="false" data-v="json">JSON</button></span></div>
       <div class="item-body" data-body="readable">${asideHtml}${readableHtml}</div>
-      <div class="item-body" data-body="json" hidden><div class="json-tools"><button type="button" class="btn" data-copy>Copy</button></div><pre class="json">${esc(shown)}</pre></div></article>`;
+      <div class="item-body" data-body="json" hidden><pre class="smart-code short">${jsonHtml(shown)}</pre></div></article>`;
   });
   return `<section class="card"><h2>What came back <span>${r.request.items.length} item${r.request.items.length === 1 ? "" : "s"}</span></h2>${cards.join("")}</section>`;
 }
@@ -470,11 +473,6 @@ function toggleView(button: HTMLButtonElement) {
   const item = button.closest(".item")!;
   for (const b of item.querySelectorAll<HTMLButtonElement>(".view button")) b.setAttribute("aria-pressed", String(b === button));
   for (const body of item.querySelectorAll<HTMLElement>("[data-body]")) body.hidden = body.dataset.body !== button.dataset.v;
-}
-
-function copyJson(button: HTMLButtonElement) {
-  const text = button.closest(".item-body")!.querySelector("pre")!.textContent ?? "";
-  navigator.clipboard.writeText(text).then(() => { button.textContent = "Copied"; setTimeout(() => (button.textContent = "Copy"), 1500); }, () => {});
 }
 
 function download(r: Run) {

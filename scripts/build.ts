@@ -15,6 +15,7 @@
  */
 import { Marked } from "marked";
 import { gfmHeadingId } from "marked-gfm-heading-id";
+import { createCssVariablesTheme, createHighlighter } from "shiki";
 import { FORM_URL, PROMPTS } from "./links.ts";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
@@ -235,8 +236,23 @@ if (CHECK_ONLY) process.exit(0);
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
+// Code blocks are highlighted here, with Shiki's css-variables theme; the shared stylesheet
+// colors it (see "Syntax highlighting" in the apex MAINTAINING.md). Untagged blocks stay plain.
+const highlighter = await createHighlighter({ themes: [createCssVariablesTheme()], langs: ["json", "js", "ts", "sh", "html"] });
+const LANG_ALIASES: Record<string, string> = { javascript: "js", typescript: "ts", bash: "sh", shell: "sh", jsonc: "json" };
 const marked = new Marked();
-marked.use(gfmHeadingId());
+marked.use(gfmHeadingId(), {
+  renderer: {
+    code({ text, lang }) {
+      const name = (lang ?? "").trim().split(/\s+/)[0]!.toLowerCase();
+      const known = LANG_ALIASES[name] ?? name;
+      return highlighter.codeToHtml(text, { lang: highlighter.getLoadedLanguages().includes(known) ? known : "text", theme: "css-variables" }) + "\n";
+    },
+  },
+});
+/** Tables scroll sideways inside the shared wrapper. */
+const wrapTables = (html: string) =>
+  html.replace(/<table>/g, '<div class="smart-table-wrap"><table>').replace(/<\/table>/g, "</table></div>");
 
 const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
@@ -255,7 +271,7 @@ const noBreakCheckIn = (html: string) =>
 /** A content page. The breadcrumb comes from nav.json; it's hidden on the front page. */
 function page(title: string, body: string, { front = false } = {}): string {
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -266,7 +282,7 @@ ${CHROME_HEAD}
 <body>
 <div data-smart-topbar></div>
 <nav data-smart-breadcrumb${front ? " hidden" : ""}></nav>
-<main id="main" class="page">
+<main id="main" class="page smart-prose">
 ${noBreakCheckIn(body)}
 </main>
 <div data-smart-footer></div>
@@ -278,7 +294,7 @@ ${noBreakCheckIn(body)}
 // Event details not yet decided are written {{TBD: what}} in the Markdown and shown as a pill.
 // Any other {{…}} left in a published page fails the build (checked after rendering).
 const tbd = (md: string) =>
-  md.replace(/\{\{TBD:\s*([^}]*)\}\}/g, (_m, what) => `<span class="tbd" title="${esc(what.trim())}">To be announced</span>`);
+  md.replace(/\{\{TBD:\s*([^}]*)\}\}/g, (_m, what) => `<span class="smart-pill warn tbd" title="${esc(what.trim())}">To be announced</span>`);
 
 /** The "Share your experience" page: prompts to copy into any AI assistant, and the form. */
 function sharePage(prompts: Array<{ file: string; title: string; who: string; what: string; text: string }>): string {
@@ -314,7 +330,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
   return `<article class="doc share">
 <h1>Share your experience</h1>
 <p>We want to hear how SMART Health Check-in worked for you: what was easy, what was confusing, and what would make you trust it. Pick your track below. Each one ends with a short report you send through the ${form}.</p>
-<div id="context" class="context-note" hidden>
+<div id="context" class="context-note smart-callout" hidden>
   <p><b>Your last try:</b> <span id="context-text"></span></p>
   <button type="button" class="smart-btn" id="copy-context">Copy this note</button>
   <span class="prompt-status" id="context-status" role="status"></span>
@@ -431,7 +447,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
 function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
   const md = tbd(readFileSync(join(ROOT, src), "utf8"));
   const title = md.match(/^# (.+)$/m)?.[1] ?? fallbackTitle;
-  writeFileSync(join(OUT, out), page(title, `<article class="doc">${marked.parse(md)}</article>`, { front: out === "index.html" }));
+  writeFileSync(join(OUT, out), page(title, `<article class="doc">${wrapTables(marked.parse(md) as string)}</article>`, { front: out === "index.html" }));
 }
 
 cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
@@ -508,7 +524,7 @@ for (const { file, request, valid } of requests) {
   reqRows += `<section class="req"><h2 id="${esc(file.replace(/\.json$/, ""))}"><a href="${file}">${esc(file)}</a></h2><ul>${describe(request)}</ul><p>${tryIt}</p></section>`;
 }
 const reqReadme = existsSync(join(ROOT, "requests/README.md"))
-  ? marked.parse(readFileSync(join(ROOT, "requests/README.md"), "utf8"))
+  ? wrapTables(marked.parse(readFileSync(join(ROOT, "requests/README.md"), "utf8")) as string)
   : "<h1>Requests</h1>";
 writeFileSync(join(OUT, "requests/index.html"), page("Requests", `<article class="doc">${reqReadme}</article>${reqRows}`));
 
@@ -529,12 +545,13 @@ writeFileSync(
   page(
     "Questionnaires",
     `<article class="doc"><h1>Questionnaires</h1><p>FHIR R4 Questionnaires for the connectathon. Each one's <code>url</code> is the address it is served from, so a wallet can fetch it by reference.</p></article>
-<div class="table-wrap"><table><thead><tr><th>Form</th><th>Questions</th><th>Item types</th><th>Canonical</th></tr></thead><tbody>${qRows}</tbody></table></div>`,
+<div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>Form</th><th class="num">Questions</th><th>Item types</th><th>Canonical</th></tr></thead><tbody>${qRows}</tbody></table></div>`,
   ),
 );
 
 // directory: one table per kind of component, so each shows what a tester of that kind needs.
-const statusPill = (s: string) => `<span class="pill ${esc(s)}">${esc({ up: "Up", "not-yet": "Not yet", broken: "Broken" }[s] ?? s)}</span>`;
+const PILL_TONE: Record<string, string> = { up: "ok", "not-yet": "warn", broken: "bad" };
+const statusPill = (s: string) => `<span class="smart-pill ${PILL_TONE[s] ?? ""}">${esc({ up: "Up", "not-yet": "Not yet", broken: "Broken" }[s] ?? s)}</span>`;
 const platformsOf = (c: Component) => (c.platforms ?? []).map((x) => PLATFORM_LABEL[x] ?? x).join(" and ");
 function howToTest(c: Component): string {
   const open = (href: string, text: string) => `<a class="open" href="${esc(href)}">${text}</a>`;
@@ -584,7 +601,7 @@ const dirSections = DIRECTORY_SECTIONS.map((sec) => {
   const rows = participants.flatMap((p) => p.components.filter((c) => c.role === sec.role).map((c) => dirRow(p, c, sec.cols))).join("");
   const head = ["Organization", sec.noun, ...(sec.cols.details ? ["Runs on"] : []), "How to test", ...(sec.cols.patient ? ["Test patient"] : []), "Status", "Contacts"];
   const table = rows
-    ? `<div class="table-wrap"><table class="directory"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
+    ? `<div class="smart-table-wrap"><table class="smart-table directory"><thead><tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>`
     : `<p class="muted">None registered yet.</p>`;
   return { ...sec, count: rows ? rows.split("<tr>").length - 1 : 0, html: `<section class="doc dir-section"><h2 id="${sec.id}">${sec.title}</h2><p>${sec.intro}</p></section>${table}` };
 });
@@ -650,7 +667,7 @@ if (!results) {
     const s = r.fields["Scenario"] || "(no scenario)";
     byScenario.set(s, [...(byScenario.get(s) ?? []), r]);
   }
-  const cls = (v: string) => (/^pass/i.test(v) ? "up" : /^fail/i.test(v) ? "broken" : "not-yet");
+  const cls = (v: string) => (/^pass/i.test(v) ? "ok" : /^fail/i.test(v) ? "bad" : "warn");
   resultsBody = byScenario.size === 0 ? `<p>No open results. Closed issues are withdrawn results.</p>` : [...byScenario.entries()]
     .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
     .map(([scenario, rs]) => {
@@ -658,9 +675,9 @@ if (!results) {
       const wallets = [...new Set(rs.map((r) => `${r.fields["Wallet"]} (${r.fields["Path"]})`))].sort();
       const cell = (e: string, w: string) => {
         const r = rs.find((x) => x.fields["Verifier"] === e && `${x.fields["Wallet"]} (${x.fields["Path"]})` === w);
-        return r ? `<td><a class="pill ${cls(r.fields["Result"])}" href="${r.url}">${esc(r.fields["Result"] || "?")} #${r.number}</a></td>` : "<td></td>";
+        return r ? `<td><a class="smart-pill ${cls(r.fields["Result"])}" href="${r.url}">${esc(r.fields["Result"] || "?")} #${r.number}</a></td>` : "<td></td>";
       };
-      return `<h2>${esc(scenario)}</h2><div class="table-wrap"><table><thead><tr><th>Verifier \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
+      return `<h2>${esc(scenario)}</h2><div class="smart-table-wrap"><table class="smart-table"><thead><tr><th>Verifier \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
     })
     .join("");
 }
@@ -683,12 +700,13 @@ for (const tool of ["testing-ehr", "testing-wallet", "register"]) {
     for (const log of built.logs) console.error(log);
     process.exit(1);
   }
-  // The shared chrome lives on the apex site, outside this bundle, so it's added after bundling,
-  // ahead of the tool's own stylesheet.
+  // The shared chrome and JSON highlighter live on the apex site, outside this bundle, so they're
+  // added after bundling, ahead of the tool's own stylesheet and script.
   const html = join(OUT, tool, "index.html");
   const builtHtml = readFileSync(html, "utf8");
   if (!builtHtml.includes("</title>")) throw new Error(`${tool}/index.html: no <title> to put the site chrome after`);
-  writeFileSync(html, builtHtml.replace("</title>", `</title>${CHROME_HEAD.replaceAll("\n", "")}`));
+  // Each tool shows JSON with the shared highlighter, which sets globalThis.SmartJson.
+  writeFileSync(html, builtHtml.replace("</title>", `</title>${CHROME_HEAD.replaceAll("\n", "")}<script type="module" src="/assets/smart-json.js"></script>`));
   // Static files the tool fetches at run time.
   for (const extra of ["data", "issuer", "FEATURES.md"]) {
     if (existsSync(join(dir, extra))) cpSync(join(dir, extra), join(OUT, tool, extra), { recursive: true });

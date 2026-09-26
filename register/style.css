@@ -1,38 +1,33 @@
-:root { --fg:#1f2933; --muted:#6b7280; --line:#e4e7eb; --bg:#fff; --soft:#f6f8fa; --accent:#0e6fb8; --err:#a32a22; --errbg:#fbe4e2; --ok:#12705e; --okbg:#e5f5f1; color-scheme: light; }
+/* Register: on top of /assets/smart-design.css (tokens and components). */
 * { box-sizing: border-box; }
-body { margin:0; font-family: var(--font-sans, system-ui, sans-serif); font-size: var(--fs-base, 16px); line-height: 1.5; color:var(--fg); background:var(--bg); -webkit-font-smoothing: antialiased; }
-code, pre, .json { font-family: var(--font-mono, ui-monospace, monospace); }
+body { margin:0; font-family: var(--font-sans); font-size: var(--fs-base); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+code, pre { font-family: var(--font-mono); }
 /* Left edge and gutter match the site bar; the form keeps a readable width. */
 main { max-width: var(--container-wide, 1280px); margin:0 auto; padding:24px 24px 16px; display:grid; gap:20px; }
 main > * { max-width: 760px; min-width: 0; }
 @media (max-width: 46rem) { main { padding:16px 16px 8px; } }
 h1 { font-size: var(--fs-2xl, 30px); letter-spacing: -0.02em; line-height: 1.15; margin: 0; }
-a { color: var(--brand, var(--accent)); }
+a { color: var(--brand); }
 .intro { margin:0; }
-fieldset { border:1px solid var(--line); border-radius:8px; padding:12px 14px 14px; margin:0 0 16px; display:grid; gap:6px; }
+fieldset { border:1px solid var(--border); border-radius:8px; padding:12px 14px 14px; margin:0 0 16px; display:grid; gap:6px; }
 legend { font-weight:700; padding:0 4px; }
 main label { font-size:14px; font-weight:600; margin-top:6px; }
-.req { font-weight:400; color:var(--muted); font-size:12px; }
-.hint { color:var(--muted); font-size:13px; margin:0; }
-input, select, textarea { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; width:100%; }
-input[type=checkbox], input[type=radio] { width:auto; }
-.card { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin:6px 0; display:grid; gap:4px; background:var(--soft); }
+.req { font-weight:400; color:var(--fg-3); font-size:12px; }
+.hint { color:var(--fg-3); font-size:13px; margin:0; }
+input, select, textarea { font:inherit; padding:6px 8px; border:1px solid var(--border-strong); border-radius:6px; width:100%; background:var(--surface); color:var(--fg-1); }
+input[type=checkbox], input[type=radio] { width:auto; accent-color: var(--brand); }
+.card { border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin:6px 0; display:grid; gap:4px; background:var(--surface-alt); scroll-margin-top: 80px; }
 .card-head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
 .card-head b { font-size:15px; }
 .inline { display:flex; gap:14px; flex-wrap:wrap; font-weight:400; }
 .inline label { font-weight:400; display:flex; gap:6px; align-items:center; margin:0; }
 .row2 { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
 @media (max-width:560px) { .row2 { grid-template-columns: 1fr; } }
-main button { font:inherit; padding:8px 16px; border-radius:6px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
-main button.secondary { background:#fff; color:var(--accent); }
-main button.remove { background:none; border:none; color:var(--err); padding:0; font-size:13px; }
-main button:disabled { opacity:.55; cursor:default; }
-button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+button.remove { font:inherit; background:none; border:none; color:var(--status-bad); padding:0; font-size:13px; cursor:pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
 .add-row, .actions { display:flex; gap:8px; flex-wrap:wrap; }
-.json { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:10px; overflow:auto; font-size:12.5px; max-height:420px; }
 .problems:empty { display:none; }
-.problems { background:var(--errbg); color:var(--err); border-radius:6px; padding:8px 12px; font-size:14px; }
-.problems.ok { background:var(--okbg); color:var(--ok); }
+.problems { margin:0; font-size:14px; }
 .problems ul { margin:4px 0 0; padding-left:18px; }
 main h2 { font-size:18px; margin:0; }
 .where { display:grid; gap:6px; }
@@ -41,11 +36,8 @@ fieldset.choices { border:0; padding:0; margin:6px 0 0; display:flex; gap:6px 16
 fieldset.choices legend { font-size:14px; font-weight:600; padding:0; margin-bottom:4px; width:100%; float:left; }
 fieldset.choices label { font-weight:400; display:flex; gap:6px; align-items:flex-start; margin:0; }
 fieldset.choices input { margin-top:5px; flex:none; }
-.advice { background:var(--soft); border-left:3px solid var(--accent); padding:6px 10px; font-size:14px; margin:0; }
+.advice { margin:0; font-size:14px; }
 .advice[hidden] { display:none; }
 .examples { display:grid; gap:8px; }
-.example { border:1px solid var(--line); border-radius:8px; padding:8px 12px; }
-.example summary { cursor:pointer; }
-.example p { margin:6px 0; }
-.example .json { margin:6px 0 8px; }
-.card { scroll-margin-top: 80px; }
+.examples > * { min-width:0; }
+.examples .smart-details { margin:0; }

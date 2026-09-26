@@ -3,6 +3,7 @@ import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
 import { ACCESS_LABEL, participantProblems, type Access, type Component, type Participant, type Role, type Validate } from "./participant.ts";
 import { EXAMPLES } from "./examples.ts";
+import { renderJson } from "../../shared/smart-json.ts";
 
 const SITE = new URL("../", location.href).href;
 const REPO = "smart-health-checkin/connectathon";
@@ -117,11 +118,11 @@ function problems(p: Participant): string[] {
 function refresh() {
   const p = clean(state);
   const json = JSON.stringify(p, null, 2) + "\n";
-  $("json").textContent = json;
+  renderJson($("json"), json);
   $("filename").textContent = `participants/${fileName()}`;
   const list = problems(p);
   const box = $("problems");
-  box.className = `problems${list.length ? "" : " ok"}`;
+  box.className = `problems smart-callout ${list.length ? "bad" : "ok"}`;
   box.replaceChildren(...(list.length ? [el("b", {}, "Fix these first:"), el("ul", {}, ...list.map((x) => el("li", {}, x)))] : ["Looks good. This file passes the same checks the pull request will run."]));
   const advice = $("advice");
   const noGithub = !(p.contacts ?? []).some((c) => c.github);
@@ -248,9 +249,11 @@ function renderAll() {
   refresh();
 }
 
+const renderJsonEl = (pre: HTMLElement, value: unknown) => { renderJson(pre, value); return pre; };
+
 function renderExamples() {
   $("example-list").replaceChildren(...EXAMPLES.map((ex) => {
-    const load = el("button", { type: "button", className: "secondary" }, "Load into the form");
+    const load = el("button", { type: "button", className: "smart-btn" }, "Load into the form");
     load.onclick = () => {
       loadedFile = undefined;
       ($("existing") as HTMLSelectElement).value = "";
@@ -258,11 +261,11 @@ function renderExamples() {
       renderAll();
       $("form").scrollIntoView({ behavior: "smooth", block: "start" });
     };
-    return el("details", { id: ex.id, className: "example" },
+    return el("details", { id: ex.id, className: "example smart-details" },
       el("summary", {}, el("b", {}, ex.title)),
       el("p", {}, ex.summary),
       el("p", { className: "hint" }, `participants/${ex.file}`),
-      el("pre", { className: "json" }, JSON.stringify(ex.participant, null, 2)),
+      renderJsonEl(el("pre", { className: "smart-code" }), ex.participant),
       load,
     );
   }));

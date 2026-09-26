@@ -12,6 +12,7 @@ import { describeEntries, type Entry } from "./match.ts";
 import { buildQuestionnaireResponse, prefill, renderForm, resolveQuestionnaire, type FormState, type Questionnaire } from "./forms.ts";
 import { mintHealthCard } from "./shc.ts";
 import { seal } from "./seal.ts";
+import { renderJson } from "../../shared/smart-json.ts";
 
 const STATUSES = ["fulfilled", "partial", "unavailable", "declined", "unsupported", "error"] as const;
 const FAULTS: Record<string, string> = {
@@ -317,7 +318,7 @@ async function showRequest(s: Session) {
   $("consent").hidden = false;
   $("origin").textContent = s.ehrOrigin;
   $("purpose").textContent = s.request.purpose ?? "";
-  $("raw-request").textContent = JSON.stringify(s.request, null, 2);
+  renderJson($("raw-request"), s.request);
   const redraw = async () => {
     shareButton.disabled = true;
     prepared = await prepare(s);
@@ -333,7 +334,7 @@ async function showRequest(s: Session) {
     button.textContent = "Sharing…";
     try {
       const smartResponse = await buildResponse(s, prepared);
-      $("raw-response").textContent = JSON.stringify(smartResponse, (k, v) => (typeof v === "string" && v.length > 2000 ? `${v.slice(0, 200)}… (${v.length} chars)` : v), 2);
+      renderJson($("raw-response"), smartResponse, (_k, v) => (typeof v === "string" && v.length > 2000 ? `${v.slice(0, 200)}… (${v.length} chars)` : v));
       const credential = await seal({ smartResponse, encryptionInfoBytes: s.encryptionInfoBytes, ehrOrigin: s.ehrOrigin, faults: settings.faults });
       reply(s, { outcome: "approved", credential });
       $("consent").hidden = true;
@@ -356,7 +357,7 @@ async function showRequest(s: Session) {
     button.disabled = true;
     try {
       const smartResponse = declineAll(s.request);
-      $("raw-response").textContent = JSON.stringify(smartResponse, null, 2);
+      renderJson($("raw-response"), smartResponse);
       const credential = await seal({ smartResponse, encryptionInfoBytes: s.encryptionInfoBytes, ehrOrigin: s.ehrOrigin, faults: new Set() });
       reply(s, { outcome: "approved", credential });
       $("consent").hidden = true;

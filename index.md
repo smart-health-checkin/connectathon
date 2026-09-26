@@ -14,7 +14,7 @@ An online event where patients, clinic staff, and software teams try a new way o
 
 ## How the event works
 
-<p class="draft"><b>Draft.</b> The event date isn't set yet, so dates below say "To be announced". Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">directory</a> aren't ready for testing.</p>
+<p class="smart-callout warn"><b>Draft.</b> The event date isn't set yet, so dates below say "To be announced". Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">directory</a> aren't ready for testing.</p>
 
 - **When and where.** KTC pre-visit check-in connectathon, {{TBD: event date and time}}, about 3 hours, on Zoom: {{TBD: Zoom link}}.
 - **What it's for.** Experience with a new way of checking in, not a formal conformance test. Software teams connect clinic systems to patients' health apps, and patients, clinic staff, and community members try the result. It uses the [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/) draft specification.

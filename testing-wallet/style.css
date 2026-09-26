@@ -1,9 +1,9 @@
-:root { --fg:#1f2933; --muted:#6b7280; --line:#e4e7eb; --bg:#fff; --soft:#f6f8fa; --accent:#0e6fb8; --warn:#8a5a00; --warnbg:#fcefd9; --err:#a32a22; --errbg:#fbe4e2; --ok:#12705e; color-scheme: light; }
+/* SMART Testing Wallet: on top of /assets/smart-design.css (tokens and components). */
 * { box-sizing: border-box; }
-body { margin:0; font-family: var(--font-sans, system-ui, sans-serif); font-size: var(--fs-base, 16px); line-height: 1.5; color:var(--fg); background:var(--bg); -webkit-font-smoothing: antialiased; }
-a { color: var(--brand, var(--accent)); }
-a:hover { color: var(--brand-ink, var(--accent)); }
-code, pre, .raw { font-family: var(--font-mono, ui-monospace, monospace); }
+body { margin:0; font-family: var(--font-sans); font-size: var(--fs-base); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: var(--brand); }
+a:hover { color: var(--brand-ink); }
+code, pre { font-family: var(--font-mono); }
 /* Left edge and gutter match the site bar; the wallet keeps a narrow column. */
 main { max-width: var(--container-wide, 1280px); margin:0 auto; padding:16px 24px; }
 main > * { max-width:680px; }
@@ -13,33 +13,34 @@ main { min-height: calc(100vh - 59px); }
 /* The page's name, compact: the tool bar above already names the tool. */
 .tool-head { display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 12px; margin:0 0 12px; }
 .tool-head h1 { margin:0; font-size:18px; line-height:1.3; letter-spacing:-0.01em; }
-.tool-head p { margin:0; font-size:13px; color:var(--muted); }
-.muted { color:var(--muted); } .small { font-size:13px; }
+.tool-head p { margin:0; font-size:13px; color:var(--fg-3); }
+.muted { color:var(--fg-3); } .small { font-size:13px; }
 h3 { font-size:14px; margin:16px 0 6px; }
-.asker { font-size:18px; margin:4px 0; } .asker b { font-family: var(--font-mono, ui-monospace, monospace); font-size:16px; }
+.asker { font-size:18px; margin:4px 0; } .asker b { font-family: var(--font-mono); font-size:16px; }
 .purpose { margin:0 0 4px; }
 .patient { display:block; margin:12px 0; }
 .items { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
-.item { border:1px solid var(--line); border-radius:8px; padding:12px 14px; }
+.item { border:1px solid var(--border); border-radius:8px; padding:12px 14px; }
 .item.off { opacity:.55; }
 .item-head { font-size:17px; cursor:pointer; }
 .summary, .preview, .required { margin:6px 0 0; font-size:14px; }
-.preview { color:var(--muted); } .preview.warn, .required { color:var(--warn); }
+.preview { color:var(--fg-3); } .preview.warn, .required { color:var(--status-warn); }
 .form { margin-top:10px; display:grid; gap:14px; }
-.q-text { font-weight:600; font-size:15px; } .q-req { font-weight:400; color:var(--warn); font-size:13px; } .q-prefilled { font-weight:400; color:var(--ok); font-size:13px; }
-.q-display { margin:0; color:var(--fg); }
+.q-text { font-weight:600; font-size:15px; } .q-req { font-weight:400; color:var(--status-warn); font-size:13px; } .q-prefilled { font-weight:400; color:var(--status-ok); font-size:13px; }
+.q-display { margin:0; }
 .q-options { display:grid; gap:4px; margin-top:4px; }
 .q-option { display:flex; gap:6px; align-items:baseline; font-size:15px; }
-.q input[type=text], .q input[type=number], .q input[type=date], .q textarea { width:100%; font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; margin-top:4px; }
+select, .q input[type=text], .q input[type=number], .q input[type=date], .q textarea { font:inherit; padding:6px 8px; border:1px solid var(--border-strong); border-radius:6px; background:var(--surface); color:var(--fg-1); }
+.q input[type=text], .q input[type=number], .q input[type=date], .q textarea { width:100%; margin-top:4px; }
+input[type=checkbox], input[type=radio] { accent-color: var(--brand); }
+.q .smart-btn.link { justify-self:start; }
 .actions { display:flex; gap:10px; justify-content:flex-end; margin:16px 0; }
-main button { font:inherit; padding:8px 18px; border-radius:6px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
-main button.secondary { background:#fff; color:var(--accent); }
-main button.link { border:none; background:none; color:var(--accent); padding:0; font-size:13px; justify-self:start; }
-main button:disabled { opacity:.6; cursor:default; }
-button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.error { background:var(--errbg); color:var(--err); padding:10px 12px; border-radius:6px; margin:12px 0; white-space:pre-wrap; }
-.testing { margin-top:24px; border-top:1px solid var(--line); padding-top:8px; font-size:14px; }
-.testing summary { cursor:pointer; color:var(--muted); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+.error { white-space:pre-wrap; }
+.testing { margin-top:24px; font-size:14px; }
 .faults, .overrides { display:grid; gap:4px; }
-.fault, .override { display:flex; gap:6px; align-items:baseline; }
-.raw { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:8px; max-height:320px; overflow:auto; font-size:12px; }
+.override { display:flex; gap:6px; align-items:baseline; }
+/* A fault reads as one line of text: its name, what it does, and how the EHR reacts. */
+.fault { display:block; }
+.fault code { white-space:nowrap; }
+.fault small { color:var(--fg-3); }

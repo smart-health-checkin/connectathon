@@ -23,13 +23,13 @@
 
       <section class="card">
         <h2>1. What to ask for</h2>
-        <div class="seg" role="tablist" aria-label="Request source">
+        <div class="seg smart-tabs" role="tablist" aria-label="Request source">
           <button type="button" role="tab" data-mode="scenario" aria-selected="true">Scenario</button>
           <button type="button" role="tab" data-mode="build" aria-selected="false">Build</button>
           <button type="button" role="tab" data-mode="paste" aria-selected="false">Paste</button>
         </div>
         <div data-panel="scenario">
-          <label class="sr" for="case">Scenario</label>
+          <label class="smart-sr" for="case">Scenario</label>
           <select id="case"></select>
           <div id="case-info" class="case-info"></div>
         </div>
@@ -37,7 +37,7 @@
           <div id="item-library" class="item-library"></div>
         </div>
         <div data-panel="paste" hidden>
-          <label class="sr" for="paste">Request JSON</label>
+          <label class="smart-sr" for="paste">Request JSON</label>
           <textarea id="paste" spellcheck="false" rows="12"></textarea>
         </div>
         <p id="request-state" class="small"></p>
@@ -47,20 +47,20 @@
         <h2>2. Which wallet</h2>
         <div id="wallets" class="wallets" role="radiogroup" aria-label="Wallet"></div>
         <form id="add-wallet" class="add-wallet">
-          <label class="sr" for="wallet-url">Web wallet URL</label>
+          <label class="smart-sr" for="wallet-url">Web wallet URL</label>
           <input id="wallet-url" type="url" placeholder="https://your-wallet.example/wallet.html" required>
-          <button type="submit" class="btn">Add</button>
+          <button type="submit" class="smart-btn sm">Add</button>
         </form>
         <p class="small">A wallet added by URL is kept in this browser, so you can test it before it's registered.</p>
-        <details id="fault-box" class="group" hidden>
+        <details id="fault-box" class="group smart-details" hidden>
           <summary>SMART Testing Wallet faults <span id="fault-count" class="n"></span></summary>
-          <p class="small pad">Each fault is labeled with how an EHR that follows the spec reacts: reject the response, set one record aside, leave one item unknown, or show a warning. Use them to test your own EHR the same way.</p>
+          <p class="small">Each fault is labeled with how an EHR that follows the spec reacts: reject the response, set one record aside, leave one item unknown, or show a warning. Use them to test your own EHR the same way.</p>
           <div id="faults" class="faults"></div>
         </details>
       </section>
 
       <section class="card">
-        <button type="button" id="send" class="send">Send</button>
+        <button type="button" id="send" class="send smart-btn primary block">Send</button>
         <p class="small">A web wallet opens in a new tab. The device's own wallet opens the system sheet.</p>
       </section>
     </details>
@@ -68,14 +68,14 @@
     <section id="history" class="card" hidden>
       <h2>This browser's runs <span id="history-count"></span></h2>
       <div id="history-list" class="hist"></div>
-      <div class="actions"><button type="button" id="clear-history" class="btn">Clear</button></div>
+      <div class="actions"><button type="button" id="clear-history" class="smart-btn sm">Clear</button></div>
     </section>
   </div>
 
   <div class="col result-col">
-    <p id="status" class="sr" role="status"></p>
+    <p id="status" class="smart-sr" role="status"></p>
     <div id="result"><div class="empty">Pick what to ask for and a wallet, then Send. The verdict, failing checks, and what came back will show here.</div></div>
-    <details class="group log-box"><summary>Log</summary><pre id="log" class="raw"></pre></details>
+    <details class="group log-box smart-details"><summary>Log</summary><pre id="log" class="smart-code short"></pre></details>
   </div>
 </main>
 <div data-smart-footer></div>

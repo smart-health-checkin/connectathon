@@ -28,7 +28,7 @@ export function readable(resources: Res[]): string {
   for (const p of of("Patient")) {
     const n = p.name?.[0] ?? {};
     const a = p.address?.[0] ?? {};
-    out.push(`<dl class="person">
+    out.push(`<dl class="person smart-fields">
       <dt>Name</dt><dd><b>${esc([...(n.given ?? []), n.family].filter(Boolean).join(" ") || n.text)}</b></dd>
       <dt>Born</dt><dd>${esc(p.birthDate)}</dd><dt>Sex</dt><dd>${esc(p.gender)}</dd>
       <dt>Address</dt><dd>${esc([a.line?.join(", "), a.city, a.state, a.postalCode].filter(Boolean).join(", "))}</dd>
@@ -47,7 +47,7 @@ export function readable(resources: Res[]): string {
   for (const c of of("Coverage")) {
     const payer = resources.find((r) => r.resourceType === "Organization");
     const cls = (t: string) => c.class?.find((x: any) => x.type?.coding?.[0]?.code === t);
-    out.push(`<dl class="person">
+    out.push(`<dl class="person smart-fields">
       <dt>Payer</dt><dd><b>${esc(payer?.name ?? c.payor?.[0]?.display)}</b></dd>
       <dt>Member ID</dt><dd>${esc(c.identifier?.[0]?.value ?? c.subscriberId)}</dd>
       <dt>Plan</dt><dd>${esc(cls("plan")?.name ?? cls("plan")?.value)}</dd>

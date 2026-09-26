@@ -23,6 +23,7 @@
     "testing-wallet/src",
     "testing-ehr/src",
     "register/src",
+    "shared",
     "scripts",
     "tests"
   ]

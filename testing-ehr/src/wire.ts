@@ -13,6 +13,7 @@ import {
   verifyDeviceResponseSignatures,
 } from "@smart-health-checkin/client/wire";
 import { esc } from "./readable.ts";
+import { renderJson } from "../../shared/smart-json.ts";
 
 /** One layer, kept as base64url so a run can be stored and downloaded. */
 export type Layer = { id: LayerId; b64u: string; kind: "cbor" | "json" };
@@ -185,33 +186,33 @@ export function wireHtml(w: WireLayers, flagged: { id: string; title: string; ou
   const layer = (l: Layer) => {
     const info = LAYER_INFO[l.id];
     const n = base64UrlDecodeBytes(l.b64u).length;
-    const derivation = l.id === "session-transcript" ? `<dl class="derive">
+    const derivation = l.id === "session-transcript" ? `<dl class="derive smart-fields">
         <dt>origin</dt><dd><code>${esc(w.origin)}</code></dd>
         <dt>encryptionInfo</dt><dd><code class="clip">${esc(w.transcript.encryptionInfoB64u)}</code></dd>
         <dt>handover</dt><dd><code>["dcapi", SHA-256(CBOR([encryptionInfo, origin]))]</code></dd>
         <dt>SHA-256</dt><dd><code class="clip">${esc(w.transcript.handoverHash)}</code></dd>
         <dt>transcript</dt><dd><code>[null, null, handover]</code></dd></dl>` : "";
-    return `<details class="group layer" id="layer-${l.id}" data-layer="${l.id}" ${byLayer.has(l.id) ? "open" : ""}>
+    return `<details class="group layer smart-details" id="layer-${l.id}" data-layer="${l.id}" ${byLayer.has(l.id) ? "open" : ""}>
       <summary><span class="side ${info.side.toLowerCase()}">${info.side}</span> ${esc(info.title)}<span class="n">${size(n)}</span></summary>
       <div class="pad">${flags(l.id)}<p class="small">${esc(info.about)}</p>${derivation}
         <div class="layer-tools">
-          <button type="button" class="btn" data-layer-act="copy-hex">Copy hex</button>
-          <button type="button" class="btn" data-layer-act="download">Download ${l.kind === "json" ? ".json" : ".cbor"}</button>
+          <button type="button" class="smart-btn sm" data-layer-act="copy-hex">Copy hex</button>
+          <button type="button" class="smart-btn sm" data-layer-act="download">Download ${l.kind === "json" ? ".json" : ".cbor"}</button>
         </div>
-        <div class="tree" data-tree></div>
+        <div class="tree smart-code tall" data-tree></div>
       </div></details>`;
   };
-  const digests = w.digests?.length ? `<details class="group layer" id="layer-digests" ${byLayer.has("digests") ? "open" : ""}>
+  const digests = w.digests?.length ? `<details class="group layer smart-details" id="layer-digests" ${byLayer.has("digests") ? "open" : ""}>
       <summary><span class="side received">Received</span> Value digests<span class="n">${w.digests.filter((d) => d.match).length} of ${w.digests.length} match</span></summary>
       <div class="pad">${flags("digests")}<p class="small">SHA-256 of each Tag 24 IssuerSignedItem, recomputed here, next to the value the MSO signs.</p>
       <div class="digests">${w.digests.map((d) => `<div class="digest ${d.match ? "ok" : "bad"}"><b>${d.match ? "✓" : "✕"} ${esc(d.element)}</b><span class="small">${esc(d.namespace)} · digestID ${d.digestId ?? "missing"}</span>
         <span class="small">MSO</span><code class="clip">${esc(d.expected ?? "(no digest for this digestID)")}</code>
         <span class="small">computed</span><code class="clip">${esc(d.computed)}</code></div>`).join("")}</div></div></details>` : "";
-  const diagnosis = w.diagnosis?.length ? `<div class="diagnosis"><b>Likely cause</b>${w.diagnosis.map((d) => `<p>${esc(d)}</p>`).join("")}</div>` : "";
+  const diagnosis = w.diagnosis?.length ? `<div class="diagnosis smart-callout warn"><b>Likely cause</b>${w.diagnosis.map((d) => `<p>${esc(d)}</p>`).join("")}</div>` : "";
   return `<section class="card wire" id="wire"><h2>Wire layers <span>${w.layers.length + (w.digests?.length ? 1 : 0)}</span></h2>
     ${diagnosis}
     ${w.layers.map(layer).join("")}${digests}
-    <div class="actions"><button type="button" class="btn" data-wire-act="inspector">Open in the capture inspector</button></div>
+    <div class="actions"><button type="button" class="smart-btn sm" data-wire-act="inspector">Open in the capture inspector</button></div>
   </section>`;
 }
 
@@ -240,8 +241,7 @@ export function bindWire(root: HTMLElement, w: WireLayers, runLabel: string) {
 
 function pre(text: string) {
   const p = document.createElement("pre");
-  p.className = "json";
-  p.textContent = text;
+  renderJson(p, text);
   return p;
 }
 

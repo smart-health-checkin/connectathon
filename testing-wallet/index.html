@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,7 +18,7 @@
     <p>What it does: <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md">features and behavior</a>.</p>
   </section>
 
-  <div id="error" class="error" role="alert" hidden></div>
+  <div id="error" class="error smart-callout bad" role="alert" hidden></div>
 
   <section id="consent" hidden>
     <p class="asker">Check-in request from <b id="origin"></b></p>
@@ -26,8 +26,8 @@
     <label class="patient">Answer as <select id="patient"></select></label>
     <ul id="items" class="items"></ul>
     <div class="actions">
-      <button id="decline" class="secondary" type="button">Decline all</button>
-      <button id="share" type="button">Share</button>
+      <button id="decline" class="smart-btn" type="button">Decline all</button>
+      <button id="share" class="smart-btn primary" type="button">Share</button>
     </div>
   </section>
 
@@ -36,7 +36,7 @@
     <p class="small"><a id="share-link" target="_blank" rel="noopener" href="https://smart-health-checkin.org/connectathon/share.html">Tell us how it went</a></p>
   </section>
 
-  <details id="testing" class="testing">
+  <details id="testing" class="testing smart-details">
     <summary>Testing panel</summary>
     <p class="small">Settings are saved in this page's URL, so a test case can open the wallet preconfigured.</p>
     <h3>Force a status per item</h3>
@@ -44,9 +44,9 @@
     <h3>Faults</h3>
     <div id="faults" class="faults"></div>
     <h3>Request as received</h3>
-    <pre id="raw-request" class="raw"></pre>
+    <pre id="raw-request" class="smart-code short"></pre>
     <h3>Response as sent</h3>
-    <pre id="raw-response" class="raw"></pre>
+    <pre id="raw-response" class="smart-code short"></pre>
   </details>
 </main>
 <div data-smart-footer></div>

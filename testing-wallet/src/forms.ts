@@ -166,7 +166,7 @@ export function renderForm(host: HTMLElement, state: FormState, idPrefix: string
         list.append(el("label", { htmlFor: optId, className: "q-option" }, input, " ", text));
       });
       if (!multi && current.length && item.type === "choice") {
-        const clear = el("button", { type: "button", className: "link" }, "Clear");
+        const clear = el("button", { type: "button", className: "smart-btn link sm" }, "Clear");
         clear.onclick = () => set(item.linkId, []);
         list.append(clear);
       }
