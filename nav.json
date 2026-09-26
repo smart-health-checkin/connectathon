@@ -14,7 +14,7 @@
       ]
     },
     {
-      "title": "Take part",
+      "title": "Participate",
       "items": [
         { "title": "Register", "href": "register/", "note": "Add your software to the event" },
         { "title": "Directory", "href": "directory.html", "note": "Who is bringing what" },
