@@ -264,8 +264,9 @@ ${body}
 /** The "Share your experience" page: prompts to copy into any AI assistant, and the form. */
 function sharePage(prompts: Array<{ file: string; title: string; who: string; what: string; text: string }>): string {
   // Deep links carry the prompt only when it fits comfortably in a URL; otherwise they open a
-  // new chat and the page asks the person to paste what the button copied.
-  const MAX_URL = 6000;
+  // new chat and the page asks the person to paste what the button copied. Claude documents
+  // truncation around 14,000 characters; 12,000 leaves headroom. Both sites prefill without sending.
+  const MAX_URL = 12000;
   const deep = (base: string, text: string) => {
     const url = base + encodeURIComponent(text);
     return url.length <= MAX_URL ? { url, prefilled: true } : { url: base.replace(/[?&]q=$/, ""), prefilled: false };
@@ -288,6 +289,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
     <a href="prompts/${esc(pr.file)}">View as text</a>
   </div>
   <p class="prompt-status" role="status"></p>
+  <p class="small">Claude shows a caution banner for any prompt opened from a link. That's expected for this prompt; read it, then send it.</p>
 </section>`).join("");
   return `<article class="doc share">
 <h1>Share your experience</h1>
