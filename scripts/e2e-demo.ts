@@ -24,8 +24,10 @@ try {
   const page = await browser.newPage();
   page.on("console", (m) => m.type() === "error" && console.log("[ehr console]", m.text()));
   await page.goto(url, { waitUntil: "networkidle0" });
+  await page.waitForSelector(`smart-checkin-picker >>> [data-action="choose"][data-id="${walletId}"]`, { visible: true, timeout: 20000 });
   const walletTarget = browser.waitForTarget((t) => t.opener() === page.target(), { timeout: 20000 });
-  await page.click("#start");
+  // With #wallet=<id>, the picker offers that one wallet.
+  await page.click(`smart-checkin-picker >>> [data-action="choose"][data-id="${walletId}"]`);
   const wallet = await (await walletTarget).page();
   if (!wallet) throw new Error("wallet tab did not open");
   wallet.on("console", (m) => m.type() === "error" && console.log("[wallet console]", m.text()));

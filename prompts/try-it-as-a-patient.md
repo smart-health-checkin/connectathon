@@ -30,9 +30,9 @@ Link: https://smart-health-checkin.org/client/demo/#wallet=demo
 Steps to tell them:
 
 1. Open the link. It's a pretend clinic's check-in page listing what the clinic would like to know.
-2. Press the button **Check in with Demo wallet**. A new tab or window opens with the "Demo wallet", a stand-in for the patient's own health app. On a phone, you may need to switch tabs.
+2. Under **Check in with your health app**, press **Continue with Demo wallet**. A new tab or window opens with the "Demo wallet", a stand-in for the patient's own health app. On a phone, you may need to switch tabs.
 3. In the Demo wallet, look at what the clinic is asking for. Uncheck anything you wouldn't want to share, then press **Share selected**. (Pressing **Not now** shows what happens when you share nothing.)
-4. Go back to the clinic's page. It should say **You're checked in** and show what arrived.
+4. Go back to the clinic's page. It should say **Shared from Demo wallet**, then **You're checked in**, and show what arrived.
 
 Then ask, one or two questions at a time:
 
@@ -47,7 +47,7 @@ Then ask, one or two questions at a time:
 Link: https://smart-health-checkin.org/client/demo/autofill.html#wallet=demo
 
 1. Open the link. It's a pretend visit form asking about allergies.
-2. Press **Prefill from your health app**. The Demo wallet opens; press **Share selected**.
+2. Under **Prefill from your health app**, press **Continue with Demo wallet**. The Demo wallet opens; press **Share selected**.
 3. Back on the form, the allergies are filled in. You can add or remove one, then press **Send to care team**.
 
 Ask:
@@ -61,7 +61,7 @@ Link, to open on a computer or tablet: https://smart-health-checkin.org/client/d
 
 1. Open the link. It shows a pretend front-desk screen with a QR code.
 2. Scan the QR code with your phone's camera and open the link it shows. (No second device? Use **No phone handy? Open the hand-off page in a new tab** under the QR code.)
-3. On the phone, choose **Demo wallet**, then press **Share selected** in the Demo wallet.
+3. On the phone, under **Answer with your health app**, choose **Demo wallet**, then press **Share selected** in the Demo wallet.
 4. The phone should say **Sent to the kiosk**, and within a few seconds the kiosk screen should say **You're checked in**.
 
 Ask:
@@ -77,7 +77,7 @@ Offer this only if they have an Android phone and are comfortable installing an 
 1. On the Android phone, open https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk and download the file.
 2. Open the downloaded file. Android may ask to allow installing apps from this source; allow it for this one install.
 3. Open the new app, **SMART Health Check-in Wallet**, once, so the phone knows about it. It holds a made-up patient's records.
-4. In Chrome on the same phone, open https://smart-health-checkin.org/client/demo/, press the small arrow next to the check-in button, choose **Your phone's health app**, then press the button. The phone shows its own choice of apps; pick the wallet app and share.
+4. In Chrome on the same phone, open https://smart-health-checkin.org/client/demo/ and press **Use an app on this phone**. The phone shows its own choice of apps; pick the wallet app and share.
 
 Ask how this compared to the Demo wallet in a browser tab, and whether it felt more or less trustworthy. They can uninstall the app afterward.
 
