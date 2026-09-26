@@ -4,7 +4,7 @@ How an EHR's check-in page and a web wallet exchange a SMART Health Check-in req
 
 Only the transport differs from a native wallet. The EHR opens the wallet in a tab, and the two pages talk with `postMessage`. The SMART request and response, the mdoc wrapping, and the encryption are exactly what the Digital Credentials API carries ([spec §8](https://smart-health-checkin.org/spec/#8-same-device-presentation-flow)).
 
-The [client library](https://smart-health-checkin.org/client/docs/wallets.html) implements the EHR side as `createWebWalletCredentialGetter`.
+The [client library](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html) implements both sides: `webWallet` (or `<smart-checkin-picker>`) for the EHR page, and `serveWebWallet` for a wallet. Its page on the hand-off is the canonical copy.
 
 ## Sequence
 

@@ -17,10 +17,7 @@ import { Marked } from "marked";
 import { gfmHeadingId } from "marked-gfm-heading-id";
 import Ajv2020 from "ajv/dist/2020.js";
 import addFormats from "ajv-formats";
-import {
-  validateSmartCheckinRequest,
-  validateWalletRegistry,
-} from "@smart-health-checkin/client";
+import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join } from "node:path";
 

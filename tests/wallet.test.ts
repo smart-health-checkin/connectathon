@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { selectEntries, selects, type Entry } from "../testing-wallet/src/match.ts";
+import { selectEntries, selects } from "@smart-health-checkin/client/wallet";
+import type { Entry } from "../testing-wallet/src/match.ts";
 import { buildQuestionnaireResponse, isEnabled, type FormState, type Questionnaire } from "../testing-wallet/src/forms.ts";
 
 const UC = "http://hl7.org/fhir/us/core/StructureDefinition/";
@@ -16,16 +17,16 @@ test("exact profile: unversioned matches any version, versioned only its own", (
 });
 
 test("profilesFrom matches a family; resourceTypes narrows it", () => {
-  const all = selectEntries({ kind: "selection.fhir", profilesFrom: ["http://hl7.org/fhir/us/core"] }, entries, patient.fullUrl);
+  const all = selectEntries({ kind: "selection.fhir", profilesFrom: ["http://hl7.org/fhir/us/core"] }, entries, { exclude: [patient.fullUrl] }) as Entry[];
   expect(all.length).toBe(entries.length);
-  const obs = selectEntries({ kind: "selection.fhir", profilesFrom: ["http://hl7.org/fhir/us/core"], resourceTypes: ["Observation"] }, entries, patient.fullUrl);
+  const obs = selectEntries({ kind: "selection.fhir", profilesFrom: ["http://hl7.org/fhir/us/core"], resourceTypes: ["Observation"] }, entries, { exclude: [patient.fullUrl] }) as Entry[];
   expect(new Set(types(obs))).toEqual(new Set(["Observation", "Practitioner"]));
 });
 
 test("referenced resources come along, the Patient doesn't", () => {
-  const meds = selectEntries({ kind: "selection.fhir", profiles: [UC + "us-core-medicationrequest"] }, entries, patient.fullUrl);
+  const meds = selectEntries({ kind: "selection.fhir", profiles: [UC + "us-core-medicationrequest"] }, entries, { exclude: [patient.fullUrl] }) as Entry[];
   expect(types(meds)).toEqual(["MedicationRequest", "MedicationRequest", "MedicationRequest", "Practitioner"]);
-  const cov = selectEntries({ kind: "selection.fhir", profiles: ["http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage"] }, entries, patient.fullUrl);
+  const cov = selectEntries({ kind: "selection.fhir", profiles: ["http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage"] }, entries, { exclude: [patient.fullUrl] }) as Entry[];
   expect(types(cov)).toEqual(["Coverage", "Organization"]);
 });
 

@@ -8,6 +8,8 @@ default. A testing panel adds controls for exercising EHR error handling.
 
 ## Hand-off
 
+- Built on the client library's `serveWebWallet` (hand-off) and `selectEntries` (matching), so this wallet exercises the library's wallet side.
+
 - Implements the [web wallet hand-off](../web-wallet-handoff.md): post `ready` to
   the opener on load, accept one `request`, reply once with `approved`,
   `declined`, or `error`.

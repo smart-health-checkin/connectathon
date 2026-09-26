@@ -21,7 +21,7 @@
   "packages": {
     "@puppeteer/browsers": ["@puppeteer/browsers@3.2.3", "", { "dependencies": { "modern-tar": "^0.8.4", "yargs": "^18.0.0" }, "peerDependencies": { "proxy-agent": ">=8.0.1", "yauzl": "^2.10.0 || ^3.4.0" }, "optionalPeers": ["proxy-agent", "yauzl"], "bin": { "browsers": "lib/main-cli.js" } }, "sha512-2Bt3m6dDAJqmZehn0wiXSYyQmuhyiHHZ7FjvrVaS1W2RoFGV6eCK71UvKYkNJjkwC1Q9nobjhvTMhLQztFVINA=="],
 
-    "@smart-health-checkin/client": ["@smart-health-checkin/client@github:smart-health-checkin/client#350513b", { "peerDependencies": { "react": ">=18" }, "optionalPeers": ["react"] }, "smart-health-checkin-client-350513b", "sha512-yrsc+uNsi16aTQiZL7CVVOXwh5+et96PQXRzxu7vU7+jFXv3iJgY4wtdc0wJcIxq4B+tPrifpQUqCEGxqoO66A=="],
+    "@smart-health-checkin/client": ["@smart-health-checkin/client@github:smart-health-checkin/client#bcebfd3", { "peerDependencies": { "react": ">=18" }, "optionalPeers": ["react"] }, "smart-health-checkin-client-bcebfd3", "sha512-Jb8q0O6+DxbRlkIGHAvuECSLMjbuEqbctg1BjVu20fnkHEcf1h7nWsGCnLhV9P6PGhsqHqJwmo7EniqQ7esgSw=="],
 
     "@types/node": ["@types/node@26.6.2", "", { "dependencies": { "undici-types": "~8.9.0" } }, "sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g=="],
 

@@ -1,10 +1,9 @@
 // Sealing the SMART response for the EHR (spec §8.4, §8.5), with optional wire faults.
 import {
-  buildDcapiSessionTranscript,
-  buildSignedDeviceResponse,
-  recipientJwkFromEncryptionInfo,
   type SmartCheckinResponse,
 } from "@smart-health-checkin/client";
+import { buildDcapiSessionTranscript } from "@smart-health-checkin/client/wire";
+import { buildSignedDeviceResponse, recipientJwkFromEncryptionInfo } from "@smart-health-checkin/client/wallet";
 import { buildDcapiMdocResponse, cborDecode, cborEncode, hpkeSealDirectMdoc, mapGet } from "@smart-health-checkin/client/wire";
 
 export type WireFault = "bad-signature" | "bad-encryption" | "wrong-origin";

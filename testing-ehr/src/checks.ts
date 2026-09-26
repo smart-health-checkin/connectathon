@@ -2,11 +2,10 @@
 // info, with the spec section it comes from. Nothing here throws: a malformed
 // response produces failed checks, not an exception.
 import {
-  buildDcapiSessionTranscript,
-  validateResponseAgainstRequest,
-  validateSmartCheckinResponse,
   type SmartCheckinRequest,
 } from "@smart-health-checkin/client";
+import { buildDcapiSessionTranscript } from "@smart-health-checkin/client/wire";
+import { validateResponseAgainstRequest, validateSmartCheckinResponse } from "@smart-health-checkin/client/model";
 import { openWalletResponse, verifyDeviceResponseSignatures } from "@smart-health-checkin/client/wire";
 
 export type Outcome = "pass" | "fail" | "warn" | "info";

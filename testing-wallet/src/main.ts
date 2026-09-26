@@ -1,22 +1,18 @@
 // SMART reference web wallet. See ../FEATURES.md for the behavior this implements.
 import {
-  validateSmartCheckinRequest,
   type SmartArtifact,
   type SmartCheckinItemStatus,
   type SmartCheckinRequest,
   type SmartCheckinRequestItem,
   type SmartCheckinResponse,
 } from "@smart-health-checkin/client";
-import { base64UrlDecodeBytes, CborTag, cborDecode, mapGet } from "@smart-health-checkin/client/wire";
-import { describeEntries, selectEntries, type Entry, type SelectionContent } from "./match.ts";
+import { selectEntries, serveWebWallet, type SelectionContent, type WebWalletAnswer } from "@smart-health-checkin/client/wallet";
+import { cborDecode, mapGet } from "@smart-health-checkin/client/wire";
+import { describeEntries, type Entry } from "./match.ts";
 import { buildQuestionnaireResponse, prefill, renderForm, resolveQuestionnaire, type FormState, type Questionnaire } from "./forms.ts";
 import { mintHealthCard } from "./shc.ts";
 import { seal } from "./seal.ts";
 
-const READY = "digital-credentials/web-wallet/ready";
-const REQUEST = "digital-credentials/web-wallet/request";
-const RESPONSE = "digital-credentials/web-wallet/response";
-const REQUEST_INFO_KEY = "org.smarthealthit.checkin.request";
 const STATUSES = ["fulfilled", "partial", "unavailable", "declined", "unsupported", "error"] as const;
 const FAULTS: Record<string, string> = {
   "wrong-canonical": "QuestionnaireResponse.questionnaire doesn't match the request",
@@ -80,8 +76,8 @@ function loadPatient(key: string): Promise<Entry[]> {
 // ---------------------------------------------------------------- request parsing
 type Session = {
   ehrOrigin: string;
-  ehrWindow: Window;
-  requestId: string | undefined;
+  /** Resolves the answer serveWebWallet sends back to the EHR. */
+  answer: (a: WebWalletAnswer) => void;
   request: SmartCheckinRequest;
   encryptionInfoBytes: Uint8Array;
   readerAuth: "absent" | "present";
@@ -90,41 +86,18 @@ type Session = {
 let session: Session | undefined;
 
 /**
- * Parse the org-iso-mdoc request ourselves rather than with the library's
- * strict validator, so an item with an unknown selector kind can be answered
- * "unsupported" while the rest of the request is still served (§5.4.3).
+ * The library's serveWebWallet has already parsed and validated the request
+ * (extension selector kinds are allowed through). Note which items use a kind
+ * this wallet doesn't know, so they're answered "unsupported" while the rest
+ * of the request is still served (§5.4.3), and whether readerAuth was sent.
  */
-function parseRequest(options: any): Omit<Session, "ehrOrigin" | "ehrWindow" | "requestId"> {
-  const requests = options?.digital?.requests;
-  if (!Array.isArray(requests)) throw new Error("credentialRequestOptions.digital.requests is missing");
-  const mdoc = requests.filter((r: any) => r?.protocol === "org-iso-mdoc");
-  if (mdoc.length !== 1) throw new Error(`expected exactly one org-iso-mdoc request, got ${mdoc.length}`);
-  const { deviceRequest, encryptionInfo } = mdoc[0].data ?? {};
-  if (typeof deviceRequest !== "string" || typeof encryptionInfo !== "string") throw new Error("request data must carry deviceRequest and encryptionInfo strings");
-  const decoded = cborDecode(base64UrlDecodeBytes(deviceRequest));
-  if (mapGet(decoded, "version") !== "1.0") throw new Error(`unsupported DeviceRequest version ${String(mapGet(decoded, "version"))}`);
-  const docRequests = mapGet(decoded, "docRequests");
-  if (!Array.isArray(docRequests) || !docRequests.length) throw new Error("DeviceRequest has no docRequests");
-  const itemsTag = mapGet(docRequests[0], "itemsRequest");
-  if (!(itemsTag instanceof CborTag) || itemsTag.tag !== 24 || !(itemsTag.value instanceof Uint8Array)) throw new Error("itemsRequest is not a tag-24 byte string");
-  const itemsRequest = cborDecode(itemsTag.value);
-  if (mapGet(itemsRequest, "docType") !== "org.smarthealthit.checkin.1") throw new Error(`unexpected docType ${String(mapGet(itemsRequest, "docType"))}`);
-  const json = mapGet(mapGet(itemsRequest, "requestInfo"), REQUEST_INFO_KEY);
-  if (typeof json !== "string") throw new Error(`requestInfo["${REQUEST_INFO_KEY}"] is missing or not a string`);
-  const raw = JSON.parse(json);
+function describeRequest(request: SmartCheckinRequest, deviceRequestBytes: Uint8Array): Omit<Session, "ehrOrigin" | "answer" | "encryptionInfoBytes" | "request"> {
   const unknownKinds = new Set<string>(
-    (raw.items ?? []).filter((i: any) => !["selection.fhir", "form.fhir"].includes(i?.content?.kind)).map((i: any) => i.id),
+    request.items.filter((i) => !["selection.fhir", "form.fhir"].includes(i.content.kind)).map((i) => i.id),
   );
-  // Validate everything else with the library's validator.
-  const known = { ...raw, items: (raw.items ?? []).filter((i: any) => !unknownKinds.has(i.id)) };
-  const checked = validateSmartCheckinRequest(known);
-  if (!checked.ok) throw new Error(`invalid SMART request: ${checked.error}`);
-  return {
-    request: raw as SmartCheckinRequest,
-    encryptionInfoBytes: base64UrlDecodeBytes(encryptionInfo),
-    readerAuth: mapGet(docRequests[0], "readerAuth") === undefined ? "absent" : "present",
-    unknownKinds,
-  };
+  const docRequests = mapGet(cborDecode(deviceRequestBytes), "docRequests");
+  const readerAuth = Array.isArray(docRequests) && mapGet(docRequests[0], "readerAuth") !== undefined ? "present" : "absent";
+  return { readerAuth, unknownKinds };
 }
 
 // ---------------------------------------------------------------- per-item preparation
@@ -142,7 +115,7 @@ async function prepare(s: Session): Promise<Prepared[]> {
     s.request.items.map(async (item): Promise<Prepared> => {
       if (s.unknownKinds.has(item.id)) return { kind: "unsupported", item, reason: `selector kind "${(item.content as any).kind}" is not supported`, share: false };
       if (item.content.kind === "selection.fhir") {
-        const picked = selectEntries(item.content as SelectionContent, entries, patient.fullUrl);
+        const picked = selectEntries(item.content as SelectionContent, entries, { exclude: [patient.fullUrl] }) as Entry[];
         return { kind: "selection", item, entries: picked, share: true };
       }
       try {
@@ -231,8 +204,10 @@ async function buildResponse(s: Session, items: Prepared[]): Promise<SmartChecki
   };
 }
 
-function reply(s: Session, message: Record<string, unknown>) {
-  s.ehrWindow.postMessage({ type: RESPONSE, requestId: s.requestId, ...message }, s.ehrOrigin);
+function reply(s: Session, message: { outcome: "approved"; credential: { protocol: string; data: { response: string } } } | { outcome: "declined" } | { outcome: "error"; message: string }) {
+  if (message.outcome === "approved") s.answer({ credential: message.credential });
+  else if (message.outcome === "declined") s.answer({ declined: true });
+  else s.answer({ error: message.message });
 }
 
 // ---------------------------------------------------------------- rendering
@@ -365,28 +340,24 @@ function showError(message: string) {
 }
 
 // ---------------------------------------------------------------- hand-off
-window.addEventListener("message", (event: MessageEvent) => {
-  const data = event.data as { type?: string; requestId?: string; credentialRequestOptions?: unknown } | null;
-  if (!data || data.type !== REQUEST) return;
-  // Only the page that opened us may ask, and an opaque origin can't be answered.
-  if (event.source !== window.opener || event.origin === "null") return;
-  if (session) return; // one request per wallet tab
-  const base = { ehrOrigin: event.origin, ehrWindow: event.source as Window, requestId: data.requestId };
-  try {
-    session = { ...base, ...parseRequest(data.credentialRequestOptions) };
-    void showRequest(session).catch((e) => showError((e as Error).message));
-  } catch (e) {
-    const message = (e as Error).message;
+// The library does the protocol: one request from the opener, the EHR's origin
+// from the browser, the reply to that origin. This wallet seals its own
+// responses (so it can inject wire faults) and closes its own tab.
+const served = serveWebWallet({
+  closeAfterReply: false,
+  onRequest: ({ request, origin, parsed }) =>
+    new Promise<WebWalletAnswer>((answer) => {
+      session = { ehrOrigin: origin, answer, request, encryptionInfoBytes: parsed.encryptionInfoBytes, ...describeRequest(request, parsed.deviceRequestBytes) };
+      void showRequest(session).catch((e) => showError((e as Error).message));
+    }),
+  onInvalidRequest: (message, origin) => {
     $("waiting").hidden = true;
-    showError(`Could not read the request from ${event.origin}: ${message}`);
-    (event.source as Window).postMessage({ type: RESPONSE, requestId: data.requestId, outcome: "error", message }, event.origin);
-  }
+    showError(`Could not read the request from ${origin}: ${message}`);
+  },
 });
 
 renderTestingPanel();
-if (window.opener) {
-  (window.opener as Window).postMessage({ type: READY }, "*");
-} else {
+if (!served.opened) {
   $("waiting").hidden = true;
   $("standalone").hidden = false;
 }

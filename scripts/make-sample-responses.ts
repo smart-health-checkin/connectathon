@@ -5,9 +5,10 @@
  * the same patient data, so EHR developers can test parsing and display
  * without running a wallet. Rerun after changing the patient data or requests.
  */
-import { validateResponseAgainstRequest } from "@smart-health-checkin/client";
+import { validateResponseAgainstRequest } from "@smart-health-checkin/client/model";
 import { readFileSync, writeFileSync } from "node:fs";
-import { selectEntries, type Entry, type SelectionContent } from "../testing-wallet/src/match.ts";
+import { selectEntries, type SelectionContent } from "@smart-health-checkin/client/wallet";
+import type { Entry } from "../testing-wallet/src/match.ts";
 import { buildQuestionnaireResponse, type FormState, type Questionnaire } from "../testing-wallet/src/forms.ts";
 
 const entries = (JSON.parse(readFileSync("testing-wallet/data/aria-test.json", "utf8")) as { entry: Entry[] }).entry;
@@ -29,7 +30,7 @@ for (const n of [1, 2, 3]) {
       (qr as any).authored = "2026-10-01T15:00:00Z";
       artifacts.push({ id: `qr-${item.id}`, mediaType: "application/fhir+json", fhirVersion: "4.0.1", fulfills: [item.id], value: qr });
     } else {
-      const picked = selectEntries(item.content as SelectionContent, entries, patient.fullUrl);
+      const picked = selectEntries(item.content as SelectionContent, entries, { exclude: [patient.fullUrl] }) as Entry[];
       artifacts.push({ id: `fhir-${item.id}`, mediaType: "application/fhir+json", fhirVersion: "4.0.1", fulfills: [item.id], value: bundle(picked) });
     }
     requestStatus.push({ item: item.id, status: "fulfilled" });

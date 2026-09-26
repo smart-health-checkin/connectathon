@@ -27,7 +27,7 @@ The practice system. Its check-in page builds a request, lets the patient choose
 4. **Decrypt the answer and check its signatures.** ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing), [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist))
 5. **Check the answer against the request, then show it to staff.** ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation))
 
-The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages. Install it from GitHub with `npm install github:smart-health-checkin/client`.
+The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages: drop in `<smart-checkin-picker>`, or call `runCheckin`. Install it from GitHub with `npm install github:smart-health-checkin/client`.
 
 <details>
 <summary>Reference: identifiers and checks for EHR developers</summary>
@@ -160,7 +160,7 @@ All under <https://smart-health-checkin.org/connectathon/>.
 
 ### Wallet registry
 
-The event registry lists every participating web wallet, at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallets guide](https://smart-health-checkin.org/client/docs/wallets.html)):
+The event registry lists every participating web wallet, at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallet registries](https://smart-health-checkin.org/client/docs/registry.html)):
 
 ```json
 {

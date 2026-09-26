@@ -1,14 +1,14 @@
 // Testing EHR: send any connectathon request to any wallet and check the response.
 import {
   detectDcApiSupport,
-  extractDcapiResponse,
-  validateSmartCheckinRequest,
   type SmartCheckinRequest,
 } from "@smart-health-checkin/client";
+import { extractDcapiResponse } from "@smart-health-checkin/client/wire";
+import { validateSmartCheckinRequest } from "@smart-health-checkin/client/model";
 import { buildOrgIsoMdocRequest } from "@smart-health-checkin/client/wire";
 import "@smart-health-checkin/client/ui";
 import type { SmartCheckinPicker } from "@smart-health-checkin/client/ui";
-import { resolveResponders, type Responder } from "@smart-health-checkin/client";
+import { wallets, webWallet, type CheckinErrorCode, type Wallet, type WalletSession } from "@smart-health-checkin/client";
 import { checkResponse, type Check } from "./checks.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
@@ -28,7 +28,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string,
 }
 
 let catalog: TestCase[] = [];
-let responders: Responder[] = [];
+let offered: Wallet[] = [];
 const picker = document.getElementById("picker") as SmartCheckinPicker & HTMLElement;
 let components: Component[] = [];
 
@@ -36,11 +36,11 @@ async function load() {
   const [cat, comps, list] = await Promise.all([
     fetch(new URL("catalog.json", SITE)).then((r) => r.json()),
     fetch(new URL("components.json", SITE)).then((r) => r.json()).catch(() => []),
-    resolveResponders({ platform: true, webWallets: new URL("wallets.json", SITE).href }),
+    wallets({ registry: new URL("wallets.json", SITE).href }),
   ]);
   catalog = cat.testCases;
   components = comps;
-  responders = list;
+  offered = list;
 
   const caseSelect = $("case") as HTMLSelectElement;
   caseSelect.replaceChildren(...catalog.map((t) => el("option", { value: t.id }, `${t.id} ${t.title}`)));
@@ -58,8 +58,8 @@ async function load() {
   if (params.get("case") && catalog.some((t) => t.id === params.get("case"))) caseSelect.value = params.get("case")!;
   caseSelect.onchange = () => { describe(); remember(); };
   picker.addEventListener("smart-checkin-choose", (e) => {
-    const { responder, getCredential } = (e as CustomEvent).detail as { responder: Responder; getCredential?: (arg: unknown) => Promise<unknown> };
-    void run(responder, getCredential);
+    const { wallet, session } = (e as CustomEvent).detail as { wallet: Wallet; session: WalletSession };
+    void run(wallet, session);
   });
   offerWallets();
   describe();
@@ -69,11 +69,11 @@ async function load() {
 // must already carry the chosen faults: rebuild the list when they change.
 function offerWallets() {
   const faults = [...document.querySelectorAll<HTMLInputElement>("#faults input:checked")].map((i) => i.value);
-  picker.responders = responders.map((r) => {
-    if (r.id !== TESTING_WALLET_ID || !r.wallet || !faults.length) return r;
-    const url = new URL(r.wallet.walletUrl);
+  picker.wallets = offered.map((w) => {
+    if (w.id !== TESTING_WALLET_ID || !w.entry || !faults.length) return w;
+    const url = new URL(w.entry.walletUrl);
     url.hash = `faults=${faults.join(",")}&testing=1`;
-    return { ...r, description: `With faults: ${faults.join(", ")}`, wallet: { ...r.wallet, walletUrl: url.href } };
+    return webWallet({ ...w.entry, description: `With faults: ${faults.join(", ")}`, walletUrl: url.href });
   });
 }
 
@@ -117,14 +117,14 @@ function resultLink(tc: TestCase, walletId: string, path: string, result: string
   return `https://github.com/${REPO}/issues/new?${p}`;
 }
 
-async function run(responder: Responder, walletGetter?: (arg: unknown) => Promise<unknown>) {
+async function run(wallet: Wallet, session: WalletSession) {
   $("status").textContent = "Building the request…";
   $("checks").replaceChildren();
   $("file").hidden = true;
   $("smart-response").textContent = "";
   const tc = catalog.find((t) => t.id === ($("case") as HTMLSelectElement).value)!;
-  const walletId = responder.id;
-  const path = responder.kind === "platform" ? "native" : "web";
+  const walletId = wallet.id;
+  const path = wallet.kind === "platform" ? "native" : "web";
   const started = new Date().toISOString();
   try {
     const request = (await (await fetch(new URL(`requests/${tc.request}`, SITE))).json()) as SmartCheckinRequest;
@@ -135,7 +135,7 @@ async function run(responder: Responder, walletGetter?: (arg: unknown) => Promis
 
     const bundle = await buildOrgIsoMdocRequest(request, { origin: location.origin, readerAuth: false });
 
-    const getCredential = walletGetter ?? ((arg: unknown) => navigator.credentials.get(arg as CredentialRequestOptions));
+    const getCredential = (arg: unknown) => session.getCredential(arg);
     $("status").textContent = "Waiting for the wallet…";
     const raw = await getCredential(bundle.navigatorArgument);
     const normalized = extractDcapiResponse(raw);
@@ -157,7 +157,7 @@ async function run(responder: Responder, walletGetter?: (arg: unknown) => Promis
     const failed = result.checks.filter((c) => c.outcome === "fail");
     const verdict = failed.length ? "fail" : "pass";
     $("status").textContent = failed.length ? `${failed.length} check(s) failed.` : "All checks passed.";
-    picker.setOutcome(failed.length ? { status: "error", message: `${failed.length} check(s) failed. See the checks below.` } : { status: "completed" });
+    picker.setOutcome(failed.length ? { status: "failed", message: `${failed.length} check(s) failed. See the checks below.` } : { status: "completed" });
     const log = [
       `Testing EHR run ${started}`,
       `Scenario ${tc.id} ${tc.title}; wallet ${walletId}; path ${path}`,
@@ -169,9 +169,10 @@ async function run(responder: Responder, walletGetter?: (arg: unknown) => Promis
     link.hidden = false;
   } catch (e) {
     const message = (e as Error).message;
-    const declined = (e as Error).name === "NotAllowedError";
+    const declined = ["NotAllowedError", "AbortError", "WalletDeclinedError"].includes((e as Error).name);
+    const code = (e as { code?: CheckinErrorCode }).code;
     $("status").textContent = declined ? `The wallet declined or was closed: ${message}` : `Error: ${message}`;
-    picker.setOutcome(declined ? { status: "declined" } : { status: "error", message });
+    picker.setOutcome(declined ? { status: "declined" } : { status: "failed", message, ...(code ? { code } : {}) });
     const log = `Testing EHR run ${started}\nScenario ${tc.id}; wallet ${walletId}; path ${path}\n${declined ? "DECLINED" : "ERROR"}: ${message}`;
     $("log").textContent = log;
     const link = $("file") as HTMLAnchorElement;
