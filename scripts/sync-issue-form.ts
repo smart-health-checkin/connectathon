@@ -33,7 +33,7 @@ body:
       value: >-
         One issue per run. File failures too; discuss them in the comments.
         Close the issue to withdraw the result.
-        Scenarios are described at https://smart-health-checkin.org/connectathon/.
+        Scenarios are described at https://smart-health-checkin.org/connectathon/scenarios.html.
   - type: dropdown
     id: scenario
     attributes:

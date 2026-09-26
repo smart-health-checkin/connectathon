@@ -57,4 +57,5 @@ details table { margin-bottom: var(--space-3); }
 .paths a.path { display: block; border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); text-decoration: none; color: var(--fg-1); }
 .paths a.path:hover { border-color: var(--brand); }
 .paths a.path b { display: block; color: var(--brand); margin-bottom: 2px; }
-.paths a.path span { font-size: var(--fs-sm); color: var(--fg-2); }
+.paths a.path span { display: block; font-size: var(--fs-sm); color: var(--fg-2); }
+.paths a.path em { display: block; margin-top: var(--space-2); font-style: normal; font-size: var(--fs-sm); font-weight: 600; color: var(--brand); }

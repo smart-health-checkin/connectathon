@@ -21,8 +21,13 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   Bump the URL to upgrade; nothing updates it automatically.
 - Participants edit their own `participants/*.json` by PR;
   `participant-pr.yml` validates and auto-merges owners' changes.
+- Pages: `index.md` is the front page (a hub linking to one page per
+  participant type); `patients.md`, `clinic-staff.md`, `verifier-developers.md`,
+  `wallet-developers.md`, and `observers.md` are those pages; `scenarios.md` is the
+  developer test reference. `scripts/build.ts` renders each; add a new page there
+  and in `nav.json`.
 - This section's menu is `nav.json`.
-- Experience reporting (the main feedback path, public by default):
+- Experience reporting (the main feedback path; reports are public):
   - `prompts/*.md` are prompts people paste into any AI assistant (patient guide,
     implementer debrief). Keep them assistant-neutral and under ~1,500 words.
     `{{FORM_URL}}` is filled in at build time; the build fails on any other `{{…}}`.

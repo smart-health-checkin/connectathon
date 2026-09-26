@@ -3,41 +3,44 @@
   "href": "./",
   "items": [
     {
-      "title": "Overview and scenarios",
+      "title": "Overview",
       "href": "./",
-      "note": "Who it's for, how to join, test scenarios"
+      "note": "Pick your path, how the event works"
     },
     {
-      "title": "For patients and community",
+      "title": "Patients and community",
       "href": "patients.html",
       "note": "Try it on any phone or computer"
     },
     {
-      "title": "Testing EHR",
-      "href": "testing-ehr/",
-      "note": "Send requests to your wallet"
+      "title": "Clinic staff",
+      "href": "clinic-staff.html",
+      "note": "Check-in from the front desk"
+    },
+    {
+      "title": "Verifier developers",
+      "href": "verifier-developers.html",
+      "note": "EHRs, portals, and other Verifiers"
+    },
+    {
+      "title": "Wallet developers",
+      "href": "wallet-developers.html",
+      "note": "Native and web wallets"
+    },
+    {
+      "title": "Observers",
+      "href": "observers.html",
+      "note": "Follow along"
+    },
+    {
+      "title": "Test scenarios",
+      "href": "scenarios.html",
+      "note": "Baselines, scenarios, and test tools"
     },
     {
       "title": "Share your experience",
       "href": "share.html",
-      "note": "AI guide prompts and the feedback form"
-    },
-    {
-      "title": "Directory",
-      "href": "directory.html",
-      "note": "Who is testing what"
-    },
-    {
-      "title": "Results",
-      "href": "results.html"
-    },
-    {
-      "title": "Requests",
-      "href": "requests/"
-    },
-    {
-      "title": "Web wallet hand-off",
-      "href": "/client/docs/web-wallet-handoff.html"
+      "note": "AI guide prompts and the form"
     }
   ]
 }

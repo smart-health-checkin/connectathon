@@ -4,8 +4,9 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 
 | Path | What it is |
 |---|---|
-| `scenarios.md` | Who the event is for, how to join, and the test scenarios. Rendered as the site's front page. |
-| `patients.md` | Getting started for patients and community members. |
+| `index.md` | The front page: pick your path, how the event works, the schedule. |
+| `patients.md`, `clinic-staff.md`, `verifier-developers.md`, `wallet-developers.md`, `observers.md` | One page per participant type: background, getting started, joining, sharing what you found. |
+| `scenarios.md` | The developer test reference: ground rules, shared resources, baseline requests, scenarios, test tools. |
 | `prompts/` | Prompts people paste into any AI assistant: a patient guide and an implementer debrief. Offered on the generated [share page](https://smart-health-checkin.org/connectathon/share.html). |
 | `participants/` | One file per organization. [How to register](CONTRIBUTING.md). |
 | `requests/` | Baseline and optional-scenario requests. |
@@ -17,7 +18,7 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 
 `wallets.json`, the directory, the results page, and the share page are generated at build time.
 
-Experience reports: people paste a prompt from `prompts/` into any AI assistant, which guides them and helps write a report, then they send it through the Google Form (public by default). The share page offers the prompts and the form; the form URL lives only in `scripts/links.ts`; `tools/experience-form/form.gs` rebuilds the form in place. To change a prompt, edit its file in `prompts/` and push. Structured pass/fail result issues remain optional for formal scenarios.
+Experience reports: people paste a prompt from `prompts/` into any AI assistant, which guides them and helps write a report, then they send it through the Google Form (reports are public). The share page offers the prompts and the form; the form URL lives only in `scripts/links.ts`; `tools/experience-form/form.gs` rebuilds the form in place. To change a prompt, edit its file in `prompts/` and push. Structured pass/fail result issues remain optional for formal scenarios.
 
 ```
 bun install

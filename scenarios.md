@@ -1,166 +1,18 @@
-# SMART Health Check-in connectathon
+# Test scenarios
 
-<p class="draft"><b>Draft.</b> The event date isn't set yet, so dates below are marked <code>{{TBD: …}}</code>. Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">directory</a> aren't ready for testing.</p>
+The scenarios developers run at the connectathon: EHRs, portals, and other Verifiers on one side, wallets on the other. Start with your role's page, [Verifier developers](verifier-developers.html) or [wallet developers](wallet-developers.html), for what to build and how to register. This page is the shared reference for testing.
 
-KTC pre-visit check-in connectathon, {{TBD: event date and time}}, about 3 hours, on Zoom: {{TBD: Zoom link}}.
+The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/); section links below go to it.
 
-Spec: [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/). Section links below go to that page.
-Event resources: <https://smart-health-checkin.org/connectathon/>, published from the [`smart-health-checkin/connectathon`](https://github.com/smart-health-checkin/connectathon) repository. The URLs below are where each resource will live. Items still marked `{{TBD: …}}` will be filled in as they are set up.
+## How to test
 
-## Who this is for
-
-The connectathon is about experience with a new way of checking in, not a formal conformance test. Software teams connect clinic systems to patients' health apps, and patients and community members try the result and tell us how it feels. Pick your path:
-
-<div class="paths">
-<a class="path" href="patients.html"><b>Patients and community members</b><span>Try the demos on any phone or computer, and tell us how it went.</span></a>
-<a class="path" href="#clinic-and-front-desk-staff"><b>Clinic and front-desk staff</b><span>See check-in from the practice side.</span></a>
-<a class="path" href="#ehr"><b>EHR, portal, and Verifier developers</b><span>Build the check-in page that asks for data.</span></a>
-<a class="path" href="#native-wallet"><b>Wallet developers</b><span>Build the health app that answers, native or web.</span></a>
-<a class="path" href="#observers"><b>Observers</b><span>Follow along and read what people found.</span></a>
-</div>
-
-## Joining
-
-Everyone joins the same Zoom main room for the opening, the hourly check-ins, and the closing report-out, and the same chat: `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)).
-
-### Patients and community members
-
-No registration needed. Start with the [getting-started page for patients and community members](patients.html): three short demos, an optional AI guide, and a form for your feedback.
-
-### Clinic and front-desk staff
-
-No registration needed. Try the [clinic check-in demo](https://smart-health-checkin.org/client/demo/#wallet=demo) and the [kiosk demo](https://smart-health-checkin.org/client/demo/kiosk.html), which shows the front-desk screen and hands off to the patient's phone. Tell us what would and wouldn't fit your front-desk workflow through the [experience form](share.html#send-your-report).
-
-### Developers
-
-Register what you're bringing with the [registration form](https://smart-health-checkin.org/connectathon/register/), which opens a pull request that adds you to the [participant directory](directory.html). Then find your role below: [EHR](#ehr), [native wallet](#native-wallet), or [web wallet](#web-wallet). Aim to be testable in the week before the event ([how we'll work together](#how-well-work-together)).
-
-### Observers
-
-No registration needed. Join the Zoom main room and the Slack channel, and read what people found: the [results page](results.html) and the report-out.
-
-## Timeline
-
-- **{{TBD: date, 3 weeks before}}:** reference implementations, test tools, the wallet registry, example questionnaires, and baseline requests are live.
-- **{{TBD: date, 1 week before}}:** aim to have your component up for self-serve testing and to have tried a first connection.
-- **The event:** ideally spent on the harder problems and live debugging. We expect some people will still be finishing basic setup, and that's fine.
-
-## Roles
-
-Developers take one of three roles. Each one's steps are below, with links to the spec sections that define them. The exact identifiers and message formats are in the expandable reference under each role.
-
-### EHR
-
-The practice system. Its check-in page builds a request, lets the patient choose a wallet, and handles the response in the same page.
-
-1. **Build the request.** A small JSON document listing the items you want: records by FHIR profile, or a form to fill in. ([§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model))
-2. **Wrap it and create a one-time key.** The request goes inside an mdoc request, and the page makes a fresh encryption key for the answer. ([§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction))
-3. **Send it to the wallet the patient picked.** A native wallet goes through the browser's Digital Credentials API. A web wallet goes through the [web wallet hand-off](#web-wallet). ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8))
-4. **Decrypt the answer and check its signatures.** ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing))
-5. **Check the answer against the request, then show it to staff.** ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation))
-
-The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages: drop in `<smart-checkin-picker>`, or call `runCheckin`. Install it from its [latest release](https://github.com/smart-health-checkin/client/releases/latest); each release lists its install line.
-
-<details>
-<summary>Reference: identifiers and checks for EHR developers</summary>
-
-| What | Value | Spec |
-|---|---|---|
-| Request fields | `type`, `version`, `id`, `items[]`. Each item has `id`, `title`, `content`, `accept[]`. | [§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model) |
-| Where the request goes | `ItemsRequest.requestInfo["org.smarthealthit.checkin.request"]`, as a JSON string | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
-| mdoc `docType` | `org.smarthealthit.checkin.1` | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
-| mdoc namespace and element | `org.smarthealthit.checkin`, `smart_health_checkin_response` | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
-| `DeviceRequest` | version `1.0`, with the `ItemsRequest` tag-24 wrapped | [§8.7](https://smart-health-checkin.org/spec/#8-7-message-structures) |
-| Encryption | a fresh P-256 HPKE key per request, sent in a CBOR `encryptionInfo` with a nonce | [§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction) |
-| Digital Credentials API argument | `{ protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } }` | [VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8) |
-| Session transcript | built from the exact `encryptionInfo` string and the page's origin | [§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript) |
-| Response checks | HPKE opens; `DeviceResponse` version and status; issuer signature; device signature; value digest | [§8.5](https://smart-health-checkin.org/spec/#VRS-0) |
-| Cross-checks | `requestId` matches; one status per item; every artifact's media type accepted by the items it fulfills | [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) |
-
-</details>
-
-### Native wallet
-
-A health app installed on the phone. The browser passes it the EHR's request through the Digital Credentials API, and the phone shows it as a choice to the patient. On Android, the app registers with Credential Manager, and a small matcher decides whether it can answer a request.
-
-1. **Check the request.** ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction))
-2. **Ask the patient, item by item.** `required: true` is the clinic's advice, not consent.
-3. **Build the answer**, with one status per item and the records or form answers the patient chose. ([§6.1](https://smart-health-checkin.org/spec/#6-1-normative-typescript-model), [§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics))
-4. **Sign and encrypt it for the EHR**, bound to the origin the phone reports. ([§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction), [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing))
-
-<details>
-<summary>Reference: what the wallet checks and produces</summary>
-
-| What | Detail | Spec |
-|---|---|---|
-| Request checks | the `DeviceRequest`, the tag-24 `ItemsRequest`, the request carrier, and the SMART request inside it | [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) |
-| Origin | taken from the platform, never from the request | [§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript) |
-| Response location | the SMART response JSON as an issuer-signed item, element `smart_health_checkin_response` | [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) |
-| Signatures | issuer signature over the MSO; device signature over the session | [§8.4](https://smart-health-checkin.org/spec/#8-4-wallet-request-handling-and-response-construction) |
-| Encryption | HPKE to the EHR's key from `encryptionInfo`, with the session transcript as `info` | [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing) |
-
-</details>
-
-### Web wallet
-
-A health app that runs as a website. It does the same work as a native wallet, but the EHR reaches it by opening it in a tab instead of through the Digital Credentials API. The two pages exchange three messages:
-
-1. **Ready.** The wallet tells the EHR page it has loaded.
-2. **Request.** The EHR page sends the same request a native wallet would get.
-3. **Response.** The wallet sends back the same encrypted answer a native wallet would return, or says the patient declined or something failed.
-
-The wallet learns which page is asking from the browser (`event.origin`), never from the message itself. It shows that origin to the patient and binds the answer to it. ([§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript))
-
-<details>
-<summary>Reference: the three messages</summary>
-
-Ready, from the wallet to its opener:
-
-```js
-{ type: "digital-credentials/web-wallet/ready" }
-```
-
-Request, from the EHR page to the wallet's origin:
-
-```js
-{
-  type: "digital-credentials/web-wallet/request",
-  requestId: "<opaque>",
-  credentialRequestOptions: {
-    digital: { requests: [{ protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } }] }
-  }
-}
-```
-
-Response, from the wallet to the EHR page's origin:
-
-```js
-{
-  type: "digital-credentials/web-wallet/response",
-  requestId: "<same as the request>",
-  outcome: "approved",   // or "declined", or "error" with a message
-  credential: { protocol: "org-iso-mdoc", data: { response } }
-}
-```
-
-</details>
-
-The full hand-off, with timeouts and a checklist, is at <https://smart-health-checkin.org/client/docs/web-wallet-handoff.html>.
-
-## How we'll work together
-
-- **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](#shared-resources):
-  - EHR: a public check-in page URL.
+- **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](directory.html) by [registering](register/):
+  - EHR or portal: a public check-in page URL.
   - Web wallet: an entry in the [registry](#wallet-registry).
   - Native wallet: an install link and the name of its test patient.
-- **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people.
-- **Main room plus your own breakout rooms.** The event runs in one Zoom meeting.
-  - Kickoff, check-ins, and the report-out happen in the main room.
-  - Two people debugging together: start a Slack huddle in a direct message. It has video and screen sharing.
-  - A group, or someone not on the Slack: open `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in `#kill-the-clipboard`.
+- **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people. The [Testing EHR and SMART Testing Wallet](#testing-ehr-and-testing-wallet) are always available as counterparts.
 - **Try to test with every counterpart** over the course of the event.
-- **Record failures as well as passes** by [filing a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml). A failure often points to a spec gap or an interop bug, and its issue is where it gets discussed.
-- **Synthetic data only.** Never use real patient records, even your own.
+- **Record failures as well as passes.** A failure often points to a spec gap or an interop bug. See [recording results](#recording-results).
 
 ## Technical ground rules
 
@@ -184,7 +36,7 @@ All under <https://smart-health-checkin.org/connectathon/>.
 | Baseline and scenario requests | <https://smart-health-checkin.org/connectathon/requests/> |
 | Example questionnaires | <https://smart-health-checkin.org/connectathon/Questionnaire/> |
 | Reference EHR check-in page | <https://smart-health-checkin.org/client/demo/>. Load the event registry with [this link](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json). |
-| Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | <https://smart-health-checkin.org/connectathon/responses/> |
+| Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
 | Reference Android wallet | [download](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk), see [below](#reference-android-wallet) |
 | Testing EHR | <https://smart-health-checkin.org/connectathon/testing-ehr/> |
 | SMART Testing Wallet: the reference web wallet, also usable for fault testing | <https://smart-health-checkin.org/connectathon/testing-wallet/>, also in the registry. [What it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md). |
@@ -308,7 +160,7 @@ Use Baselines 1 to 3, with responses under 512 KB. Run them for every EHR and wa
 ### M1. Web wallet from the registry
 
 1. The EHR loads the registry and shows every listed wallet, with the phone's own wallet alongside.
-2. The tester picks a web wallet. The EHR opens it and sends Baseline 1 through the [hand-off](#web-wallet).
+2. The tester picks a web wallet. The EHR opens it and sends Baseline 1 through the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html).
 3. In the wallet, the tester shares everything.
 4. The response arrives back in the EHR's page.
 
@@ -404,8 +256,8 @@ Download: <https://github.com/smart-health-checkin/android-wallet/releases/lates
 
 From 0.3.6 on, new builds install over old ones. Earlier builds were signed with a different key: uninstall one of those once (`adb uninstall org.smarthealthit.checkin.wallet`) before installing a newer build.
 
-## Sharing what you found
+## Recording results
 
-Everyone, developers included, is invited to write a short experience report: what you tried, what worked, what was hard, and what you'd change. The [share page](share.html) has prompts that turn any AI assistant into a guide for writing one, and the form to send it.
+Record each run of a formal scenario through the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml): EHR, wallet, path (web or native), scenario, device and browser, pass or fail, and a note. Attach a screenshot of the EHR display and, where possible, the captured request and response, or the testing tool's log. The [results page](results.html) collects them.
 
-If you ran the formal scenarios, you can also record each run through the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml): EHR, wallet, path (web or native), scenario, device and browser, pass or fail, and a note. Attach a screenshot of the EHR display and, where possible, the captured request and response, or the testing tool's log.
+Then tell us how the whole thing went in a short experience report. The [share page](share.html) has a debrief prompt for any AI assistant, and the form.

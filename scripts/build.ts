@@ -5,7 +5,7 @@
  *   bun scripts/build.ts --check-only validate only (used on pull requests)
  *
  * Inputs (all in this repo):
- *   scenarios.md                           rendered to an HTML page
+ *   index.md, the per-type pages, scenarios.md   rendered to HTML pages
  *   participants/*.json                    validated; web wallets become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
@@ -252,7 +252,7 @@ function page(title: string, body: string, { wide = false } = {}): string {
 <body>
 <div data-smart-topbar></div>
 <main class="page${wide ? " wide" : ""}">
-<p class="crumbs"><a href="${SITE}">Connectathon</a> · <a href="${SITE}requests/">Requests</a> · <a href="${SITE}Questionnaire/">Questionnaires</a> · <a href="${SITE}directory.html">Directory</a> · <a href="${SITE}register/">Register</a> · <a href="${SITE}results.html">Results</a> · <a href="https://github.com/${REPO}">GitHub</a></p>
+<p class="crumbs"><a href="${SITE}">Connectathon</a> · <a href="${SITE}scenarios.html">Scenarios</a> · <a href="${SITE}requests/">Requests</a> · <a href="${SITE}Questionnaire/">Questionnaires</a> · <a href="${SITE}directory.html">Directory</a> · <a href="${SITE}register/">Register</a> · <a href="${SITE}results.html">Results</a> · <a href="https://github.com/${REPO}">GitHub</a></p>
 ${body}
 </main>
 <div data-smart-footer></div>
@@ -366,8 +366,14 @@ cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
 // This section's menu, read by the site chrome.
 cpSync(join(ROOT, "nav.json"), join(OUT, "nav.json"));
 cpSync(join(ROOT, "icons"), join(OUT, "icons"), { recursive: true });
-renderMarkdownPage("scenarios.md", "index.html", "SMART Health Check-in connectathon");
-renderMarkdownPage("patients.md", "patients.html", "SMART Health Check-in for patients and community members");
+// The front page is a hub; each participant type has its own page.
+renderMarkdownPage("index.md", "index.html", "SMART Health Check-in connectathon");
+renderMarkdownPage("patients.md", "patients.html", "For patients and community members");
+renderMarkdownPage("clinic-staff.md", "clinic-staff.html", "For clinic and front-desk staff");
+renderMarkdownPage("verifier-developers.md", "verifier-developers.html", "For EHR, portal, and Verifier developers");
+renderMarkdownPage("wallet-developers.md", "wallet-developers.html", "For wallet developers");
+renderMarkdownPage("observers.md", "observers.html", "For observers");
+renderMarkdownPage("scenarios.md", "scenarios.html", "Test scenarios");
 
 // Prompts people paste into an AI assistant, and the page that offers them.
 mkdirSync(join(OUT, "prompts"), { recursive: true });
