@@ -15,7 +15,7 @@ Your answer is signed and encrypted to a key the clinic's page made for that req
 3. **Compare with the reference.** The [reference Android wallet](scenarios.html#reference-android-wallet) (install link and test patients) and its [source](https://github.com/smart-health-checkin/android-wallet); for web wallets, the [SMART Testing Wallet](testing-wallet/).
 4. **Run the conformance cases.** The spec's [conformance cases](https://github.com/smart-health-checkin/spec/tree/main/conformance) test one capability at a time, without a browser or a partner.
 5. **Test against the Testing EHR.** The [Testing EHR](testing-ehr/) sends any scenario's request to your wallet and checks the answer against the spec, each check linked to its requirement.
-6. **Register your wallet** with the [registration form](register/): a web wallet goes into the event [registry](scenarios.html#wallet-registry); a native wallet lists its install link and test patient. The form opens a pull request that adds you to the [directory](directory.html).
+6. <a id="register"></a>**Register your wallet** with the [registration form](register/): a web wallet goes into the event [registry](scenarios.html#wallet-registry); a native wallet lists its install link and test patient. The form opens a pull request that adds you to the [directory](directory.html).
 7. **Run the scenarios.** The [test scenarios](scenarios.html) list the baseline requests and what passing looks like, starting with M1 to M6.
 
 ## Native wallets
@@ -90,7 +90,7 @@ The full hand-off, with timeouts and a checklist, is at <https://smart-health-ch
 
 ## Joining
 
-Register what you're bringing (step 6), ideally a week before the event, then join the Zoom main room and the Slack channel on the [main page](./). Native-wallet testing needs your own phone: Android with Chrome, or an iPhone with Safari 26.
+[Register your wallet](register/) ([step 6 of Get started](#register)), ideally a week before the event, then join the Zoom main room and the Slack channel on the [main page](./). Native-wallet testing needs your own phone: Android with Chrome, or an iPhone with Safari 26.
 
 ## Sharing what you found
 

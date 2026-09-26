@@ -14,7 +14,7 @@ The answer comes back encrypted to a key your page made for that request, and bo
 2. **Build your page.** The [client library tutorial](https://smart-health-checkin.org/client/docs/tutorial.html) builds a working check-in page end to end. Try the [reference EHR demo](https://smart-health-checkin.org/client/demo/) to see the result.
 3. **Test against known-good wallets.** Point your page at the event's [wallet registry](scenarios.html#wallet-registry) and check in with the [SMART Testing Wallet](testing-wallet/). It can also send deliberately broken responses, so you can test your error handling.
 4. **Building a native app instead of a web page?** The [Native apps guide](https://smart-health-checkin.org/client/docs/native-apps.html) shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
-5. **Register your check-in page** with the [registration form](register/). It opens a pull request that adds you to the [directory](directory.html), so wallet teams can test against you.
+5. <a id="register"></a>**Register your check-in page** with the [registration form](register/). It opens a pull request that adds you to the [directory](directory.html), so wallet teams can test against you.
 6. **Run the scenarios.** The [test scenarios](scenarios.html) list the baseline requests and what passing looks like, starting with M1 to M6.
 
 ## What you build
@@ -27,7 +27,7 @@ The practice system. Its check-in page builds a request, lets the patient choose
 4. **Decrypt the answer and check its signatures.** Signature and other mdoc-layer problems are warnings to report, not reasons to reject ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)).
 5. **Check the answer against the request, then show it to staff.** ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation))
 
-The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages: drop in `<smart-checkin-picker>`, or call `runCheckin`. Install it from its [latest release](https://github.com/smart-health-checkin/client/releases/latest); each release lists its install line.
+The [client library](https://smart-health-checkin.org/client/) does [steps 2 to 5 above](#what-you-build) for JavaScript pages: drop in `<smart-checkin-picker>`, or call `runCheckin`. Install it from its [latest release](https://github.com/smart-health-checkin/client/releases/latest); each release lists its install line.
 
 <details>
 <summary>Reference: identifiers and checks</summary>
@@ -49,7 +49,7 @@ The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5
 
 ## Joining
 
-Register what you're bringing (step 5), ideally a week before the event, then join the Zoom main room and the Slack channel on the [main page](./). Pair with wallet teams in breakout rooms you start yourself.
+[Register your check-in page](register/) ([step 5 of Get started](#register)), ideally a week before the event, then join the Zoom main room and the Slack channel on the [main page](./). Pair with wallet teams in breakout rooms you start yourself.
 
 ## Sharing what you found
 
