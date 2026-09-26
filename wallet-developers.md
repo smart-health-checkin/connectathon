@@ -10,7 +10,7 @@ Your answer is signed and encrypted to a key the clinic's page made for that req
 
 ## Get started
 
-1. **Learn the model and the wire format.** The [model explainer](https://smart-health-checkin.org/spec/smart-model-explainer.html) covers the request and response; the [wire explainer](https://smart-health-checkin.org/spec/wire-protocol-explainer.html) covers the encrypted, signed envelope.
+1. **Learn the model and the wire format.** [Request and response](https://smart-health-checkin.org/spec/smart-model-explainer.html) covers what a clinic asks for and what comes back; [Wire protocol](https://smart-health-checkin.org/spec/wire-protocol-explainer.html) covers the encrypted, signed envelope.
 2. **Read the wallet guide.** [Building a wallet](https://smart-health-checkin.org/client/docs/build-a-wallet.html) covers matching records to items, forms, statuses, and web wallets built with the client library.
 3. **Compare with the reference.** The [reference Android wallet](scenarios.html#reference-android-wallet) (install link and test patients) and its [source](https://github.com/smart-health-checkin/android-wallet); for web wallets, the [SMART Testing Wallet](testing-wallet/).
 4. **Run the conformance cases.** The spec's [conformance cases](https://github.com/smart-health-checkin/spec/tree/main/conformance) test one capability at a time, without a browser or a partner.

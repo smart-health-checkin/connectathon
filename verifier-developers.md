@@ -10,7 +10,7 @@ The answer comes back encrypted to a key your page made for that request, and bo
 
 ## Get started
 
-1. **Learn the model.** The [model explainer](https://smart-health-checkin.org/spec/smart-model-explainer.html) walks through a request and response in about ten minutes.
+1. **Learn the model.** [Request and response](https://smart-health-checkin.org/spec/smart-model-explainer.html) walks through what a clinic asks for and what comes back, in about ten minutes.
 2. **Build your page.** The [client library tutorial](https://smart-health-checkin.org/client/docs/tutorial.html) builds a working check-in page end to end. Try the [reference EHR demo](https://smart-health-checkin.org/client/demo/) to see the result.
 3. **Test against known-good wallets.** Point your page at the event's [wallet registry](scenarios.html#wallet-registry) and check in with the [SMART Testing Wallet](testing-wallet/). It can also send deliberately broken responses, so you can test your error handling.
 4. **Building a native app instead of a web page?** The [Native apps guide](https://smart-health-checkin.org/client/docs/native-apps.html) shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
