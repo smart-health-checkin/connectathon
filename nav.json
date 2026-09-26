@@ -17,7 +17,7 @@
       "title": "Participate",
       "items": [
         { "title": "Register", "href": "register/", "note": "Add your software to the event" },
-        { "title": "Directory", "href": "directory.html", "note": "Who is bringing what" },
+        { "title": "Participant directory", "href": "directory.html", "note": "Who is bringing what" },
         { "title": "Share your experience", "href": "share.html", "note": "AI guide prompts and the form" },
         { "title": "Results", "href": "results.html", "note": "Recorded test runs" }
       ]
@@ -28,8 +28,8 @@
         { "title": "Test scenarios", "href": "scenarios.html", "note": "Baselines and what passing looks like" },
         { "title": "SMART Testing EHR", "href": "testing-ehr/", "note": "Test your wallet" },
         { "title": "SMART Testing Wallet", "href": "testing-wallet/", "note": "Test your check-in page" },
-        { "title": "Requests", "href": "requests/", "note": "The scenario requests as JSON" },
-        { "title": "Questionnaires", "href": "Questionnaire/", "note": "The forms the scenarios use" }
+        { "title": "Test requests", "href": "requests/", "note": "The scenario requests as JSON" },
+        { "title": "Test questionnaires", "href": "Questionnaire/", "note": "The forms the scenarios use" }
       ]
     }
   ]

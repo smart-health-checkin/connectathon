@@ -12,9 +12,9 @@ At this connectathon, clinics' software and patients' health apps are trying thi
 
 All the demos run in a web browser. The patients, records, and clinics are made up. You can go through the steps on your own, or let an AI assistant guide you: the [clinic staff track](share.html#clinic-staff) on the share page explains how.
 
-1. **Check a patient in at a kiosk:** open the [kiosk demo](https://smart-health-checkin.org/client/demo/kiosk.html) on a computer, as the front-desk screen. Scan its QR code with a phone, or use the link under the code if you have no second device. On the phone, choose **Demo wallet** and share. The kiosk then shows the check-in as done, with what arrived. [Front-desk handoff](https://smart-health-checkin.org/spec/kiosk-flow-explainer.html) describes the hand-off in more detail.
+1. **Check a patient in at a kiosk:** open the [kiosk demo](https://smart-health-checkin.org/client/demo/kiosk.html) on a computer, as the front-desk screen. Scan its QR code with a phone, or use the link under the code if you have no second device. On the phone, choose **Demo wallet** and share. The kiosk then shows the check-in as done, with what arrived. [Front-desk handoff](https://smart-health-checkin.org/spec/kiosk.html) describes the hand-off in more detail.
 2. **Check in for a visit, as the patient sees it:** [clinic check-in demo](https://smart-health-checkin.org/client/demo/#wallet=demo). Press **Check in with Demo wallet**, choose what to share in the Demo wallet, and press **Share selected**.
-3. **Fill in a form from a health app:** the [allergy form demo](https://smart-health-checkin.org/client/demo/autofill.html#wallet=demo) fills in a form from what the patient shares.
+3. **Fill in a form from a health app:** the [form autofill demo](https://smart-health-checkin.org/client/demo/autofill.html#wallet=demo) fills in a form from what the patient shares.
 4. **Think about your front desk:** what would you trust as it arrives, what would you still check, and what would get in the way on a busy morning?
 5. **Share what you found** from the [clinic staff track](share.html#clinic-staff) of the share page ([details below](#share-what-you-found)).
 

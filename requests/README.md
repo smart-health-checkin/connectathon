@@ -1,4 +1,4 @@
-# Requests
+# Test requests
 
 Every baseline and optional-scenario request from the [scenarios](../), as SMART Health Check-in request JSON ([spec §5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model)).
 

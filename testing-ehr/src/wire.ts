@@ -327,7 +327,7 @@ function findString(v: unknown, key: string): string | undefined {
 
 // ------------------------------------------------------ capture inspector
 
-const INSPECTOR = "https://smart-health-checkin.org/spec/wire-protocol-inspector.html#from-opener";
+const INSPECTOR = "https://smart-health-checkin.org/spec/inspector.html#from-opener";
 
 /** Hand this run's bytes to the capture inspector, which asks for them once it loads. */
 function openInspector(w: WireLayers, label: string) {

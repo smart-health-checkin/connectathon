@@ -43,7 +43,7 @@ function fieldsFor(c: FormComponent): Field[] {
       ? c.runsAs === "app" ? app : [f("url", "Check-in page URL", "Your public page that starts a check-in.", true, "url")]
       : c.role === "web-wallet"
         ? [
-            f("walletUrl", "Wallet URL", "The page a Verifier opens. It must follow the web wallet hand-off.", true, "url"),
+            f("walletUrl", "Wallet URL", "The page a Verifier opens. It must follow the client docs' Web wallets page.", true, "url"),
             f("iconUrl", "Icon URL", "Shown next to the name in wallet menus. SVG, PNG, WebP, or JPEG, up to 64 KB.", false, "url"),
             f("homepage", "Product home page", "Defaults to the organization's home page.", false, "url"),
             f("target", "Open as", "How the Verifier opens the wallet.", false, "target"),

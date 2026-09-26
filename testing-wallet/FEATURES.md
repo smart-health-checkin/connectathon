@@ -8,7 +8,7 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
 
 - Built on the client library's `serveWebWallet` (hand-off) and `selectEntries` (matching), so this wallet exercises the library's wallet side.
 
-- Implements the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html): post `ready` to
+- Implements the messages in the client docs' [Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) page: post `ready` to
   the opener on load, accept one `request`, reply once with `approved`,
   `declined`, or `error`.
 - Accepts a request only from `window.opener`. Takes the EHR's origin from

@@ -34,7 +34,7 @@ An online event where patients, clinic staff, and software teams try a new way o
 
 - [Test scenarios](scenarios.html): baseline requests, the minimum, larger-data, and optional scenarios, the ground rules, and shared resources.
 - [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/): known-good counterparts for self-serve testing.
-- [Directory](directory.html) of who is bringing what, and [Results](results.html) of formal scenario runs.
+- [Participant directory](directory.html): who is bringing what, and [Results](results.html) of formal scenario runs.
 
 ## Sharing what you found
 

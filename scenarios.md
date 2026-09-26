@@ -29,12 +29,12 @@ Everything the event provides, in one place. The event's own resources are all u
 
 | Resource | Link |
 |---|---|
-| Participant directory: your check-in URL, your registry entry, or how testers get your app, and your test patient | [Directory](directory.html). Get listed with the [registration form](register/), which opens a pull request for you. |
+| Participant directory: your check-in URL, your registry entry, or how testers get your app, and your test patient | [Participant directory](directory.html). Get listed with the [registration form](register/), which opens a pull request for you. |
 | Test results: one GitHub issue per run, filed through a form | [File a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml); [all results](results.html) |
 | Wallet registry | [wallets.json](wallets.json) ([details](#wallet-registry)) |
-| Web wallet hand-off | [Web wallet hand-off guide](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html) |
-| Baseline and scenario requests | [Requests](requests/) |
-| Example questionnaires | [Questionnaires](Questionnaire/) |
+| How web wallets talk to the EHR page | [Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) in the client docs |
+| Baseline and scenario requests | [Test requests](requests/) |
+| Example questionnaires | [Test questionnaires](Questionnaire/) |
 | Reference EHR check-in page | [Reference EHR demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
 | Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
 | Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk); [install steps](#reference-android-wallet) |
@@ -44,7 +44,7 @@ Everything the event provides, in one place. The event's own resources are all u
 
 ### Wallet registry
 
-The event registry lists every participating web wallet whose status is up in the [directory](directory.html#web-wallets), at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallet registries](https://smart-health-checkin.org/client/docs/registry.html)):
+The event registry lists every participating web wallet whose status is up in the [participant directory](directory.html#web-wallets), at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallet registries](https://smart-health-checkin.org/client/docs/registry.html)):
 
 ```json
 {
@@ -162,7 +162,7 @@ Use [Baselines 1 to 3](#baseline-requests), with responses under 512 KB. Run the
 ### M1. Web wallet from the registry
 
 1. The EHR loads the registry and shows every listed wallet, with the phone's own wallet alongside.
-2. The tester picks a web wallet. The EHR opens it and sends [Baseline 1](#baseline-1) through the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html).
+2. The tester picks a web wallet. The EHR opens it and sends [Baseline 1](#baseline-1) to it by `postMessage` ([Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) in the client docs).
 3. In the wallet, the tester shares everything.
 4. The response arrives back in the EHR's page.
 

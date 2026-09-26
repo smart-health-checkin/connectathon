@@ -13,7 +13,7 @@ At this event, clinics and health apps are trying it together for the first time
 Everything below works in a web browser on any phone, tablet, or computer, and takes about 15 minutes in total. All the patients, records, and clinics are made up. Never enter real health information. You can go through the steps on your own, or let an AI assistant guide you: the [patient track](share.html#patients) on the share page has a prompt that walks you through them.
 
 1. **Check in for a visit:** [clinic check-in demo](https://smart-health-checkin.org/client/demo/#wallet=demo). Press **Check in with Demo wallet**, choose what to share in the Demo wallet, and press **Share selected**.
-2. **Fill in a form from your health app:** [allergy form demo](https://smart-health-checkin.org/client/demo/autofill.html#wallet=demo). Press **Prefill from your health app**, share, and look over what was filled in.
+2. **Fill in a form from your health app:** [form autofill demo](https://smart-health-checkin.org/client/demo/autofill.html#wallet=demo). Press **Prefill from your health app**, share, and look over what was filled in.
 3. **Check in at a front-desk kiosk:** open the [kiosk demo](https://smart-health-checkin.org/client/demo/kiosk.html) on a computer and scan its QR code with your phone. No second device? Use the link under the QR code.
 4. **Optional, on an Android phone:** try a real wallet app. Follow the [install steps](scenarios.html#reference-android-wallet), then check in from the [clinic check-in demo](https://smart-health-checkin.org/client/demo/) in Chrome and pick the app.
 5. **Share what you found** from the [patient track](share.html#patients) of the share page ([details below](#share-what-you-found)).

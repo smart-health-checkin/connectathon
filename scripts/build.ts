@@ -421,7 +421,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
   const h = new URLSearchParams(location.hash.slice(1));
   const from = h.get("from");
   if (from) {
-    const names = { "clinic-demo": "the clinic check-in demo", "demo-wallet": "the Demo wallet", "autofill-demo": "the allergy autofill demo", "kiosk-demo": "the kiosk demo", "testing-ehr": "the SMART Testing EHR", "testing-wallet": "the SMART Testing Wallet" };
+    const names = { "clinic-demo": "the clinic check-in demo", "demo-wallet": "the Demo wallet", "autofill-demo": "the form autofill demo", "kiosk-demo": "the kiosk demo", "testing-ehr": "the SMART Testing EHR", "testing-wallet": "the SMART Testing Wallet" };
     const when = h.get("time") ? new Date(h.get("time")) : null;
     const note = "I just tried " + (names[from] || from) + (h.get("result") ? " (outcome: " + h.get("result") + ")" : "") +
       (when && !isNaN(when) ? " at " + when.toLocaleString() : "") + ".";
@@ -525,8 +525,8 @@ for (const { file, request, valid } of requests) {
 }
 const reqReadme = existsSync(join(ROOT, "requests/README.md"))
   ? wrapTables(marked.parse(readFileSync(join(ROOT, "requests/README.md"), "utf8")) as string)
-  : "<h1>Requests</h1>";
-writeFileSync(join(OUT, "requests/index.html"), page("Requests", `<article class="doc">${reqReadme}</article>${reqRows}`));
+  : "<h1>Test requests</h1>";
+writeFileSync(join(OUT, "requests/index.html"), page("Test requests", `<article class="doc">${reqReadme}</article>${reqRows}`));
 
 // questionnaires: raw files plus an index
 mkdirSync(join(OUT, "Questionnaire"), { recursive: true });
@@ -543,8 +543,8 @@ for (const { file, q } of questionnaires) {
 writeFileSync(
   join(OUT, "Questionnaire/index.html"),
   page(
-    "Questionnaires",
-    `<article class="doc"><h1>Questionnaires</h1><p>FHIR R4 Questionnaires for the connectathon. Each one's <code>url</code> is the address it is served from, so a wallet can fetch it by reference.</p></article>
+    "Test questionnaires",
+    `<article class="doc"><h1>Test questionnaires</h1><p>FHIR R4 Questionnaires for the connectathon. Each one's <code>url</code> is the address it is served from, so a wallet can fetch it by reference.</p></article>
 <div class="smart-table-wrap"><table><thead><tr><th>Form</th><th class="num">Questions</th><th>Item types</th><th>Canonical</th></tr></thead><tbody>${qRows}</tbody></table></div>`,
   ),
 );
@@ -608,8 +608,8 @@ const dirSections = DIRECTORY_SECTIONS.map((sec) => {
 writeFileSync(
   join(OUT, "directory.html"),
   page(
-    "Directory",
-    `<article class="doc"><h1>Directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Status Up means ready to test now: a web page or web wallet anyone can open, or a phone app testers can get the way its row says.</p>` +
+    "Participant directory",
+    `<article class="doc"><h1>Participant directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Status Up means ready to test now: a web page or web wallet anyone can open, or a phone app testers can get the way its row says.</p>` +
       `<p>${dirSections.map((s) => `<a href="#${s.id}">${s.title}</a> (${s.count})`).join(" · ")}</p></article>` +
       dirSections.map((s) => s.html).join("\n"),
   ),

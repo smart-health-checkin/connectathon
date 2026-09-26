@@ -9,9 +9,9 @@ SMART Health Check-in lets a clinic's check-in page ask a patient's own health a
 ## Get started
 
 1. **Try it yourself:** the [patient demos](patients.html#get-started) take about 15 minutes on any phone or computer.
-2. **Read how it works:** [Request and response](https://smart-health-checkin.org/spec/smart-model-explainer.html) covers what a clinic asks for and what comes back. [Trust and limits](https://smart-health-checkin.org/spec/trust-and-limits.html) covers what the signatures and encryption do and don't prove.
+2. **Read how it works:** [Request and response](https://smart-health-checkin.org/spec/request-response.html) covers what a clinic asks for and what comes back. [Security and limits](https://smart-health-checkin.org/spec/trust-and-limits.html) covers what the signatures and encryption do and don't prove.
 3. **Read the spec:** [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/) is the draft specification being tested.
-4. **See who's taking part:** the [directory](directory.html) lists the clinic systems and wallets, and the [results page](results.html) collects formal test runs.
+4. **See who's taking part:** the [participant directory](directory.html) lists the clinic systems and wallets, and the [results page](results.html) collects formal test runs.
 5. **Share what you found** from the [observer track](share.html#observers) of the share page ([details below](#share-what-you-found)).
 
 ## Joining

@@ -10,10 +10,10 @@ The answer comes back encrypted to a key your page made for that request, and bo
 
 ## Get started
 
-1. **Learn the model.** [Request and response](https://smart-health-checkin.org/spec/smart-model-explainer.html) walks through what a clinic asks for and what comes back, in about ten minutes.
+1. **Learn the model.** [Request and response](https://smart-health-checkin.org/spec/request-response.html) walks through what a clinic asks for and what comes back, in about ten minutes.
 2. **Build your page.** The [client library tutorial](https://smart-health-checkin.org/client/docs/tutorial.html) builds a working check-in page end to end. Try the [reference EHR demo](https://smart-health-checkin.org/client/demo/) to see the result.
 3. **Test against known-good wallets.** Point your page at the event's [wallet registry](scenarios.html#wallet-registry) and check in with the [SMART Testing Wallet](testing-wallet/). It can also send deliberately broken responses, so you can test your error handling.
-4. **Building a native app instead of a web page?** The [Native apps guide](https://smart-health-checkin.org/client/docs/native-apps.html) shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
+4. **Building a native app instead of a web page?** The [Native Verifier apps](https://smart-health-checkin.org/client/docs/native-apps.html) guide shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
 5. <a id="register"></a>**Register your check-in page or app** with the [registration form](register/), as a Verifier (role `verifier`). Verifier is the side that asks for data: EHR check-in pages, patient portals, kiosks, and clinic apps all register as Verifiers. The form opens a pull request that adds you to the [directory](directory.html), so wallet teams can test against you. A web page lists its URL; a phone app lists its platforms and how testers get it ([examples](register/#verifier-examples)).
 6. **Run the scenarios.** The [test scenarios](scenarios.html) list the [baseline requests](scenarios.html#baseline-requests) and what passing looks like, starting with the [minimum scenarios](scenarios.html#minimum-scenarios), M1 to M6.
 7. **Share what you found** from the [developer track](share.html#developers) of the share page ([details below](#share-what-you-found)).
@@ -36,7 +36,7 @@ The practice system. Its check-in page builds a request, lets the patient choose
 
 1. **Build the request.** A small JSON document listing the items you want: records by FHIR profile, or a form to fill in. ([§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model))
 2. **Wrap it and create a one-time key.** The request goes inside an mdoc request, and the page makes a fresh encryption key for the answer. ([§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction))
-3. **Send it to the wallet the patient picked.** A native wallet goes through the browser's Digital Credentials API. A web wallet goes through the [web wallet hand-off](wallet-developers.html#web-wallets). ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8))
+3. **Send it to the wallet the patient picked.** A native wallet goes through the browser's Digital Credentials API. A [web wallet](wallet-developers.html#web-wallets) gets it from your page by `postMessage`. ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8))
 4. **Decrypt the answer and check its signatures.** Signature and other mdoc-layer problems are warnings to report, not reasons to reject ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)).
 5. **Check the answer against the request, then show it to staff.** ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation))
 
