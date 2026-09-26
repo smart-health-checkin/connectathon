@@ -4,7 +4,7 @@ For teams building the clinic side (EHRs, portals, and other Verifiers): the che
 
 ## Background
 
-In the spec's terms you build a **Verifier**. Your page sends a request listing the items you'd like, and the patient's wallet answers with the records and form answers the patient chose to share, plus a status for every item. The wallet can be an app on the phone, reached through the browser's Digital Credentials API, or a website, opened in a tab (the [web wallet hand-off](wallet-developers.html#web-wallets)).
+In the spec's terms you build a **Verifier**. Your page sends a request listing the items you'd like, and the patient's wallet answers with the records and form answers the patient chose to share, plus a status for every item. The wallet can be an app on the phone, reached through the browser's Digital Credentials API, or a website opened in a tab (a [web wallet](wallet-developers.html#web-wallets)).
 
 The answer comes back encrypted to a key your page made for that request, and bound to your page's origin. You check it against your request, then show it to staff. Each item and record is judged on its own, so one bad record doesn't lose the rest.
 
