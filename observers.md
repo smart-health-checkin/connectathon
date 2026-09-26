@@ -1,4 +1,4 @@
-# For observers
+# Observers
 
 For anyone who wants to follow along: policy and standards folks, payers, researchers, and the curious.
 
@@ -17,7 +17,7 @@ SMART Health Check-in lets a clinic's check-in page ask a patient's own health a
 ## Joining
 
 - **Register:** you don't need to.
-- **The live event:** on Zoom; the date, time, and link are on the [main page](./). Join the main room for the opening, the hourly check-ins, and the closing report-out, where participants share what they found.
+- **The live event:** on Zoom; the date, time, and link are under [How the event works](./#how-the-event-works) on the Connectathon front page. Join the main room for the opening, the hourly check-ins, and the closing report-out, where participants share what they found.
 - **Questions:** ask in the [#kill-the-clipboard channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT) on the CMS Health Tech Ecosystem Slack.
 
 ## Share what you found

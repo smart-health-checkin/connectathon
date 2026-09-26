@@ -1,4 +1,4 @@
-# For patients and community members
+# Patients and community
 
 For patients, caregivers, and community advocates who want to try a new way to check in for a doctor's visit and tell us how it feels.
 

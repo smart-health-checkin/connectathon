@@ -26,6 +26,15 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   `wallet-developers.md`, and `observers.md` are those pages; `scenarios.md` is the
   developer test reference. `scripts/build.ts` renders each; add a new page there
   and in `nav.json`.
+- Every page uses the apex's shared chrome (see "The shared site" in MAINTAINING.md):
+  content pages get the site bar, breadcrumb, `<main id="main">`, and footer from
+  `page()` in `scripts/build.ts`; the Testing EHR, testing wallet, and Register use
+  the tool bar (`data-smart-topbar="tool"`, actions in `data-smart-tool-actions`),
+  and the build adds the chrome's `<head>` tags after bundling. Each page's H1 uses
+  its menu wording. Page CSS must not style bare `header` or `nav`; use rem, not
+  `ch`, for layout widths.
+- Undecided event details are written `{{TBD: what}}` in the page Markdown and
+  render as a "To be announced" pill; any other `{{` in a page fails the build.
 - This section's menu is `nav.json`.
 - Experience reporting (the main feedback path; reports are public):
   - `prompts/*.md` are prompts people paste into any AI assistant (patient guide,

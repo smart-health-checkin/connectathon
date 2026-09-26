@@ -1,24 +1,39 @@
 /* Connectathon pages, on top of /assets/smart-design.css tokens. */
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg-1); font-family: var(--font-sans); font-size: var(--fs-base); line-height: var(--lh-normal); -webkit-font-smoothing: antialiased; }
-.page { max-width: 880px; margin: 0 auto; padding: var(--space-6) 24px var(--space-8); }
-.page.wide { max-width: var(--container-wide, 1200px); }
-.crumbs { font-size: var(--fs-sm); color: var(--fg-3); margin: 0 0 var(--space-5); }
-.crumbs a { color: var(--fg-2); }
+/* One left edge with the site bar and breadcrumb: the same centered container and gutter.
+   Prose is capped at about 72 characters; tables and code may use the full width.
+   Widths are in rem, not ch, so they don't change when the webfont arrives. */
+.page { max-width: var(--container-wide, 1280px); margin: 0 auto; padding: var(--space-5) 24px var(--space-8); }
+@media (max-width: 46rem) { .page { padding: var(--space-4) 16px var(--space-7); } }
 a { color: var(--brand); }
-.doc h1 { font-size: var(--fs-2xl); letter-spacing: var(--tracking-tight); line-height: var(--lh-tight); margin: 0 0 var(--space-4); text-wrap: balance; }
+.doc { max-width: 52rem; }
+.doc h1 { font-size: var(--fs-2xl); letter-spacing: var(--tracking-tight); line-height: var(--lh-tight); margin: 0 0 var(--space-4); }
 .doc h2 { font-size: var(--fs-xl); letter-spacing: var(--tracking-tight); margin: var(--space-8) 0 var(--space-3); padding-top: var(--space-4); border-top: 1px solid var(--border); }
 .doc h3 { font-size: var(--fs-md); margin: var(--space-6) 0 var(--space-2); }
-.doc p, .doc li { max-width: 72ch; }
+.doc h1, .doc h2, .doc h3 { text-wrap: balance; }
+.nw { white-space: nowrap; }
+.doc p, .doc li, .doc .draft { max-width: 44rem; }
 .doc li { margin: 4px 0; }
+.doc td a { overflow-wrap: anywhere; }
 code { font-family: var(--font-mono); font-size: 0.86em; background: var(--gray-100); padding: 1px 5px; border-radius: var(--radius-sm, 4px); overflow-wrap: break-word; }
 .doc td code { white-space: nowrap; }
 .doc td:last-child code { white-space: normal; }
 pre { background: var(--gray-50); border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); overflow-x: auto; }
 pre code { background: none; padding: 0; font-size: 12.5px; line-height: 1.55; overflow-wrap: normal; }
 table { border-collapse: collapse; width: 100%; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
-.doc table { display: block; overflow-x: auto; }
-.table-wrap { overflow-x: auto; margin: var(--space-4) 0; }
+/* Wide tables scroll inside their box, with a shadow at an edge that has more to show. */
+.doc table, .table-wrap {
+  overflow-x: auto;
+  background:
+    linear-gradient(to right, var(--bg) 30%, rgba(255, 255, 255, 0)) left / 24px 100% no-repeat local,
+    linear-gradient(to left, var(--bg) 30%, rgba(255, 255, 255, 0)) right / 24px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(17, 22, 29, .18), rgba(17, 22, 29, 0)) left / 10px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(17, 22, 29, .18), rgba(17, 22, 29, 0)) right / 10px 100% no-repeat scroll;
+}
+.doc table { display: block; }
+.table-wrap { margin: var(--space-4) 0; }
+.table-wrap table { background: none; }
 th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
 thead th { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--fg-3); font-weight: 700; }
 td.num { text-align: right; }
@@ -31,6 +46,8 @@ td.num { text-align: right; }
 .req h2 { font-size: var(--fs-md); margin: 0 0 var(--space-2); }
 .req ul { margin: 0 0 var(--space-2); padding-left: 20px; font-size: var(--fs-sm); }
 .draft { background: var(--warning-wash); border: 1px solid #F0C98A; border-radius: var(--radius-md, 6px); padding: var(--space-3) var(--space-4); }
+/* An event detail not decided yet ({{TBD: …}} in the source). */
+.tbd { display: inline-block; padding: 0 8px; border: 1px dashed #D9A640; border-radius: 999px; background: var(--warning-wash); color: #7A5A16; font-size: var(--fs-xs); font-weight: 600; line-height: 1.6; white-space: nowrap; vertical-align: 1px; }
 details { margin: var(--space-3) 0; border: 1px solid var(--border); border-radius: var(--radius-md, 6px); padding: 0 var(--space-4); }
 details > summary { cursor: pointer; padding: var(--space-3) 0; font-weight: 600; color: var(--fg-2); }
 details[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: var(--space-3); }
@@ -63,3 +80,20 @@ details table { margin-bottom: var(--space-3); }
 .paths a.path b { display: block; color: var(--brand); margin-bottom: 2px; }
 .paths a.path span { display: block; font-size: var(--fs-sm); color: var(--fg-2); }
 .paths a.path em { display: block; margin-top: var(--space-2); font-style: normal; font-size: var(--fs-sm); font-weight: 600; color: var(--brand); }
+
+/* Directory: below 40rem each component is a card (organization, role, component, Open). */
+.directory .open { font-weight: 600; }
+@media (max-width: 40rem) {
+  .table-wrap:has(.directory) { overflow: visible; background: none; }
+  .directory, .directory tbody, .directory tr, .directory td { display: block; }
+  .directory thead { display: none; }
+  .directory tr { border: 1px solid var(--border); border-radius: var(--radius-md, 8px); padding: var(--space-3) var(--space-4); margin: 0 0 var(--space-3); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--space-3); }
+  .directory td { border: 0; padding: 0; grid-column: 1 / -1; }
+  .directory td.d-org { grid-column: 1; font-weight: 700; }
+  .directory td.d-status { grid-column: 2; grid-row: 1; }
+  .directory td.d-role { color: var(--fg-2); }
+  .directory td.d-link:empty, .directory td.d-patient:empty, .directory td.d-contacts:empty { display: none; }
+  .directory td.d-link { margin: var(--space-2) 0; }
+  .directory td.d-link .open { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--space-5); border: 1px solid var(--brand); border-radius: var(--radius-md, 8px); text-decoration: none; }
+  .directory td[data-label]::before { content: attr(data-label) ": "; color: var(--fg-3); }
+}

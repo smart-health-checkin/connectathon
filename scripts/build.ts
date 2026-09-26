@@ -215,6 +215,15 @@ if (catalog) {
   }
 }
 
+// ---------------------------------------------------------------- page sources
+// The Markdown pages may hold {{TBD: …}} (rendered as "To be announced"); nothing else in {{…}}.
+const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "scenarios.md", "requests/README.md"];
+for (const src of PAGES) {
+  if (!existsSync(join(ROOT, src))) continue;
+  const left = readFileSync(join(ROOT, src), "utf8").replace(/\{\{TBD:[^}]*\}\}/g, "");
+  if (left.includes("{{")) fail(`${src}: stray {{ (only {{TBD: …}} is allowed in pages)`);
+}
+
 // ---------------------------------------------------------------- stop on errors
 if (errors.length) {
   console.error(`Build failed with ${errors.length} problem(s):`);
@@ -238,28 +247,44 @@ marked.use(gfmHeadingId());
 const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
 
-function page(title: string, body: string, { wide = false } = {}): string {
+// The shared site chrome (bar, breadcrumb, footer, fonts), served by the apex site.
+const CHROME_HEAD = `<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="/assets/smart-design.css">
+<script src="/assets/site-chrome.js" defer></script>`;
+
+/** Keeps "Check-in" from breaking at its hyphen in headings and cards. */
+const noBreakCheckIn = (html: string) =>
+  html.replace(/(<(h[1-6]|b)\b[^>]*>)([\s\S]*?)(<\/\2>)/g, (_m, open, _tag, inner, close) =>
+    open + inner.replace(/(^|>)([^<]*)/g, (_x: string, gt: string, text: string) => gt + text.replace(/\b(Check)-(in)\b/g, '<span class="nw">$1-$2</span>')) + close);
+
+/** A content page. The breadcrumb comes from nav.json; it's hidden on the front page. */
+function page(title: string, body: string, { front = false } = {}): string {
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
-<link rel="stylesheet" href="/assets/smart-design.css">
-<link rel="stylesheet" href="${SITE}site.css">
-<script src="/assets/site-chrome.js" defer></script>
+<title>${esc(front ? title : `${title} · Connectathon`)}</title>
+${CHROME_HEAD}
+<link rel="stylesheet" href="/connectathon/site.css">
 </head>
 <body>
 <div data-smart-topbar></div>
-<main class="page${wide ? " wide" : ""}">
-<p class="crumbs"><a href="${SITE}">Connectathon</a> · <a href="${SITE}scenarios.html">Scenarios</a> · <a href="${SITE}requests/">Requests</a> · <a href="${SITE}Questionnaire/">Questionnaires</a> · <a href="${SITE}directory.html">Directory</a> · <a href="${SITE}register/">Register</a> · <a href="${SITE}results.html">Results</a> · <a href="https://github.com/${REPO}">GitHub</a></p>
-${body}
+<nav data-smart-breadcrumb${front ? " hidden" : ""}></nav>
+<main id="main" class="page">
+${noBreakCheckIn(body)}
 </main>
 <div data-smart-footer></div>
 </body>
 </html>
 `;
 }
+
+// Event details not yet decided are written {{TBD: what}} in the Markdown and shown as a pill.
+// Any other {{…}} left in a published page fails the build (checked after rendering).
+const tbd = (md: string) =>
+  md.replace(/\{\{TBD:\s*([^}]*)\}\}/g, (_m, what) => `<span class="tbd" title="${esc(what.trim())}">To be announced</span>`);
 
 /** The "Share your experience" page: prompts to copy into any AI assistant, and the form. */
 function sharePage(prompts: Array<{ file: string; title: string; who: string; what: string; text: string }>): string {
@@ -410,9 +435,9 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
 }
 
 function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
-  const md = readFileSync(join(ROOT, src), "utf8");
+  const md = tbd(readFileSync(join(ROOT, src), "utf8"));
   const title = md.match(/^# (.+)$/m)?.[1] ?? fallbackTitle;
-  writeFileSync(join(OUT, out), page(title, `<article class="doc">${marked.parse(md)}</article>`));
+  writeFileSync(join(OUT, out), page(title, `<article class="doc">${marked.parse(md)}</article>`, { front: out === "index.html" }));
 }
 
 cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
@@ -421,11 +446,11 @@ cpSync(join(ROOT, "nav.json"), join(OUT, "nav.json"));
 cpSync(join(ROOT, "icons"), join(OUT, "icons"), { recursive: true });
 // The front page is a hub; each participant type has its own page.
 renderMarkdownPage("index.md", "index.html", "SMART Health Check-in connectathon");
-renderMarkdownPage("patients.md", "patients.html", "For patients and community members");
-renderMarkdownPage("clinic-staff.md", "clinic-staff.html", "For clinic and front-desk staff");
-renderMarkdownPage("verifier-developers.md", "verifier-developers.html", "For EHR, portal, and Verifier developers");
-renderMarkdownPage("wallet-developers.md", "wallet-developers.html", "For wallet developers");
-renderMarkdownPage("observers.md", "observers.html", "For observers");
+renderMarkdownPage("patients.md", "patients.html", "Patients and community");
+renderMarkdownPage("clinic-staff.md", "clinic-staff.html", "Clinic staff");
+renderMarkdownPage("verifier-developers.md", "verifier-developers.html", "Verifier developers");
+renderMarkdownPage("wallet-developers.md", "wallet-developers.html", "Wallet developers");
+renderMarkdownPage("observers.md", "observers.html", "Observers");
 renderMarkdownPage("scenarios.md", "scenarios.html", "Test scenarios");
 
 // Prompts people paste into an AI assistant, and the page that offers them.
@@ -491,7 +516,7 @@ for (const { file, request, valid } of requests) {
 const reqReadme = existsSync(join(ROOT, "requests/README.md"))
   ? marked.parse(readFileSync(join(ROOT, "requests/README.md"), "utf8"))
   : "<h1>Requests</h1>";
-writeFileSync(join(OUT, "requests/index.html"), page("Connectathon requests", `<article class="doc">${reqReadme}</article>${reqRows}`));
+writeFileSync(join(OUT, "requests/index.html"), page("Requests", `<article class="doc">${reqReadme}</article>${reqRows}`));
 
 // questionnaires: raw files plus an index
 mkdirSync(join(OUT, "Questionnaire"), { recursive: true });
@@ -508,8 +533,8 @@ for (const { file, q } of questionnaires) {
 writeFileSync(
   join(OUT, "Questionnaire/index.html"),
   page(
-    "Connectathon questionnaires",
-    `<article class="doc"><h1>Example questionnaires</h1><p>FHIR R4 Questionnaires for the connectathon. Each one's <code>url</code> is the address it is served from, so a wallet can fetch it by reference.</p></article>
+    "Questionnaires",
+    `<article class="doc"><h1>Questionnaires</h1><p>FHIR R4 Questionnaires for the connectathon. Each one's <code>url</code> is the address it is served from, so a wallet can fetch it by reference.</p></article>
 <div class="table-wrap"><table><thead><tr><th>Form</th><th>Questions</th><th>Item types</th><th>Canonical</th></tr></thead><tbody>${qRows}</tbody></table></div>`,
   ),
 );
@@ -524,16 +549,22 @@ for (const p of participants) {
     const contacts = (p.contacts ?? [])
       .map((x: any) => [esc(x.name), x.github ? `<a href="https://github.com/${esc(x.github)}">@${esc(x.github)}</a>` : "", x.slack ? `Slack: ${esc(x.slack)}` : "", x.email ? esc(x.email) : ""].filter(Boolean).join(" · "))
       .join("<br>");
-    dirRows += `<tr><td>${p.homepage ? `<a href="${esc(p.homepage)}">${esc(p.organization)}</a>` : esc(p.organization)}</td><td>${roleName[c.role]}${c.platforms ? ` (${esc(c.platforms.join(", "))})` : ""}</td><td><b>${esc(c.name)}</b>${c.description ? `<br><span class="muted">${esc(c.description)}</span>` : ""}<br><code>${esc(c.id)}</code></td><td>${link ? `<a href="${esc(link)}">${c.role === "native-wallet" ? "Install" : "Open"}</a>` : ""}</td><td>${esc(c.testPatient ?? "")}</td><td>${statusPill(c.status)}</td><td>${contacts}</td></tr>`;
+    const org = p.homepage ? `<a href="${esc(p.homepage)}">${esc(p.organization)}</a>` : esc(p.organization);
+    dirRows += `<tr><td class="d-org">${org}</td>` +
+      `<td class="d-role">${roleName[c.role]}${c.platforms ? ` (${esc(c.platforms.join(", "))})` : ""}</td>` +
+      `<td class="d-comp"><b>${esc(c.name)}</b>${c.description ? `<br><span class="muted">${esc(c.description)}</span>` : ""}<br><code>${esc(c.id)}</code></td>` +
+      `<td class="d-link">${link ? `<a class="open" href="${esc(link)}">${c.role === "native-wallet" ? "Install" : "Open"}</a>` : ""}</td>` +
+      `<td class="d-patient" data-label="Test patient">${esc(c.testPatient ?? "")}</td>` +
+      `<td class="d-status">${statusPill(c.status)}</td>` +
+      `<td class="d-contacts" data-label="Contacts">${contacts}</td></tr>`;
   }
 }
 writeFileSync(
   join(OUT, "directory.html"),
   page(
-    "Connectathon directory",
-    `<article class="doc"><h1>Participant directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Web wallets listed here are in the <a href="wallets.json">wallet registry</a>.</p></article>
-<div class="table-wrap"><table><thead><tr><th>Organization</th><th>Role</th><th>Component</th><th>Link</th><th>Test patient</th><th>Status</th><th>Contacts</th></tr></thead><tbody>${dirRows}</tbody></table></div>`,
-    { wide: true },
+    "Directory",
+    `<article class="doc"><h1>Directory</h1><p>Every component registered for the connectathon, generated from the <a href="https://github.com/${REPO}/tree/main/participants">participant files</a>. To add or change yours, use the <a href="register/">registration form</a>. Web wallets listed here are in the <a href="wallets.json">wallet registry</a>.</p></article>
+<div class="table-wrap"><table class="directory"><thead><tr><th>Organization</th><th>Role</th><th>Component</th><th>Link</th><th>Test patient</th><th>Status</th><th>Contacts</th></tr></thead><tbody>${dirRows}</tbody></table></div>`,
   ),
 );
 
@@ -606,9 +637,8 @@ if (!results) {
 writeFileSync(
   join(OUT, "results.html"),
   page(
-    "Connectathon results",
-    `<article class="doc"><h1>Test results</h1><p>The latest open result for each scenario and EHR and wallet pair, from the <a href="https://github.com/${REPO}/issues?q=label%3Aresult">result issues</a>. <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">File a result</a>. Close an issue to withdraw its result. Rebuilt whenever a result issue changes.</p></article>${resultsBody}`,
-    { wide: true },
+    "Results",
+    `<article class="doc"><h1>Results</h1><p>The latest open result for each scenario and EHR and wallet pair, from the <a href="https://github.com/${REPO}/issues?q=label%3Aresult">result issues</a>. <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">File a result</a>. Close an issue to withdraw its result. Rebuilt whenever a result issue changes.</p></article>${resultsBody}`,
   ),
 );
 
@@ -623,10 +653,27 @@ for (const tool of ["testing-ehr", "testing-wallet", "register"]) {
     for (const log of built.logs) console.error(log);
     process.exit(1);
   }
+  // The shared chrome lives on the apex site, outside this bundle, so it's added after bundling,
+  // ahead of the tool's own stylesheet.
+  const html = join(OUT, tool, "index.html");
+  const builtHtml = readFileSync(html, "utf8");
+  if (!builtHtml.includes("</title>")) throw new Error(`${tool}/index.html: no <title> to put the site chrome after`);
+  writeFileSync(html, builtHtml.replace("</title>", `</title>${CHROME_HEAD.replaceAll("\n", "")}`));
   // Static files the tool fetches at run time.
   for (const extra of ["data", "issuer", "FEATURES.md"]) {
     if (existsSync(join(dir, extra))) cpSync(join(dir, extra), join(OUT, tool, extra), { recursive: true });
   }
+}
+
+// No template markers in published pages: {{TBD: …}} becomes a pill and {{FORM_URL}} is filled in,
+// so any other {{ is a mistake.
+const htmlFiles = (dir: string): string[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? htmlFiles(join(dir, e.name)) : e.name.endsWith(".html") ? [join(dir, e.name)] : []);
+const stray = htmlFiles(OUT).filter((f) => readFileSync(f, "utf8").includes("{{"));
+if (stray.length) {
+  console.error(`Build failed: unfilled {{…}} in ${stray.map((f) => f.slice(OUT.length + 1)).join(", ")}`);
+  process.exit(1);
 }
 
 console.log(`built ${OUT}`);

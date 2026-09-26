@@ -10,7 +10,7 @@ The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/);
   - EHR or portal: a public check-in page URL.
   - Web wallet: an entry in the [registry](#wallet-registry).
   - Native wallet: an install link and the name of its test patient.
-- **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people. The [Testing EHR and SMART Testing Wallet](#testing-ehr-and-testing-wallet) are always available as counterparts.
+- **Test early.** Self-serve testing in the week before the event leaves the live session for problems that need two people. The [SMART Testing EHR and SMART Testing Wallet](#testing-ehr-and-testing-wallet) are always available as counterparts.
 - **Try to test with every counterpart** over the course of the event.
 - **Record failures as well as passes.** A failure often points to a spec gap or an interop bug. See [recording results](#recording-results).
 
@@ -25,21 +25,21 @@ The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/);
 
 ## Shared resources
 
-All under <https://smart-health-checkin.org/connectathon/>.
+Everything the event provides, in one place. The event's own resources are all under `https://smart-health-checkin.org/connectathon/`.
 
 | Resource | Link |
 |---|---|
-| Participant directory: your check-in URL, install link, or registry entry, and your test patient | <https://smart-health-checkin.org/connectathon/directory.html>. Register with the [registration form](https://smart-health-checkin.org/connectathon/register/), which opens a pull request for you. |
-| Test results: one GitHub issue per run, filed through a form | [file a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml); all results at <https://smart-health-checkin.org/connectathon/results.html> |
-| Wallet registry | <https://smart-health-checkin.org/connectathon/wallets.json> |
-| Web wallet hand-off | <https://smart-health-checkin.org/client/docs/web-wallet-handoff.html> |
-| Baseline and scenario requests | <https://smart-health-checkin.org/connectathon/requests/> |
-| Example questionnaires | <https://smart-health-checkin.org/connectathon/Questionnaire/> |
-| Reference EHR check-in page | <https://smart-health-checkin.org/client/demo/>. Load the event registry with [this link](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json). |
+| Participant directory: your check-in URL, install link, or registry entry, and your test patient | [Directory](directory.html). Get listed with the [registration form](register/), which opens a pull request for you. |
+| Test results: one GitHub issue per run, filed through a form | [File a result](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml); [all results](results.html) |
+| Wallet registry | [wallets.json](wallets.json) ([details](#wallet-registry)) |
+| Web wallet hand-off | [Web wallet hand-off guide](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html) |
+| Baseline and scenario requests | [Requests](requests/) |
+| Example questionnaires | [Questionnaires](Questionnaire/) |
+| Reference EHR check-in page | [Reference EHR demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
 | Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
-| Reference Android wallet | [download](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk), see [below](#reference-android-wallet) |
-| Testing EHR | <https://smart-health-checkin.org/connectathon/testing-ehr/> |
-| SMART Testing Wallet: the reference web wallet, also usable for fault testing | <https://smart-health-checkin.org/connectathon/testing-wallet/>, also in the registry. [What it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md). |
+| Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk); [install steps](#reference-android-wallet) |
+| SMART Testing EHR | [SMART Testing EHR](testing-ehr/) ([details](#testing-ehr-and-testing-wallet)) |
+| SMART Testing Wallet: the reference web wallet, also usable for fault testing | [SMART Testing Wallet](testing-wallet/), also in the registry; [what it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) |
 | Chat for questions and pairing | `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)) |
 
 ### Wallet registry
@@ -234,11 +234,11 @@ Pass: the EHR handles a whole-request decline and an `unavailable` item without 
 
 Two test tools let each participant run the scenarios above against a known-good counterpart without waiting for a partner.
 
-- **[Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/)**
+- **[SMART Testing EHR](testing-ehr/)**
   - Sends any scenario's request to any registry wallet, or to the phone's own wallet.
   - Checks the response against the spec, each check linked to its requirement. The verdict says whether the response was rejected, usable with problems in some items or records, or passed (possibly with warnings).
   - As the spec says for receivers, problems in the mdoc layer (signatures, digests, validity dates) are warnings, not failures.
-- **[Testing wallet](https://smart-health-checkin.org/connectathon/testing-wallet/)**
+- **[SMART Testing Wallet](testing-wallet/)**
   - Answers with a choice of patient, statuses, and artifact shapes.
   - Checks each incoming request against [§5](https://smart-health-checkin.org/spec/#5-clinical-request-model) and reports problems.
   - Can send deliberately broken responses so EHRs can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, a bad signature, and more. Each is labeled with how an EHR that follows the spec reacts: reject the response, set one record aside, treat one item as unknown, or warn. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md).
@@ -247,7 +247,7 @@ Each scenario is a named test case in both tools, so a self-serve run gives a pa
 
 ## Reference Android wallet
 
-Download: <https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk>
+Download: [the latest APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet-debug.apk)
 
 - **On the phone:** open the link, download the file, and allow installs from your browser when Android asks.
 - **With adb:** download the file first, since adb cannot install from a URL:

@@ -1,4 +1,4 @@
-# For wallet developers
+# Wallet developers
 
 For teams building the patient side: a health app on a phone, or a web wallet that runs in a browser tab.
 

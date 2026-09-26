@@ -1,6 +1,6 @@
-# For EHR, portal, and Verifier developers
+# Verifier developers
 
-For teams building the clinic side: the check-in page, portal, kiosk, or app that asks a patient's wallet for data.
+For teams building the clinic side (EHRs, portals, and other Verifiers): the check-in page, portal, kiosk, or app that asks a patient's wallet for data.
 
 ## Background
 

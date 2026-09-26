@@ -1,4 +1,4 @@
-# For clinic and front-desk staff
+# Clinic staff
 
 For front-desk staff, practice managers, and anyone who runs check-in at a clinic.
 
