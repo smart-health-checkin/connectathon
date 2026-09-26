@@ -1,0 +1,106 @@
+name: Participant file PR
+
+# Owners edit their own participant file; their PRs merge automatically.
+#
+# - A PR that only changes participants/*.json, whose author is listed in
+#   contacts[].github of every file it touches, is validated and squash-merged.
+#   For an existing file, the owners are the contacts in the file on main, so
+#   a PR can't add its own author. For a new file, the author must list
+#   themselves.
+# - A PR that changes a file its author doesn't own fails this check, with a
+#   comment explaining why.
+# - Anything else (other paths, or a maintainer's PR) is left for a maintainer.
+#
+# pull_request_target runs this workflow from main with a write token. It
+# never checks out or runs the PR's code: it reads the PR's JSON files through
+# the API and validates them with main's build script.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write   # to start the site build after merging
+
+concurrency:
+  group: participant-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  owner-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4   # main, not the PR
+      - id: owners
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const pr = context.payload.pull_request;
+            const author = pr.user.login.toLowerCase();
+            const maintainer = ["OWNER", "MEMBER", "COLLABORATOR"].includes(pr.author_association);
+            const files = await github.paginate(github.rest.pulls.listFiles, { ...context.repo, pull_number: pr.number });
+            const participantFile = (f) => /^participants\/[a-z0-9][a-z0-9-]*\.json$/.test(f) && !["participants/schema.json", "participants/index.json"].includes(f);
+            const others = files.filter((f) => !participantFile(f.filename));
+            if (others.length || maintainer) {
+              core.setOutput("result", "manual");
+              core.info(others.length ? `touches ${others.map((f) => f.filename).join(", ")}` : "maintainer PR");
+              return;
+            }
+            const contactsOf = (json) => (json.contacts ?? []).map((c) => (c.github ?? "").replace(/^@/, "").toLowerCase()).filter(Boolean);
+            const problems = [];
+            for (const f of files) {
+              let base = null;
+              try {
+                base = JSON.parse(fs.readFileSync(f.filename, "utf8"));
+              } catch {}
+              if (f.status === "removed") {
+                if (!base || !contactsOf(base).includes(author)) problems.push(`\`${f.filename}\`: only its contacts can remove it.`);
+                continue;
+              }
+              const { data } = await github.rest.repos.getContent({ owner: pr.head.repo.owner.login, repo: pr.head.repo.name, path: f.filename, ref: pr.head.sha });
+              const text = Buffer.from(data.content, "base64").toString("utf8");
+              let head;
+              try { head = JSON.parse(text); } catch (e) { problems.push(`\`${f.filename}\` is not valid JSON: ${e.message}`); continue; }
+              const owners = base ? contactsOf(base) : contactsOf(head);
+              if (!owners.includes(author)) {
+                problems.push(base
+                  ? `\`${f.filename}\` belongs to ${owners.map((o) => "@" + o).join(", ") || "no GitHub contact"}. Ask one of them to add you to \`contacts\` with your GitHub username, or a maintainer will review this.`
+                  : `\`${f.filename}\` is new, so list yourself in \`contacts\` with \`"github": "${pr.user.login}"\`.`);
+              }
+              fs.writeFileSync(f.filename, text);   // PR data only, for validation below
+            }
+            core.setOutput("result", problems.length ? "not-owner" : "owner");
+            core.setOutput("problems", problems.join("\n"));
+      - if: steps.owners.outputs.result == 'owner'
+        uses: oven-sh/setup-bun@v2
+      - if: steps.owners.outputs.result == 'owner'
+        id: validate
+        run: |
+          bun install --frozen-lockfile
+          bun run check 2>&1 | tee check.txt
+      - if: steps.owners.outputs.result == 'owner' && steps.validate.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            await github.rest.pulls.merge({ ...context.repo, pull_number: pr.number, merge_method: "squash", sha: pr.head.sha });
+            // A merge by this workflow's token doesn't trigger other workflows; start the site build.
+            await github.rest.actions.createWorkflowDispatch({ ...context.repo, workflow_id: "pages.yml", ref: "main" });
+            await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body: `Merged automatically: @${pr.user.login} is a contact on every file this changes, and the files pass the checks. The site and \`wallets.json\` update in a few minutes.` });
+      - if: failure() && steps.validate.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const out = require("fs").readFileSync("check.txt", "utf8").slice(-4000);
+            await github.rest.issues.createComment({ ...context.repo, issue_number: context.payload.pull_request.number, body: `The participant files don't pass the checks yet:\n\n\`\`\`\n${out}\n\`\`\`\nPush a fix to this branch and it will be checked again.` });
+      - if: steps.owners.outputs.result == 'not-owner'
+        uses: actions/github-script@v7
+        env:
+          PROBLEMS: ${{ steps.owners.outputs.problems }}
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body: `This PR can't merge automatically:\n\n${process.env.PROBLEMS.split("\n").map((p) => "- " + p).join("\n")}` });
+            core.setFailed("the PR author isn't a contact on every participant file it changes");

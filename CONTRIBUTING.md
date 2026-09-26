@@ -10,7 +10,10 @@ Fill in the [registration form](https://smart-health-checkin.org/connectathon/re
 
 1. Copy [`participants/smart-health-it.json`](participants/smart-health-it.json) as a starting point. The fields are defined in [`participants/schema.json`](participants/schema.json).
 2. Edit it in the GitHub web editor or locally, then open a pull request.
-3. A check runs on the pull request and reports any problem with the file. A maintainer merges it once it passes. On the event day, merges happen within minutes.
+3. A check runs on the pull request.
+   - If you're listed in the file's `contacts` with your GitHub username, and the file passes the checks, it merges automatically. The site and `wallets.json` update a few minutes later.
+   - A file can only be changed by its own contacts. For an existing file, that means the contacts already on `main`. To add a colleague, add their GitHub username to `contacts` first.
+   - Anything else waits for a maintainer.
 
 If you'd rather not use GitHub, post your file's contents in `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack and a maintainer will add it.
 
