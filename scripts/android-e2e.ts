@@ -110,23 +110,28 @@ async function ensureChrome(caseId: string) {
   let launch = "";
   for (let i = 0; i < 80; i++) {
     const running = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim() !== "";
-    if (i % 10 === 0 || !running) {
+    if (running && (await devtoolsUp())) {
+      // Already up: bring it to the front without opening or navigating a tab.
+      await adb("shell", "am", "start", "-n", "com.android.chrome/com.google.android.apps.chrome.Main");
+      return;
+    }
+    if (!running || (i > 0 && i % 10 === 0)) {
       const r = await adb("shell", "am", "start", "-W", "-a", "android.intent.action.VIEW", "-d", `'${EHR_URL(caseId)}'`, "com.android.chrome");
       launch = (r.stdout.toString() + r.stderr.toString()).trim().replace(/\s+/g, " ");
     }
     await tapIfShown(/^(No thanks|Accept & continue|Use without an account|Got it)$/);
-    if (running && (await devtoolsUp())) return;
     await sleep(3000);
   }
   const pid = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim();
   const sockets = (await adb("shell", "cat", "/proc/net/unix")).stdout.toString().split("\n").filter((l) => /devtools/.test(l)).join("; ");
-  throw new Error(`Chrome's DevTools never became reachable (chrome pid ${pid || "none"}; devtools sockets: ${sockets || "none"}; last launch: ${launch})`);
+  const user = (await adb("shell", "am", "get-started-user-state", "0")).stdout.toString().trim();
+  throw new Error(`Chrome's DevTools never became reachable (chrome pid ${pid || "none"}; devtools sockets: ${sockets || "none"}; user 0: ${user}; last launch: ${launch})`);
 }
 
 async function ehrPage(caseId: string): Promise<Page> {
   await ensureChrome(caseId);
   const browser = await puppeteer.connect({ browserURL: `http://localhost:${PORT}`, defaultViewport: null });
-  let page = (await browser.pages()).find((p) => p.url().includes("/testing-ehr/"));
+  let page = (await browser.pages()).filter((p) => p.url().includes("/testing-ehr/")).at(-1);
   if (!page) {
     page = await browser.newPage();
     await page.goto(EHR_URL(caseId), { waitUntil: "networkidle0" });
@@ -144,7 +149,19 @@ async function saveEvidence(caseId: string) {
   await Bun.write(`${EVIDENCE}/${caseId}.logcat.txt`, (await adb("logcat", "-d", "-t", "3000")).stdout);
 }
 
+// Apps can't be launched until the user's storage is unlocked, which on a
+// slow emulator can lag well behind sys.boot_completed.
+async function waitForUnlock() {
+  for (let i = 0; i < 100; i++) {
+    const state = (await adb("shell", "am", "get-started-user-state", "0")).stdout.toString();
+    if (/RUNNING_UNLOCKED/.test(state)) return;
+    await sleep(3000);
+  }
+  throw new Error(`user 0 never unlocked: ${(await adb("shell", "am", "get-started-user-state", "0")).stdout.toString().trim()}`);
+}
+
 async function setup() {
+  await waitForUnlock();
   if (APK || RELEASE) {
     let path = APK;
     if (RELEASE) { path = "/tmp/smart-checkin-wallet.apk"; await $`curl -sL -o ${path} ${RELEASE_APK}`; }
@@ -161,6 +178,7 @@ async function setup() {
   await sleep(4000);
   await adb("shell", "sh", "-c", "'echo \"_ --disable-fre --no-default-browser-check --no-first-run\" > /data/local/tmp/chrome-command-line'");
   await adb("shell", "am", "set-debug-app", "--persistent", "com.android.chrome");
+  await adb("shell", "am", "force-stop", "com.android.chrome"); // so the flags above apply
   await ensureChrome("M1");
 }
 
@@ -236,7 +254,11 @@ for (const c of CASES) {
     continue;
   }
   try {
-    const r = await runCase(c);
+    const r = await runCase(c).catch(async (e) => {
+      if (!/detached|Target closed|Session closed|socket|ECONNRESET|webSocket/i.test((e as Error).message)) throw e;
+      console.log(`     retrying ${c} after: ${(e as Error).message}`);
+      return runCase(c);
+    });
     const extra = EXPECT[c]?.(r) ?? (FORM_CASES.has(c) && !r.qrAnswers ? "the QuestionnaireResponse arrived with no answers" : undefined);
     const ok = /All checks passed/.test(r.status) && !extra;
     if (!ok) { bad++; await saveEvidence(c); }
