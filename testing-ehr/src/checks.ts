@@ -183,7 +183,12 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
   }
 
   const size = response.length;
-  add("size", "Response size", size > 512 * 1024 ? "warn" : "info", `${(size / 1024).toFixed(1)} KB base64url${size > 512 * 1024 ? "; over 512 KB, which some Android wallet APIs cannot carry" : ""}`);
+  // Only one combination has a size ceiling: an Android wallet answering through the old
+  // 2-argument setGetCredentialResponse, or Chrome below 150, drops responses above ~520 KB.
+  // Wallets on androidx.credentials 1.7+ with Chrome 150+ have no transport limit.
+  add("size", "Response size", "info", `${(size / 1024).toFixed(1)} KB base64url${size > 512 * 1024
+    ? ". Fine on current platforms; only an Android wallet using the old 2-argument setGetCredentialResponse, or Chrome below 150, would drop a response this size (the cutoff there is about 520 KB)"
+    : ""}`);
   return done({ smartResponse: smart, responseBytes: size });
 }
 
