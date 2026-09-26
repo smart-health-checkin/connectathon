@@ -99,6 +99,9 @@ const webWallets = participants.flatMap((p) =>
       target: c.target ?? "tab",
     })),
 );
+// The SMART Testing Wallet is the known-good reference, so it's listed first.
+const FIRST_WALLET = "smart-testing-wallet";
+webWallets.sort((a, b) => Number(b.id === FIRST_WALLET) - Number(a.id === FIRST_WALLET));
 const registry = { source: "KTC SMART Health Check-in connectathon registry", wallets: webWallets };
 const registryCheck = validateWalletRegistry(registry);
 if (!registryCheck.ok) fail(`generated wallets.json is invalid: ${registryCheck.error}`);
