@@ -161,14 +161,18 @@ async function saveEvidence(caseId: string) {
 async function waitForUnlock() {
   for (let i = 0; i < 100; i++) {
     const state = (await adb("shell", "am", "get-started-user-state", "0")).stdout.toString();
+    if (i % 10 === 0) step(`user 0: ${state.trim() || "(no answer)"}`);
     if (/RUNNING_UNLOCKED/.test(state)) return;
     await sleep(3000);
   }
   throw new Error(`user 0 never unlocked: ${(await adb("shell", "am", "get-started-user-state", "0")).stdout.toString().trim()}`);
 }
 
+const step = (msg: string) => console.log(`setup: ${msg} (${Math.round(performance.now() / 1000)}s)`);
 async function setup() {
+  step("waiting for the user to unlock");
   await waitForUnlock();
+  step("unlocked");
   if (APK || RELEASE) {
     let path = APK;
     if (RELEASE) { path = "/tmp/smart-checkin-wallet.apk"; await $`curl -sL -o ${path} ${RELEASE_APK}`; }
@@ -180,13 +184,16 @@ async function setup() {
       if (!/Success/.test(again.stdout.toString())) throw new Error(`install failed: ${again.stderr}`);
     }
   }
+  step("wallet installed");
   // Launching the wallet once registers it with Credential Manager.
   await adb("shell", "monkey", "-p", WALLET_PKG, "-c", "android.intent.category.LAUNCHER", "1");
   await sleep(4000);
   await adb("shell", "sh", "-c", "'echo \"_ --disable-fre --no-default-browser-check --no-first-run\" > /data/local/tmp/chrome-command-line'");
   await adb("shell", "am", "set-debug-app", "--persistent", "com.android.chrome");
   await adb("shell", "am", "force-stop", "com.android.chrome"); // so the flags above apply
+  step("starting Chrome");
   await ensureChrome("M1");
+  step("Chrome's DevTools reachable");
 }
 
 async function runCase(caseId: string) {
