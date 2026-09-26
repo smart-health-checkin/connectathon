@@ -41,7 +41,7 @@
       "name": "SMART reference Android wallet",
       "description": "Native wallet answering through Credential Manager. Renders questionnaires.",
       "status": "up",
-      "installUrl": "https://github.com/smart-health-checkin/spec/releases/latest/download/smart-checkin-wallet-debug.apk",
+      "installUrl": "https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-checkin-wallet-debug.apk",
       "platforms": [
         "android"
       ],
