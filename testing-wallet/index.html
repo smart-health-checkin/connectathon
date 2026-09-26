@@ -7,12 +7,12 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<header class="bar"><b>SMART Testing Wallet</b> <span class="muted">reference web wallet for SMART Health Check-in</span></header>
-<main>
+<div data-smart-topbar="tool" data-tool-title="SMART Testing Wallet" data-back-href="../" data-back-label="Connectathon"></div>
+<main id="main">
+  <div class="tool-head"><h1>SMART Testing Wallet</h1><p>The reference web wallet for SMART Health Check-in.</p></div>
   <p id="waiting">Waiting for a check-in request from the page that opened this wallet…</p>
 
   <section id="standalone" hidden>
-    <h1>SMART Testing Wallet</h1>
     <p>This is the reference web wallet for the <a href="https://smart-health-checkin.org/connectathon/">SMART Health Check-in connectathon</a>. It answers check-in requests from an EHR page that opens it. It isn't meant to be opened on its own.</p>
     <p>To try it, open the <a href="https://smart-health-checkin.org/connectathon/testing-ehr/">testing EHR</a> or the <a href="https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json&amp;wallet=smart-testing-wallet">reference clinic check-in page</a>, and choose this wallet.</p>
     <p>What it does: <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md">features and behavior</a>.</p>
@@ -49,6 +49,7 @@
     <pre id="raw-response" class="raw"></pre>
   </details>
 </main>
+<div data-smart-footer></div>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

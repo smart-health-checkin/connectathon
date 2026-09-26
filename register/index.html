@@ -3,12 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Connectathon Registration</title>
+<title>Register · Connectathon</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<header class="bar"><b>Register for the connectathon</b> <a href="../">Scenarios</a> · <a href="../directory.html">Directory</a></header>
-<main>
+<div data-smart-topbar="tool" data-tool-title="Register" data-back-href="../" data-back-label="Connectathon">
+  <div data-smart-tool-actions>
+    <a class="smart-btn ghost sm" href="../directory.html">Directory</a>
+  </div>
+</div>
+<main id="main">
+  <h1>Register</h1>
   <p class="intro">Fill this in for your organization. It builds your participant file, which puts you in the <a href="../directory.html">directory</a> and your web wallets in the <a href="../wallets.json">wallet registry</a>. When you're done, the button at the bottom opens GitHub with the file filled in, ready to propose as a pull request. Everything you enter is public.</p>
 
   <section class="load">
@@ -58,6 +63,7 @@
     <p class="hint">Not using GitHub? Copy the JSON and post it in <code>#kill-the-clipboard</code> on the CMS Health Tech Ecosystem Slack, and a maintainer will add it.</p>
   </section>
 </main>
+<div data-smart-footer></div>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

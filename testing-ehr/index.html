@@ -7,15 +7,16 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<header class="bar">
-  <b>Testing EHR</b>
-  <span class="grow"></span>
-  <a href="../">Scenarios</a>
-  <a href="../results.html">Results</a>
-  <button type="button" id="history-btn" class="pill">History</button>
-</header>
+<div data-smart-topbar="tool" data-tool-title="SMART Testing EHR" data-back-href="../" data-back-label="Connectathon">
+  <div data-smart-tool-actions>
+    <a class="smart-btn ghost sm wide-only" href="../scenarios.html">Scenarios</a>
+    <a class="smart-btn ghost sm wide-only" href="../results.html">Results</a>
+    <button type="button" id="history-btn" class="smart-btn sm">History</button>
+  </div>
+</div>
 
-<main class="layout">
+<main id="main" class="layout">
+  <div class="tool-head"><h1>SMART Testing EHR</h1><p>Send a scenario to a wallet and check its answer against the spec.</p></div>
   <div class="col setup-col">
     <details id="setup" class="setup" open>
       <summary id="setup-summary">Set up a run</summary>
@@ -77,6 +78,7 @@
     <details class="group log-box"><summary>Log</summary><pre id="log" class="raw"></pre></details>
   </div>
 </main>
+<div data-smart-footer></div>
 <script type="module" src="./src/main.ts"></script>
 </body>
 </html>
