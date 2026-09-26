@@ -5,7 +5,7 @@
  *   bun scripts/build.ts --check-only validate only (used on pull requests)
  *
  * Inputs (all in this repo):
- *   scenarios.md, web-wallet-handoff.md   rendered to HTML pages
+ *   scenarios.md                           rendered to an HTML page
  *   participants/*.json                    validated; web wallets become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
@@ -271,8 +271,6 @@ cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
 cpSync(join(ROOT, "nav.json"), join(OUT, "nav.json"));
 cpSync(join(ROOT, "icons"), join(OUT, "icons"), { recursive: true });
 renderMarkdownPage("scenarios.md", "index.html", "SMART Health Check-in connectathon");
-if (existsSync(join(ROOT, "web-wallet-handoff.md")))
-  renderMarkdownPage("web-wallet-handoff.md", "web-wallet-handoff.html", "Web wallet hand-off");
 
 // wallets.json
 writeFileSync(join(OUT, "wallets.json"), JSON.stringify(registry, null, 2) + "\n");

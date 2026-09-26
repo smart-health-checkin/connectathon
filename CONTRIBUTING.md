@@ -24,7 +24,7 @@ Everything in your file is public. Only list contact details you're happy to pub
 | Role | Required | Notes |
 |---|---|---|
 | `ehr` | `id`, `name`, `status`, `url` | `url` is your public check-in page. |
-| `web-wallet` | `id`, `name`, `status`, `walletUrl` | `walletUrl` is the page an EHR opens. It follows the [web wallet hand-off](https://smart-health-checkin.org/connectathon/web-wallet-handoff.html). Optional: `description`, `testPatient`, `iconUrl`, `homepage` (defaults to the organization's), and `target` (`tab` or `popup`). These make up the wallet's [registry](https://smart-health-checkin.org/connectathon/wallets.json) entry. |
+| `web-wallet` | `id`, `name`, `status`, `walletUrl` | `walletUrl` is the page an EHR opens. It follows the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html). Optional: `description`, `testPatient`, `iconUrl`, `homepage` (defaults to the organization's), and `target` (`tab` or `popup`). These make up the wallet's [registry](https://smart-health-checkin.org/connectathon/wallets.json) entry. |
 | `native-wallet` | `id`, `name`, `status`, `installUrl`, `platforms` | `installUrl` is where testers install it: an APK link, a TestFlight invite, or a store page. |
 
 `id` must be unique across all participants. It uses lowercase letters, digits, and hyphens. A web wallet's `id` is also its id in the registry.

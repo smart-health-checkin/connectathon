@@ -39,8 +39,8 @@ try {
     await wallet.waitForFunction(() => document.querySelectorAll(".item").length > 0, { timeout: 30000 });
     await new Promise((r) => setTimeout(r, 2000));
   }
-  const origin = await wallet.$eval(walletId === "smart-testing-wallet" ? "#origin" : "#requester-origin", (e) => e.textContent);
-  console.log("wallet shows requester:", origin);
+  const origin = await wallet.$eval(walletId === "smart-testing-wallet" ? "#origin" : "#verifier-origin", (e) => e.textContent);
+  console.log("wallet shows verifier:", origin);
   if (walletId === "smart-testing-wallet") {
     const previews = await wallet.$$eval(".item", (els) => els.map((e) => (e as HTMLElement).innerText.replace(/\s+/g, " ").slice(0, 160)));
     console.log(previews.map((p) => `  item: ${p}`).join("\n"));

@@ -5,7 +5,6 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 | Path | What it is |
 |---|---|
 | `scenarios.md` | The test scenarios. Rendered as the site's front page. |
-| `web-wallet-handoff.md` | How an EHR and a web wallet exchange requests and responses. |
 | `participants/` | One file per organization. [How to register](CONTRIBUTING.md). |
 | `requests/` | Baseline and optional-scenario requests. |
 | `Questionnaire/` | Example FHIR Questionnaires, served at their canonical URLs. |

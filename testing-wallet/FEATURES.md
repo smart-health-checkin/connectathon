@@ -1,16 +1,14 @@
-# SMART reference web wallet: features and behavior
+# SMART Testing Wallet: features and behavior
 
-The single reference web wallet for SMART Health Check-in, served at
+The SMART Testing Wallet, served at
 <https://smart-health-checkin.org/connectathon/testing-wallet/> and listed in
-the connectathon wallet registry. It replaces the client library's demo wallet
-and the spec repo's unfinished `rp-web` wallet. It behaves like a real wallet by
-default. A testing panel adds controls for exercising EHR error handling.
+the connectathon wallet registry. It behaves like a real wallet by default. A testing panel adds controls for exercising EHR error handling.
 
 ## Hand-off
 
 - Built on the client library's `serveWebWallet` (hand-off) and `selectEntries` (matching), so this wallet exercises the library's wallet side.
 
-- Implements the [web wallet hand-off](../web-wallet-handoff.md): post `ready` to
+- Implements the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html): post `ready` to
   the opener on load, accept one `request`, reply once with `approved`,
   `declined`, or `error`.
 - Accepts a request only from `window.opener`. Takes the EHR's origin from
