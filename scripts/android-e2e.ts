@@ -3,7 +3,7 @@
  * the device's Chrome asks for credentials through the Digital Credentials
  * API, the installed reference wallet answers, and the testing EHR checks it.
  *
- *   bun scripts/android-e2e.ts [--serial emulator-5554] [--apk path|--release] [M1 M3 ...]
+ *   bun scripts/android-e2e.ts [--serial emulator-5554] [--apk path|--release] [--warm-up] [M1 M3 ...]
  *
  * Needs adb, a device with Chrome and Google Play services new enough for the
  * Digital Credentials API (the android-37 google_apis_playstore image works),
@@ -23,6 +23,7 @@ const flag = (name: string) => { const i = args.indexOf(name); return i >= 0 ? (
 const SERIAL = opt("--serial") ?? "emulator-5554";
 const APK = opt("--apk");
 const RELEASE = flag("--release");
+const WARM_UP = flag("--warm-up"); // set up, load the EHR once, compile apps, then exit (for a cached snapshot)
 const BASE = opt("--base") ?? "https://smart-health-checkin.org/connectathon/";
 const PORT = Number(opt("--port") ?? 9477);
 const OUT = opt("--out"); // also append every result line to this file
@@ -227,10 +228,13 @@ async function runCase(caseId: string) {
   }
   const status = await page.$eval("#status", (e) => e.textContent ?? "");
   const log = await page.$eval("#log", (e) => e.textContent ?? "");
-  // What arrived: answers in any QuestionnaireResponse, and the response size.
-  const arrived = await page.$eval("#smart-response", (e) => {
-    const qrAnswers = (e.textContent ?? "").match(/"answer"/g)?.length ?? 0;
-    return { qrAnswers };
+  // What arrived: answers in any QuestionnaireResponse (from the run the page
+  // just saved to its history), and the response size.
+  const arrived = await page.evaluate(() => {
+    try {
+      const latest = JSON.parse(localStorage.getItem("testing-ehr:runs") ?? "[]")[0];
+      return { qrAnswers: JSON.stringify(latest?.smartResponse ?? "").match(/answer/g)?.length ?? 0 };
+    } catch { return { qrAnswers: 0 }; }
   });
   const sizeKb = Number(log.match(/Response size — ([\d.]+) KB/)?.[1] ?? log.match(/Response size — ([\d.]+) MB/)?.[1] ?? 0) * (/Response size — [\d.]+ MB/.test(log) ? 1024 : 1);
   page.browser().disconnect();
@@ -257,6 +261,17 @@ try {
   console.log(`FAIL setup: ${(e as Error).message}`);
   await saveEvidence("setup").catch(() => {});
   process.exit(1);
+}
+if (WARM_UP) {
+  // Everything a cold device does slowly the first time: Chrome's first page
+  // load and the background compile of Chrome and Play services.
+  const page = await ehrPage("M1");
+  await page.goto(EHR_URL("M1"), { waitUntil: "networkidle0", timeout: 300_000 });
+  page.browser().disconnect();
+  step("testing EHR loaded");
+  await $`timeout 900 ${ADB} -s ${SERIAL} shell cmd package bg-dexopt-job`.quiet().nothrow();
+  step("apps compiled");
+  process.exit(0);
 }
 const chrome = await chromeMajor();
 console.log(`device ${SERIAL}: Chrome ${chrome}`);

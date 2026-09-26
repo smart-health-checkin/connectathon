@@ -26,7 +26,7 @@ concurrency:
 jobs:
   android-e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -36,7 +36,18 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - id: run
+      # A cold Play Store image spends many minutes compiling Chrome and Play
+      # services and on Chrome's first run. Do that once, save the emulator's
+      # snapshot, and boot every later run from it with Chrome already up.
+      - id: avd-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-37-playstore-pixel6-warm-v1
+      - name: Create the emulator and save a warmed-up snapshot
+        if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: "37.0"
@@ -46,8 +57,32 @@ jobs:
           cores: 4
           ram-size: 4096M
           disk-size: 6G
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          force-avd-creation: false
           disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bun scripts/android-e2e.ts --release --warm-up
+      - name: Save the snapshot, even if the scenarios fail later
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-37-playstore-pixel6-warm-v1
+      - id: run
+        name: Run the scenarios
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: "37.0"
+          target: google_apis_playstore
+          arch: x86_64
+          profile: pixel_6
+          cores: 4
+          ram-size: 4096M
+          disk-size: 6G
+          force-avd-creation: false
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bun scripts/android-e2e.ts --out out.txt --release ${{ github.event.inputs.cases || 'M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12' }}
       - if: failure()
         uses: actions/upload-artifact@v4
