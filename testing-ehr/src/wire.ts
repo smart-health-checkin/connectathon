@@ -352,7 +352,11 @@ function openInspector(w: WireLayers, label: string) {
       if (ct instanceof Uint8Array) files.push(["hpke-ciphertext.bin", ct]);
     } catch { /* the inspector shows what it has */ }
   }
-  files.push(["manifest.json", new TextEncoder().encode(JSON.stringify({ runId: label, origin: w.origin, originSource: "Testing EHR", protocol: "org-iso-mdoc" }))]);
+  const transcript = bytes("session-transcript");
+  files.push(["manifest.json", new TextEncoder().encode(JSON.stringify({
+    runId: label, origin: w.origin, originSource: "Testing EHR", protocol: "org-iso-mdoc",
+    sessionTranscriptByteSize: transcript ? base64UrlDecodeBytes(transcript.b64u).length : undefined,
+  }))]);
   const onReady = (e: MessageEvent) => {
     if (e.source !== inspector || e.data?.type !== "smart-capture-ready") return;
     window.removeEventListener("message", onReady);
