@@ -15,12 +15,15 @@ on:
       cases:
         description: Scenario ids to run, space-separated
         default: M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12
+      gpu:
+        description: Emulator GPU mode
+        default: swiftshader_indirect
 
 permissions:
   issues: write
 
 concurrency:
-  group: android-e2e
+  group: android-e2e-${{ github.event.inputs.gpu || 'default' }}
   cancel-in-progress: true
 
 jobs:
@@ -45,7 +48,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-37-playstore-pixel6-warm-v1
+          key: avd-37-playstore-pixel6-warm-v1-${{ github.event.inputs.gpu || 'swiftshader_indirect' }}
       - name: Create the emulator and save a warmed-up snapshot
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -59,7 +62,7 @@ jobs:
           disk-size: 6G
           force-avd-creation: false
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu ${{ github.event.inputs.gpu || 'swiftshader_indirect' }} -noaudio -no-boot-anim -camera-back none
           script: bun scripts/android-e2e.ts --release --warm-up
       - name: Save the snapshot, even if the scenarios fail later
         if: steps.avd-cache.outputs.cache-hit != 'true'
@@ -68,7 +71,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-37-playstore-pixel6-warm-v1
+          key: avd-37-playstore-pixel6-warm-v1-${{ github.event.inputs.gpu || 'swiftshader_indirect' }}
       - id: run
         name: Run the scenarios
         uses: reactivecircus/android-emulator-runner@v2
@@ -82,7 +85,7 @@ jobs:
           disk-size: 6G
           force-avd-creation: false
           disable-animations: true
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-snapshot-save -no-window -gpu ${{ github.event.inputs.gpu || 'swiftshader_indirect' }} -noaudio -no-boot-anim -camera-back none
           script: bun scripts/android-e2e.ts --out out.txt --release ${{ github.event.inputs.cases || 'M1 M3 M4 L1 L2 O1 O2 O3 O4 O5 O6 O12' }}
       - if: failure()
         uses: actions/upload-artifact@v4

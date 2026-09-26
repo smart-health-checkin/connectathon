@@ -116,7 +116,10 @@ const devtoolsUp = () => fetch(`http://localhost:${PORT}/json/version`, { signal
 async function ensureChrome(caseId: string) {
   await adb("forward", `tcp:${PORT}`, "localabstract:chrome_devtools_remote");
   let launch = "";
+  let systemPid = "";
   for (let i = 0; i < 80; i++) {
+    const sp = (await adb("shell", "pidof", "system_server")).stdout.toString().trim();
+    if (sp !== systemPid) { if (systemPid) step(`system_server restarted (pid ${systemPid} → ${sp || "none"})`); systemPid = sp; }
     const running = (await adb("shell", "pidof", "com.android.chrome")).stdout.toString().trim() !== "";
     if (running && (await devtoolsUp())) {
       // Already up: bring it to the front without opening or navigating a tab.
@@ -151,10 +154,25 @@ async function ehrPage(caseId: string): Promise<Page> {
 const EVIDENCE = opt("--evidence") ?? "android-e2e-evidence";
 async function saveEvidence(caseId: string) {
   await $`mkdir -p ${EVIDENCE}`.quiet();
-  await Bun.write(`${EVIDENCE}/${caseId}.png`, (await adb("exec-out", "screencap", "-p")).stdout);
+  // An emulator's screenshot comes from the host side: the in-guest screencap
+  // aborts under software GPU modes.
+  const emulator = SERIAL.startsWith("emulator-");
+  if (emulator) {
+    const dir = (await $`mktemp -d`.quiet()).stdout.toString().trim();
+    await adb("emu", "screenrecord", "screenshot", dir);
+    await $`sh -c ${`mv ${dir}/*.png ${EVIDENCE}/${caseId}.png`}`.quiet().nothrow();
+  } else {
+    await Bun.write(`${EVIDENCE}/${caseId}.png`, (await adb("exec-out", "screencap", "-p")).stdout);
+  }
   await adb("shell", "uiautomator", "dump", "/sdcard/ui.xml");
   await Bun.write(`${EVIDENCE}/${caseId}.ui.xml`, (await adb("shell", "cat", "/sdcard/ui.xml")).stdout);
   await Bun.write(`${EVIDENCE}/${caseId}.logcat.txt`, (await adb("logcat", "-d", "-t", "3000")).stdout);
+  if (caseId === "setup") {
+    // Why the system restarted, if it did: the whole crash buffer and dropbox.
+    await Bun.write(`${EVIDENCE}/setup.crash.txt`, (await adb("logcat", "-d", "-b", "crash")).stdout);
+    const dropbox = await adb("shell", "dumpsys", "dropbox", "--print", "system_server_crash", "system_server_watchdog", "system_server_native_crash", "system_app_crash", "SYSTEM_RESTART");
+    await Bun.write(`${EVIDENCE}/setup.dropbox.txt`, dropbox.stdout);
+  }
 }
 
 // Apps can't be launched until the user's storage is unlocked, which on a
