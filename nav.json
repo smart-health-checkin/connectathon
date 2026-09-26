@@ -1,0 +1,12 @@
+{
+  "label": "Connectathon",
+  "href": "./",
+  "items": [
+    { "title": "Scenarios", "href": "./", "note": "KTC pre-visit check-in testing" },
+    { "title": "Testing EHR", "href": "testing-ehr/", "note": "Send requests to your wallet" },
+    { "title": "Directory", "href": "directory.html", "note": "Who is testing what" },
+    { "title": "Results", "href": "results.html" },
+    { "title": "Requests", "href": "requests/" },
+    { "title": "Web wallet hand-off", "href": "/client/docs/web-wallet-handoff.html" }
+  ]
+}

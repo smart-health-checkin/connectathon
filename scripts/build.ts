@@ -267,6 +267,8 @@ function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
 }
 
 cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
+// This section's menu, read by the site chrome.
+cpSync(join(ROOT, "nav.json"), join(OUT, "nav.json"));
 cpSync(join(ROOT, "icons"), join(OUT, "icons"), { recursive: true });
 renderMarkdownPage("scenarios.md", "index.html", "SMART Health Check-in connectathon");
 if (existsSync(join(ROOT, "web-wallet-handoff.md")))
