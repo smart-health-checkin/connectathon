@@ -23,7 +23,7 @@ const FAULTS: Record<string, string> = {
   "oversized": "Pad the response past 3 MB",
   "bad-signature": "Corrupt the issuer signature",
   "bad-encryption": "Corrupt the HPKE ciphertext",
-  "wrong-origin": "Bind the transcript to a different origin",
+  "wrong-origin": "Bind the transcript to the origin with a trailing slash",
   "bad-shc-signature": "Break the SMART Health Card signature",
   "combine-allergies-meds": "Answer allergies and medications with one shared Bundle (O7)",
 };

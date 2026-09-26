@@ -7,6 +7,8 @@ import {
 import { buildDcapiSessionTranscript } from "@smart-health-checkin/client/wire";
 import { validateResponseAgainstRequest, validateSmartCheckinResponse } from "@smart-health-checkin/client/model";
 import { openWalletResponse, verifyDeviceResponseSignatures } from "@smart-health-checkin/client/wire";
+import { addLayer, captureRequest, deviceSigTester, diagnoseTranscript, digestRows, hpkeTester, type WireLayers } from "./wire.ts";
+export type { WireLayers } from "./wire.ts";
 
 export type Outcome = "pass" | "fail" | "warn" | "info";
 export type Check = { id: string; title: string; outcome: Outcome; detail: string; section?: string };
@@ -20,16 +22,11 @@ export type RunInput = {
   verifierPublicJwk: JsonWebKey;
   encryptionInfoBytes: Uint8Array;
   origin: string;
-};
-
-/** The layers under the SMART response, for the wire view. */
-export type WireLayers = {
-  encBytes?: number;
-  cipherTextBytes?: number;
-  deviceResponseBytes?: number;
-  deviceResponseDiagnostic?: string;
-  msoDiagnostic?: string;
-  digestAlgorithm?: string;
+  /** For the wire view and diagnosis. */
+  navigatorArgument?: unknown;
+  deviceRequestBytes?: Uint8Array;
+  pageUrl?: string;
+  walletOrigin?: string;
 };
 
 export type RunResult = { checks: Check[]; smartResponse?: any; responseBytes?: number; wire?: WireLayers };
@@ -38,8 +35,16 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
   const checks: Check[] = [];
   const add = (id: string, title: string, outcome: Outcome, detail: string, section?: string) =>
     checks.push({ id, title, outcome, detail, section: section ? SPEC + section : undefined });
-  const wire: WireLayers = {};
+  const sessionTranscript = await buildDcapiSessionTranscript({ origin: input.origin, encryptionInfo: input.encryptionInfoBytes });
+  const wire: WireLayers = await captureRequest({
+    origin: input.origin, navigatorArgument: input.navigatorArgument ?? {}, deviceRequestBytes: input.deviceRequestBytes,
+    encryptionInfoBytes: input.encryptionInfoBytes, sessionTranscript,
+  });
   const done = (extra: Partial<RunResult> = {}): RunResult => ({ checks, wire, ...extra });
+  const diagnose = (test: (t: Uint8Array) => Promise<boolean>) => diagnoseTranscript({
+    origin: input.origin, walletOrigin: input.walletOrigin, pageUrl: input.pageUrl ?? input.origin,
+    encryptionInfoBytes: input.encryptionInfoBytes, test,
+  });
 
   // 1. Wrapper
   const cred = input.credential as { protocol?: string; data?: { response?: unknown } } | undefined;
@@ -54,9 +59,9 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
     return done();
   }
   add("wrapper", "data.response is unpadded base64url", "pass", `${response.length} characters`, "a-2-digital-credentials-api-wrappers");
+  addLayer(wire, "dcapi-response", response);
 
   // 2. HPKE with the transcript bound to this page's origin
-  const sessionTranscript = await buildDcapiSessionTranscript({ origin: input.origin, encryptionInfo: input.encryptionInfoBytes });
   let opened: Awaited<ReturnType<typeof openWalletResponse>>;
   try {
     opened = await openWalletResponse({
@@ -66,18 +71,14 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
       sessionTranscript,
     });
     add("hpke", "Response decrypts with this page's key and origin", "pass", `${opened.deviceResponseBytes.length} bytes of DeviceResponse`, "8-5-hpke-encryption-and-verifier-processing");
-    const hexBytes = (h?: string) => (h ? h.length / 2 : undefined);
-    wire.encBytes = hexBytes(opened.dcapiResponse.enc?.hex);
-    wire.cipherTextBytes = hexBytes(opened.dcapiResponse.cipherText?.hex);
-    wire.deviceResponseBytes = opened.deviceResponseBytes.length;
-    wire.deviceResponseDiagnostic = opened.deviceResponse.deviceResponseDiagnostic;
-    const firstDoc = opened.deviceResponse.documents[0];
-    wire.msoDiagnostic = firstDoc?.issuerAuth?.msoDiagnostic;
-    wire.digestAlgorithm = firstDoc?.issuerAuth?.digestAlgorithm;
+    addLayer(wire, "device-response", opened.deviceResponseBytes);
+    try { wire.digests = await digestRows(opened.deviceResponseBytes); } catch { /* the digest check reports it */ }
   } catch (e) {
     add("hpke", "Response decrypts with this page's key and origin", "fail",
       `${(e as Error).message}. Usual causes: the wallet bound the transcript to a different origin, used different encryptionInfo, or the ciphertext is damaged.`,
       "8-3-sessiontranscript");
+    const why = await diagnose(hpkeTester(response, input.verifierKeyPair, input.verifierPublicJwk));
+    if (why) wire.diagnosis = [`Decryption: ${why}`];
     return done({ responseBytes: response.length });
   }
 
@@ -94,6 +95,10 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
     } else {
       add("issuer-sig", "Issuer signature (issuerAuth) verifies", v.issuerAuth.signatureValid ? "pass" : "fail", v.issuerAuth.error ?? (v.issuerAuth.present ? "" : "issuerAuth missing"), "8-6-validation-checklist");
       add("device-sig", "Device signature verifies over this session", v.deviceSignature.signatureValid ? "pass" : "fail", v.deviceSignature.error ?? (v.deviceSignature.present ? "" : "device signature missing"), "8-6-validation-checklist");
+      if (v.deviceSignature.present && !v.deviceSignature.signatureValid) {
+        const why = await diagnose(deviceSigTester(opened.deviceResponseBytes));
+        if (why) wire.diagnosis = [...(wire.diagnosis ?? []), `Device signature: ${why}`];
+      }
       add("digests", "Value digests match the MSO", v.digests.checked > 0 && v.digests.matched === v.digests.checked ? "pass" : "fail", `${v.digests.matched} of ${v.digests.checked} matched`, "8-4-wallet-request-handling-and-response-construction");
     }
   } catch (e) {

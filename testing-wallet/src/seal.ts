@@ -14,7 +14,8 @@ export async function seal(input: {
   ehrOrigin: string;
   faults: Set<string>;
 }): Promise<{ protocol: string; data: { response: string } }> {
-  const origin = input.faults.has("wrong-origin") ? "https://not-the-requester.example" : input.ehrOrigin;
+  // A common real mistake: the origin with a trailing slash, as URL.href gives it.
+  const origin = input.faults.has("wrong-origin") ? `${input.ehrOrigin}/` : input.ehrOrigin;
   const sessionTranscript = await buildDcapiSessionTranscript({ origin, encryptionInfo: input.encryptionInfoBytes });
   let deviceResponse = await buildSignedDeviceResponse({
     smartResponseJson: JSON.stringify(input.smartResponse),

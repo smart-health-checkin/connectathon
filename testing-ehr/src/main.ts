@@ -5,6 +5,7 @@ import { platformWallet, wallets as registryWallets, webWallet, type Wallet, typ
 import { validateSmartCheckinRequest } from "@smart-health-checkin/client/model";
 import { buildOrgIsoMdocRequest, extractDcapiResponse } from "@smart-health-checkin/client/wire";
 import { checkResponse, fixFor, groupOf, type Check, type WireLayers } from "./checks.ts";
+import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
@@ -282,7 +283,9 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
     const normalized = extractDcapiResponse(raw);
     const credential = typeof normalized === "string" ? { protocol: (raw as { protocol?: string })?.protocol ?? "org-iso-mdoc", data: { response: normalized } } : normalized;
     $("status").textContent = "Checking the response…";
-    const checked = await checkResponse({ request, credential, verifierKeyPair: bundle.verifierKeyPair, verifierPublicJwk: bundle.verifierPublicJwk, encryptionInfoBytes: bundle.encryptionInfoBytes, origin: location.origin });
+    const checked = await checkResponse({ request, credential, verifierKeyPair: bundle.verifierKeyPair, verifierPublicJwk: bundle.verifierPublicJwk, encryptionInfoBytes: bundle.encryptionInfoBytes, origin: location.origin,
+      navigatorArgument: bundle.navigatorArgument, deviceRequestBytes: bundle.deviceRequestBytes, pageUrl: location.href,
+      walletOrigin: wallet.entry ? new URL(wallet.entry.walletUrl).origin : undefined });
     const failed = checked.checks.filter((c) => c.outcome === "fail");
     const total = checked.checks.filter((c) => c.outcome !== "info").length;
     result = {
@@ -365,7 +368,7 @@ function show(r: Run) {
     <div class="actions"><a id="file" class="btn primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="btn" data-act="download">Download run</button></div></section>`;
 
   const failCard = (c: Check, warn = false) =>
-    `<div class="failure ${warn ? "warn" : ""}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec section</a>` : ""}</div>`;
+    `<div class="failure ${warn ? "warn" : ""}"><b>${warn ? "!" : "✕"} ${esc(c.title)}</b>${c.detail ? `<div class="got">${esc(c.detail)}</div>` : ""}${fixFor(c.id) ? `<div class="fix"><b>Fix:</b> ${esc(fixFor(c.id))}</div>` : ""}${c.section ? `<a href="${esc(c.section)}" target="_blank" rel="noopener">Spec section</a>` : ""}${layerFor(c.id) && r.wire ? ` <a href="#layer-${layerFor(c.id)}" data-goto-layer="${layerFor(c.id)}">See the bytes</a>` : ""}</div>`;
   const failuresHtml = failures.length ? `<section class="card"><h2>Failed checks <span>${failures.length}</span></h2>${failures.map((c) => failCard(c)).join("")}</section>` : "";
   const warningsHtml = warnings.length ? `<section class="card"><h2>Warnings <span>${warnings.length}</span></h2>${warnings.map((c) => failCard(c, true)).join("")}</section>` : "";
 
@@ -377,9 +380,17 @@ function show(r: Run) {
           `<div class="check"><span class="dot ${c.outcome}"></span><span>${esc(c.title)}${c.section ? ` <a href="${esc(c.section)}" target="_blank" rel="noopener">spec</a>` : ""}</span>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</div>`).join("")}</details>`).join("")}</section>`
     : "";
 
-  $("result").innerHTML = verdict + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.deviceResponseDiagnostic ? wireHtml(r.wire) : "");
+  $("result").innerHTML = verdict + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, failures) : "");
   $("log").textContent = r.log;
   $("result").querySelector('[data-act="download"]')?.addEventListener("click", () => download(r));
+  if (r.wire?.layers) bindWire($("result"), r.wire, `${r.label} → ${r.walletName}`);
+  for (const a of $("result").querySelectorAll<HTMLAnchorElement>("[data-goto-layer]")) a.addEventListener("click", (e) => {
+    e.preventDefault();
+    const target = document.getElementById(`layer-${a.dataset.gotoLayer}`) as HTMLDetailsElement | null;
+    if (!target) return;
+    target.open = true;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   for (const b of $("result").querySelectorAll<HTMLButtonElement>(".view button")) b.onclick = () => toggleView(b);
   for (const b of $("result").querySelectorAll<HTMLButtonElement>("[data-copy]")) b.onclick = () => copyJson(b);
   renderHistory();
@@ -413,15 +424,6 @@ function itemsHtml(r: Run): string {
       <div class="item-body" data-body="json" hidden><div class="json-tools"><button type="button" class="btn" data-copy>Copy</button></div><pre class="json">${esc(shown)}</pre></div></article>`;
   });
   return `<section class="card"><h2>What came back <span>${r.request.items.length} item${r.request.items.length === 1 ? "" : "s"}</span></h2>${cards.join("")}</section>`;
-}
-
-function wireHtml(w: WireLayers): string {
-  const cap = (s?: string) => (s && s.length > 60_000 ? s.slice(0, 60_000) + "\n… (truncated; download the run)" : s ?? "");
-  return `<section class="card wire"><h2>Wire layers</h2>
-    <details class="group"><summary>HPKE envelope<span class="n">enc ${w.encBytes ?? "?"} bytes · ciphertext ${w.cipherTextBytes?.toLocaleString() ?? "?"} bytes</span></summary><div class="pad"><p class="small">Opened with this page's key; the info is the SessionTranscript for ${esc(location.origin)}.</p></div></details>
-    <details class="group"><summary>DeviceResponse<span class="n">${w.deviceResponseBytes?.toLocaleString() ?? "?"} bytes · CBOR diagnostic</span></summary><div class="pad"><pre class="json">${esc(cap(w.deviceResponseDiagnostic))}</pre></div></details>
-    ${w.msoDiagnostic ? `<details class="group"><summary>MSO<span class="n">${esc(w.digestAlgorithm ?? "")}</span></summary><div class="pad"><pre class="json">${esc(cap(w.msoDiagnostic))}</pre></div></details>` : ""}
-  </section>`;
 }
 
 function toggleView(button: HTMLButtonElement) {

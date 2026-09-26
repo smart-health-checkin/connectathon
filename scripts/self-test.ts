@@ -13,7 +13,7 @@ const ONLY = onlyAt >= 0 ? args.splice(onlyAt, 2)[1] : undefined;
 const BASE = args[0] ?? "https://smart-health-checkin.org/connectathon/";
 const WALLET = "smart-testing-wallet";
 
-type Run = { name: string; caseId: string; faults?: string[]; patient?: string; decline?: string[]; expectFail?: string[] };
+type Run = { name: string; caseId: string; faults?: string[]; patient?: string; decline?: string[]; expectFail?: string[]; expectText?: RegExp };
 // expectFail: check ids (or id prefixes) that must fail. Everything else must not fail.
 const ALL_RUNS: Run[] = [
   { name: "M1 baseline 1", caseId: "M1" },
@@ -38,7 +38,7 @@ const ALL_RUNS: Run[] = [
   { name: "fault oversized", caseId: "M1", faults: ["oversized"], expectFail: [] },
   { name: "fault bad-signature", caseId: "M1", faults: ["bad-signature"], expectFail: ["issuer-sig"] },
   { name: "fault bad-encryption", caseId: "M1", faults: ["bad-encryption"], expectFail: ["hpke"] },
-  { name: "fault wrong-origin", caseId: "M1", faults: ["wrong-origin"], expectFail: ["hpke"] },
+  { name: "fault wrong-origin", caseId: "M1", faults: ["wrong-origin"], expectFail: ["hpke"], expectText: /Likely cause[\s\S]*trailing slash/ },
   { name: "fault bad-shc-signature", caseId: "O6", faults: ["bad-shc-signature"], expectFail: ["shc-"] },
 ];
 
@@ -86,9 +86,10 @@ async function runOne(browser: Browser, run: Run) {
   await page.waitForFunction(() => /passed|failed|Error|declined/.test(document.getElementById("status")!.textContent ?? ""), { timeout: 120000 });
   const status = await page.$eval("#status", (e) => e.textContent ?? "");
   const log = await page.$eval("#log", (e) => e.textContent ?? "");
+  const result = await page.$eval("#result", (e) => (e as HTMLElement).innerText);
   await page.close();
   const failedIds = [...log.matchAll(/^\[FAIL\] (.+?)(?: — |$)/gm)].map((m) => m[1]!);
-  return { status, log, failedIds, errors };
+  return { status, log, failedIds, errors, result };
 }
 
 // Map check titles in the log back to their ids via a title fragment table.
@@ -110,6 +111,7 @@ try {
       const expected = run.expectFail ?? [];
       const missing = expected.filter((e) => !failed.some((f) => f.startsWith(e)));
       const unexpected = failed.filter((f) => !expected.some((e) => f.startsWith(e)));
+      if (run.expectText && !run.expectText.test(r.result)) r.errors.push(`result doesn't match ${run.expectText}`);
       const ok = !missing.length && !unexpected.length && !r.errors.length;
       if (!ok) bad++;
       console.log(`${ok ? "ok  " : "FAIL"} ${run.name}: ${r.status}${missing.length ? ` | expected to fail: ${missing.join(", ")}` : ""}${unexpected.length ? ` | unexpected failures: ${unexpected.join(", ")}` : ""}${r.errors.length ? ` | page errors: ${r.errors.join("; ")}` : ""}`);
