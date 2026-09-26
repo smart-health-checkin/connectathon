@@ -30,7 +30,7 @@ const ALL_RUNS: Run[] = [
   { name: "O6 health card", caseId: "O6" },
   { name: "O7 combined artifact", caseId: "O7", faults: ["combine-allergies-meds"] },
   { name: "O12 unknown selector", caseId: "O12" },
-  { name: "fault wrong-canonical", caseId: "M4", faults: ["wrong-canonical"], expectFail: ["canonical-"] },
+  { name: "fault wrong-canonical", caseId: "M4", faults: ["wrong-canonical"], expectFail: ["canonical-", "cross"] },
   { name: "fault missing-status", caseId: "M1", faults: ["missing-status"], expectFail: ["one-status", "cross"] },
   { name: "fault duplicate-status", caseId: "M1", faults: ["duplicate-status"], expectFail: ["one-status", "shape", "cross"] },
   { name: "fault wrong-request-id", caseId: "M1", faults: ["wrong-request-id"], expectFail: ["request-id", "cross"] },
@@ -48,13 +48,16 @@ async function runOne(browser: Browser, run: Run) {
   const page = await browser.newPage();
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push((e as Error).message));
-  await page.goto(`${BASE}testing-ehr/#case=${run.caseId}&wallet=${WALLET}`, { waitUntil: "networkidle0" });
+  await page.goto(`${BASE}testing-ehr/#case=${run.caseId}`, { waitUntil: "networkidle0" });
   await page.waitForFunction(() => (document.getElementById("case") as HTMLSelectElement).options.length > 0);
   await page.select("#case", run.caseId);
-  await page.select("#wallet", WALLET);
-  for (const f of run.faults ?? []) await page.$eval(`#faults input[value="${f}"]`, (i) => ((i as HTMLInputElement).checked = true));
+  // Real clicks, so the picker's list picks up the faults before the wallet opens.
+  if (run.faults?.length) await page.$eval("#fault-box", (d) => ((d as HTMLDetailsElement).open = true));
+  for (const f of run.faults ?? []) await page.click(`#faults input[value="${f}"]`);
+  const choice = `smart-checkin-picker >>> [data-id="${WALLET}"]`;
+  await page.waitForSelector(choice, { timeout: 20000 });
   const walletTarget = browser.waitForTarget((t) => t.opener() === page.target(), { timeout: 20000 });
-  await page.$eval("#run", (b) => (b as HTMLButtonElement).click());
+  await page.click(choice);
   const wallet = (await (await walletTarget).page())!;
   await wallet.waitForFunction(() => { const b = document.getElementById("share") as HTMLButtonElement | null; return !!b && !b.disabled && !document.getElementById("consent")!.hidden; }, { timeout: 60000 });
   if (run.patient) {
@@ -79,7 +82,6 @@ async function runOne(browser: Browser, run: Run) {
     if (!clicked) break;
   }
   await wallet.$eval("#share", (b) => (b as HTMLButtonElement).click());
-  await page.waitForFunction(() => !(document.getElementById("run") as HTMLButtonElement).disabled && document.getElementById("status")!.textContent !== "", { timeout: 120000 });
   await page.waitForFunction(() => /passed|failed|Error|declined/.test(document.getElementById("status")!.textContent ?? ""), { timeout: 120000 });
   const status = await page.$eval("#status", (e) => e.textContent ?? "");
   const log = await page.$eval("#log", (e) => e.textContent ?? "");

@@ -106,7 +106,7 @@ const STEPS: Array<[RegExp, string]> = [
   [/^Agree and continue$/, "picked the wallet in the system sheet"],
 ];
 
-const EHR_URL = (caseId: string) => `${BASE}testing-ehr/#case=${caseId}&wallet=platform`;
+const EHR_URL = (caseId: string) => `${BASE}testing-ehr/#case=${caseId}`;
 const devtoolsUp = () => fetch(`http://localhost:${PORT}/json/version`, { signal: AbortSignal.timeout(3000) }).then((r) => r.ok, () => false);
 
 // Chrome in front with DevTools reachable. A cold emulator can take a minute
@@ -193,12 +193,13 @@ async function runCase(caseId: string) {
   await choosePatient(caseId === "L2" ? "large" : "aria");
   const page = await ehrPage(caseId);
   await page.bringToFront();
-  await page.goto(`${BASE}testing-ehr/#case=${caseId}&wallet=platform`, { waitUntil: "networkidle0" });
+  await page.goto(EHR_URL(caseId), { waitUntil: "networkidle0" });
   await page.reload({ waitUntil: "networkidle0" });
   await page.waitForFunction(() => (document.getElementById("case") as HTMLSelectElement).options.length > 0);
   await page.select("#case", caseId);
-  await page.select("#wallet", "platform");
-  await page.click("#run"); // a real input event, so the page has user activation
+  const choice = 'smart-checkin-picker >>> [data-id="platform"]';
+  await page.waitForSelector(choice, { timeout: 20000 });
+  await page.click(choice); // a real input event, so the page has user activation
   const steps: string[] = [];
   for (let i = 0; i < 40; i++) {
     const status = await page.$eval("#status", (e) => e.textContent ?? "").catch(() => "");

@@ -32,7 +32,8 @@
       "status": "up",
       "walletUrl": "https://smart-health-checkin.org/connectathon/testing-wallet/",
       "target": "tab",
-      "testPatient": "Aria Test, born 1981, with problems, allergies, medications, immunizations, and CARIN and US Core insurance; a second patient with a record over 512 KB"
+      "testPatient": "Aria Test, born 1981, with problems, allergies, medications, immunizations, and CARIN and US Core insurance; a second patient with a record over 512 KB",
+      "iconUrl": "https://smart-health-checkin.org/connectathon/icons/smart-starburst.svg"
     },
     {
       "id": "smart-android-wallet",

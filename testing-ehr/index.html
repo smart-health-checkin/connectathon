@@ -14,16 +14,15 @@
     <select id="case"></select>
     <div id="case-info" class="case-info"></div>
 
-    <label for="wallet">Wallet</label>
-    <select id="wallet"></select>
-
-    <details id="fault-box" class="faults-box" hidden>
+    <details id="fault-box" class="faults-box">
       <summary>Ask the SMART Testing Wallet to send a broken response</summary>
-      <p class="small">Each fault should make at least one check below fail. Use them to test your own EHR's error handling the same way.</p>
+      <p class="small">Applies when you pick the SMART Testing Wallet below. Each fault should make at least one check fail. Use them to test your own EHR's error handling the same way.</p>
       <div id="faults" class="faults"></div>
     </details>
 
-    <button id="run" type="button">Send the request</button>
+    <smart-checkin-picker id="picker" mode="pick"
+      heading="Send it to a wallet" description="Pick a wallet. The scenario's request goes to it, and the response is checked below."></smart-checkin-picker>
+    <p id="platform-note" class="small muted" hidden></p>
     <p id="status" class="status" role="status"></p>
   </section>
 

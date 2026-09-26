@@ -84,21 +84,59 @@ for (const file of jsonFiles("participants").filter((f) => f !== "schema.json"))
 }
 
 // ---------------------------------------------------------------- wallet registry
-const webWallets = participants.flatMap((p) =>
+// Icons are inlined as data: URLs, so an EHR page showing the registry contacts
+// no wallet's server until the patient picks that wallet. An icon that can't be
+// fetched or fails the checks is dropped with a warning; it never blocks a deploy.
+const ICON_MAX_BYTES = 64 * 1024;
+const ICON_TYPES = ["image/svg+xml", "image/png", "image/webp", "image/jpeg"];
+async function inlineIcon(url: string, who: string): Promise<string | undefined> {
+  if (url.startsWith("data:")) return url;
+  try {
+    let bytes: Uint8Array, type: string;
+    if (url.startsWith(SITE)) {
+      const local = join(ROOT, url.slice(SITE.length));
+      bytes = readFileSync(local);
+      type = local.endsWith(".svg") ? "image/svg+xml" : local.endsWith(".png") ? "image/png" : "";
+    } else {
+      const res = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      type = (res.headers.get("content-type") ?? "").split(";")[0]!.trim();
+      bytes = new Uint8Array(await res.arrayBuffer());
+    }
+    if (!ICON_TYPES.includes(type)) throw new Error(`type ${type || "unknown"} is not one of ${ICON_TYPES.join(", ")}`);
+    if (bytes.length > ICON_MAX_BYTES) throw new Error(`${bytes.length} bytes, over the ${ICON_MAX_BYTES}-byte limit`);
+    if (type === "image/svg+xml") {
+      const svg = new TextDecoder().decode(bytes);
+      if (/<script|<foreignObject|\son\w+\s*=|javascript:|(?:xlink:)?href\s*=\s*["'](?!#)/i.test(svg)) {
+        throw new Error("SVG contains scripts, event handlers, or external references");
+      }
+      return "data:image/svg+xml," + encodeURIComponent(svg.trim());
+    }
+    return `data:${type};base64,${Buffer.from(bytes).toString("base64")}`;
+  } catch (e) {
+    console.warn(`warning: ${who}: icon ${url} left out: ${(e as Error).message}`);
+    return undefined;
+  }
+}
+
+const webWallets = await Promise.all(participants.flatMap((p) =>
   p.components
     .filter((c) => c.role === "web-wallet")
-    .map((c) => ({
-      id: c.id,
-      name: c.name,
-      walletUrl: c.walletUrl!,
-      description: [c.description, c.testPatient ? `Test patient: ${c.testPatient}.` : "", `From ${p.organization}.`]
-        .filter(Boolean)
-        .join(" "),
-      ...(c.homepage ?? p.homepage ? { homepage: c.homepage ?? p.homepage } : {}),
-      ...(c.iconUrl ? { iconUrl: c.iconUrl } : {}),
-      target: c.target ?? "tab",
-    })),
-);
+    .map(async (c) => {
+      const icon = c.iconUrl ? await inlineIcon(c.iconUrl, `${p.file} ${c.id}`) : undefined;
+      return {
+        id: c.id,
+        name: c.name,
+        walletUrl: c.walletUrl!,
+        description: [c.description, c.testPatient ? `Test patient: ${c.testPatient}.` : "", `From ${p.organization}.`]
+          .filter(Boolean)
+          .join(" "),
+        ...(c.homepage ?? p.homepage ? { homepage: c.homepage ?? p.homepage } : {}),
+        ...(icon ? { iconUrl: icon } : {}),
+        target: c.target ?? "tab",
+      };
+    }),
+));
 // The SMART Testing Wallet is the known-good reference, so it's listed first.
 const FIRST_WALLET = "smart-testing-wallet";
 webWallets.sort((a, b) => Number(b.id === FIRST_WALLET) - Number(a.id === FIRST_WALLET));
@@ -232,6 +270,7 @@ function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
 }
 
 cpSync(join(ROOT, "site.css"), join(OUT, "site.css"));
+cpSync(join(ROOT, "icons"), join(OUT, "icons"), { recursive: true });
 renderMarkdownPage("scenarios.md", "index.html", "SMART Health Check-in connectathon");
 if (existsSync(join(ROOT, "web-wallet-handoff.md")))
   renderMarkdownPage("web-wallet-handoff.md", "web-wallet-handoff.html", "Web wallet hand-off");
