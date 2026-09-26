@@ -9,8 +9,6 @@ on:
   workflow_run:
     workflows: ["Build and deploy the site"]
     types: [completed]
-  repository_dispatch:
-    types: [client-updated]
   workflow_dispatch:
 
 permissions:

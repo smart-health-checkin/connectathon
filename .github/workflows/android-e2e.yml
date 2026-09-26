@@ -8,8 +8,6 @@ name: Android end-to-end
 on:
   schedule:
     - cron: "17 7 * * *"   # nightly
-  repository_dispatch:
-    types: [wallet-released]
   workflow_dispatch:
     inputs:
       cases:
