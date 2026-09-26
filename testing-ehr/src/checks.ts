@@ -22,13 +22,24 @@ export type RunInput = {
   origin: string;
 };
 
-export type RunResult = { checks: Check[]; smartResponse?: any; responseBytes?: number };
+/** The layers under the SMART response, for the wire view. */
+export type WireLayers = {
+  encBytes?: number;
+  cipherTextBytes?: number;
+  deviceResponseBytes?: number;
+  deviceResponseDiagnostic?: string;
+  msoDiagnostic?: string;
+  digestAlgorithm?: string;
+};
+
+export type RunResult = { checks: Check[]; smartResponse?: any; responseBytes?: number; wire?: WireLayers };
 
 export async function checkResponse(input: RunInput): Promise<RunResult> {
   const checks: Check[] = [];
   const add = (id: string, title: string, outcome: Outcome, detail: string, section?: string) =>
     checks.push({ id, title, outcome, detail, section: section ? SPEC + section : undefined });
-  const done = (extra: Partial<RunResult> = {}): RunResult => ({ checks, ...extra });
+  const wire: WireLayers = {};
+  const done = (extra: Partial<RunResult> = {}): RunResult => ({ checks, wire, ...extra });
 
   // 1. Wrapper
   const cred = input.credential as { protocol?: string; data?: { response?: unknown } } | undefined;
@@ -55,6 +66,14 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
       sessionTranscript,
     });
     add("hpke", "Response decrypts with this page's key and origin", "pass", `${opened.deviceResponseBytes.length} bytes of DeviceResponse`, "8-5-hpke-encryption-and-verifier-processing");
+    const hexBytes = (h?: string) => (h ? h.length / 2 : undefined);
+    wire.encBytes = hexBytes(opened.dcapiResponse.enc?.hex);
+    wire.cipherTextBytes = hexBytes(opened.dcapiResponse.cipherText?.hex);
+    wire.deviceResponseBytes = opened.deviceResponseBytes.length;
+    wire.deviceResponseDiagnostic = opened.deviceResponse.deviceResponseDiagnostic;
+    const firstDoc = opened.deviceResponse.documents[0];
+    wire.msoDiagnostic = firstDoc?.issuerAuth?.msoDiagnostic;
+    wire.digestAlgorithm = firstDoc?.issuerAuth?.digestAlgorithm;
   } catch (e) {
     add("hpke", "Response decrypts with this page's key and origin", "fail",
       `${(e as Error).message}. Usual causes: the wallet bound the transcript to a different origin, used different encryptionInfo, or the ciphertext is damaged.`,
@@ -193,4 +212,41 @@ export async function verifyHealthCard(jws: string): Promise<{ ok: boolean; deta
   } catch (e) {
     return { ok: false, detail: (e as Error).message };
   }
+}
+
+/** Which part of the exchange a check is about. */
+export function groupOf(id: string): "Wire" | "SMART response" | "Items" | "Info" {
+  if (/^(protocol|wrapper|hpke|dr-|doctype|issuer-sig|device-sig|digests)/.test(id)) return "Wire";
+  if (/^(element|json|shape|request-id|one-status|cross|media)/.test(id)) return "SMART response";
+  if (id === "size") return "Info";
+  return "Items";
+}
+
+/** What a wallet builder should do when a check fails. */
+export function fixFor(id: string): string {
+  const FIX: Array<[RegExp, string]> = [
+    [/^protocol/, "Return the credential with protocol \"org-iso-mdoc\"."],
+    [/^wrapper/, "Put the HPKE-sealed response in data.response as unpadded base64url."],
+    [/^hpke/, "Encrypt to the recipient key in this request's encryptionInfo, and build the SessionTranscript from that exact encryptionInfo and the EHR page's origin (from the browser, never the message)."],
+    [/^dr-version/, "Set DeviceResponse.version to \"1.0\"."],
+    [/^dr-status/, "Set DeviceResponse.status to 0."],
+    [/^doctype/, "Use docType \"org.smarthealthit.checkin.1\"."],
+    [/^issuer-sig/, "Sign the MSO with issuerAuth (COSE_Sign1, ES256) over the exact tag-24 MSO bytes."],
+    [/^device-sig/, "Sign DeviceAuthentication over this request's SessionTranscript with the device key in the MSO."],
+    [/^digests/, "Compute each value digest over the exact tag-24 IssuerSignedItem bytes you send."],
+    [/^element/, "Return the SMART response as a JSON string in element smart_health_checkin_response."],
+    [/^json/, "The element value must be valid JSON."],
+    [/^shape/, "Follow the response model in §6.1: type, version, requestId, artifacts, requestStatus."],
+    [/^request-id/, "Copy the request's id into the response's requestId."],
+    [/^one-status/, "Add exactly one requestStatus entry for every item in the request, and none for items it didn't ask for."],
+    [/^cross/, "Every artifact must fulfill requested items, and each status must agree with the artifacts sent."],
+    [/^media/, "Send each item's data only in a media type listed in that item's accept."],
+    [/^artifact-/, "A fulfilled or partial item needs an artifact that lists it in fulfills."],
+    [/^qr-/, "Answer a form item with a QuestionnaireResponse."],
+    [/^canonical-/, "Copy questionnaireCanonical from the request into QuestionnaireResponse.questionnaire exactly, including any |version."],
+    [/^answers-/, "Include the patient's answers in QuestionnaireResponse.item."],
+    [/^profile-/, "Return resources whose meta.profile names a requested profile (or one in a requested family)."],
+    [/^shc-/, "Sign the card with a key published at the issuer's /.well-known/jwks.json, with header alg ES256, zip DEF, and kid."],
+  ];
+  return FIX.find(([re]) => re.test(id))?.[1] ?? "";
 }

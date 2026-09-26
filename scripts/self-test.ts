@@ -51,13 +51,14 @@ async function runOne(browser: Browser, run: Run) {
   await page.goto(`${BASE}testing-ehr/#case=${run.caseId}`, { waitUntil: "networkidle0" });
   await page.waitForFunction(() => (document.getElementById("case") as HTMLSelectElement).options.length > 0);
   await page.select("#case", run.caseId);
-  // Real clicks, so the picker's list picks up the faults before the wallet opens.
+  // Pick the wallet, then its faults (real clicks, so the page updates), then Send.
+  const radio = `input[name="wallet"][value="${WALLET}"]`;
+  await page.waitForSelector(radio, { timeout: 20000 });
+  await page.click(radio);
   if (run.faults?.length) await page.$eval("#fault-box", (d) => ((d as HTMLDetailsElement).open = true));
   for (const f of run.faults ?? []) await page.click(`#faults input[value="${f}"]`);
-  const choice = `smart-checkin-picker >>> [data-id="${WALLET}"]`;
-  await page.waitForSelector(choice, { timeout: 20000 });
   const walletTarget = browser.waitForTarget((t) => t.opener() === page.target(), { timeout: 20000 });
-  await page.click(choice);
+  await page.click("#send");
   const wallet = (await (await walletTarget).page())!;
   await wallet.waitForFunction(() => { const b = document.getElementById("share") as HTMLButtonElement | null; return !!b && !b.disabled && !document.getElementById("consent")!.hidden; }, { timeout: 60000 });
   if (run.patient) {

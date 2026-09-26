@@ -7,32 +7,75 @@
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<header class="bar"><b>SMART Testing EHR</b> <span class="muted">sends connectathon requests and checks the responses</span> <a href="../">Scenarios</a> · <a href="../results.html">Results</a></header>
-<main>
-  <section class="setup">
-    <label for="case">Scenario</label>
-    <select id="case"></select>
-    <div id="case-info" class="case-info"></div>
+<header class="bar">
+  <b>Testing EHR</b>
+  <span class="grow"></span>
+  <a href="../">Scenarios</a>
+  <a href="../results.html">Results</a>
+  <button type="button" id="history-btn" class="pill">History</button>
+</header>
 
-    <details id="fault-box" class="faults-box">
-      <summary>Ask the SMART Testing Wallet to send a broken response</summary>
-      <p class="small">Applies when you pick the SMART Testing Wallet below. Each fault should make at least one check fail. Use them to test your own EHR's error handling the same way.</p>
-      <div id="faults" class="faults"></div>
+<main class="layout">
+  <div class="col setup-col">
+    <details id="setup" class="setup" open>
+      <summary id="setup-summary">Set up a run</summary>
+
+      <section class="card">
+        <h2>1. What to ask for</h2>
+        <div class="seg" role="tablist" aria-label="Request source">
+          <button type="button" role="tab" data-mode="scenario" aria-selected="true">Scenario</button>
+          <button type="button" role="tab" data-mode="build" aria-selected="false">Build</button>
+          <button type="button" role="tab" data-mode="paste" aria-selected="false">Paste</button>
+        </div>
+        <div data-panel="scenario">
+          <label class="sr" for="case">Scenario</label>
+          <select id="case"></select>
+          <div id="case-info" class="case-info"></div>
+        </div>
+        <div data-panel="build" hidden>
+          <div id="item-library" class="item-library"></div>
+        </div>
+        <div data-panel="paste" hidden>
+          <label class="sr" for="paste">Request JSON</label>
+          <textarea id="paste" spellcheck="false" rows="12"></textarea>
+        </div>
+        <p id="request-state" class="small"></p>
+      </section>
+
+      <section class="card">
+        <h2>2. Which wallet</h2>
+        <div id="wallets" class="wallets" role="radiogroup" aria-label="Wallet"></div>
+        <form id="add-wallet" class="add-wallet">
+          <label class="sr" for="wallet-url">Web wallet URL</label>
+          <input id="wallet-url" type="url" placeholder="https://your-wallet.example/wallet.html" required>
+          <button type="submit" class="btn">Add</button>
+        </form>
+        <p class="small">A wallet added by URL is kept in this browser, so you can test it before it's registered.</p>
+        <details id="fault-box" class="group" hidden>
+          <summary>SMART Testing Wallet faults <span id="fault-count" class="n"></span></summary>
+          <p class="small pad">Each fault should make at least one check fail. Use them to test your own EHR's error handling the same way.</p>
+          <div id="faults" class="faults"></div>
+        </details>
+      </section>
+
+      <section class="card">
+        <button type="button" id="send" class="send">Send</button>
+        <p class="small">A web wallet opens in a new tab. The device's own wallet opens the system sheet.</p>
+      </section>
     </details>
 
-    <smart-checkin-picker id="picker" mode="pick"
-      heading="Send it to a wallet" description="Pick a wallet. The scenario's request goes to it, and the response is checked below."></smart-checkin-picker>
-    <p id="platform-note" class="small muted" hidden></p>
-    <p id="status" class="status" role="status"></p>
-  </section>
+    <section id="history" class="card" hidden>
+      <h2>This browser's runs <span id="history-count"></span></h2>
+      <div id="history-list" class="hist"></div>
+      <div class="actions"><button type="button" id="clear-history" class="btn">Clear</button></div>
+    </section>
+  </div>
 
-  <section>
-    <div id="checks"></div>
-    <p><a id="file" hidden target="_blank">File this run as a result on GitHub</a></p>
-    <details><summary>Log</summary><pre id="log" class="raw"></pre></details>
-    <details><summary>Request as sent</summary><pre id="sent-request" class="raw"></pre></details>
-    <details><summary>SMART response as received</summary><pre id="smart-response" class="raw"></pre></details>
-  </section>
+  <div class="col result-col">
+    <p id="status" class="sr" role="status"></p>
+    <div id="result"><div class="empty">Pick what to ask for and a wallet, then Send. The verdict, failing checks, and what came back will show here.</div></div>
+    <details class="group log-box"><summary>Log</summary><pre id="log" class="raw"></pre></details>
+  </div>
 </main>
 <script type="module" src="./src/main.ts"></script>
 </body>

@@ -204,9 +204,9 @@ async function runCase(caseId: string) {
   await page.reload({ waitUntil: "networkidle0" });
   await page.waitForFunction(() => (document.getElementById("case") as HTMLSelectElement).options.length > 0);
   await page.select("#case", caseId);
-  const choice = 'smart-checkin-picker >>> [data-id="platform"]';
-  await page.waitForSelector(choice, { timeout: 20000 });
-  await page.click(choice); // a real input event, so the page has user activation
+  await page.waitForSelector('input[name="wallet"][value="platform"]:not([disabled])', { timeout: 20000 });
+  await page.click('input[name="wallet"][value="platform"]');
+  await page.click("#send"); // a real input event, so the page has user activation
   const steps: string[] = [];
   for (let i = 0; i < 40; i++) {
     const status = await page.$eval("#status", (e) => e.textContent ?? "").catch(() => "");
