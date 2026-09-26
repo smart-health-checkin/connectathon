@@ -20,7 +20,10 @@ function buildForm() {
     'and what would make you trust it. Everything in the demos is made up, so please do not ' +
     'include real health information.\n\n' +
     'If an AI assistant helped you write a report (see smart-health-checkin.org/connectathon/share.html), ' +
-    'paste it below. Or just write in your own words.'
+    'paste it below. Or just write in your own words.\n\n' +
+    'Reports are public by default: we may publish them on the connectathon site and in summaries, credited ' +
+    'with the name and organization you give below, or anonymously if you leave those blank. Your email ' +
+    'address is never published. Tick the box at the end to keep your report private.'
   );
 
   form.addParagraphTextItem()
@@ -36,15 +39,16 @@ function buildForm() {
     role.createChoice('Developer of a wallet (the side that shares data)'),
   ]).showOtherOption(true);
 
-  form.addTextItem().setTitle('Your name (optional)');
+  form.addTextItem().setTitle('Your name and organization, as you would like to be credited (optional; leave blank to be anonymous)');
 
   form.addTextItem()
     .setTitle('Email, if we may follow up (optional)')
     .setValidation(FormApp.createTextValidation().requireTextIsEmail().build());
 
-  const quote = form.addMultipleChoiceItem()
-    .setTitle('May we quote from your report, without your name?');
-  quote.setChoices([quote.createChoice('Yes'), quote.createChoice('No')]);
+  const privacy = form.addCheckboxItem()
+    .setTitle('Keep my report private')
+    .setHelpText('Leave this unticked to let us publish your report.');
+  privacy.setChoices([privacy.createChoice('Keep my report private (organizers only)')]);
 
   form.addParagraphTextItem().setTitle('Anything else?');
 
