@@ -2,45 +2,18 @@
   "label": "Connectathon",
   "href": "./",
   "items": [
+    { "title": "Overview", "href": "./", "note": "Pick your path, how the event works" },
     {
-      "title": "Overview",
-      "href": "./",
-      "note": "Pick your path, how the event works"
+      "title": "Your path",
+      "items": [
+        { "title": "Patients and community", "href": "patients.html", "note": "Try it on any phone or computer" },
+        { "title": "Clinic staff", "href": "clinic-staff.html", "note": "Check-in from the front desk" },
+        { "title": "Verifier developers", "href": "verifier-developers.html", "note": "EHRs, portals, and other Verifiers" },
+        { "title": "Wallet developers", "href": "wallet-developers.html", "note": "Native and web wallets" },
+        { "title": "Observers", "href": "observers.html", "note": "Follow along" }
+      ]
     },
-    {
-      "title": "Patients and community",
-      "href": "patients.html",
-      "note": "Try it on any phone or computer"
-    },
-    {
-      "title": "Clinic staff",
-      "href": "clinic-staff.html",
-      "note": "Check-in from the front desk"
-    },
-    {
-      "title": "Verifier developers",
-      "href": "verifier-developers.html",
-      "note": "EHRs, portals, and other Verifiers"
-    },
-    {
-      "title": "Wallet developers",
-      "href": "wallet-developers.html",
-      "note": "Native and web wallets"
-    },
-    {
-      "title": "Observers",
-      "href": "observers.html",
-      "note": "Follow along"
-    },
-    {
-      "title": "Test scenarios",
-      "href": "scenarios.html",
-      "note": "Baselines, scenarios, and test tools"
-    },
-    {
-      "title": "Share your experience",
-      "href": "share.html",
-      "note": "AI guide prompts and the form"
-    }
+    { "title": "Test scenarios", "href": "scenarios.html", "note": "Baselines, scenarios, and test tools" },
+    { "title": "Share your experience", "href": "share.html", "note": "AI guide prompts and the form" }
   ]
 }
