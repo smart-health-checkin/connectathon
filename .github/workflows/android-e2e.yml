@@ -26,7 +26,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: android-e2e-${{ github.event.inputs.gpu || 'default' }}-${{ github.event.inputs.emulator-flags }}
+  group: android-e2e-${{ github.event.inputs.gpu || 'default' }}-${{ github.event.inputs.emulator-flags || 'none' }}
   cancel-in-progress: true
 
 jobs:
@@ -45,13 +45,18 @@ jobs:
       # A cold Play Store image spends many minutes compiling Chrome and Play
       # services and on Chrome's first run. Do that once, save the emulator's
       # snapshot, and boot every later run from it with Chrome already up.
+      - id: key
+        env:
+          GPU: ${{ github.event.inputs.gpu || 'swiftshader_indirect' }}
+          FLAGS: ${{ github.event.inputs.emulator-flags }}
+        run: echo "key=avd-37-playstore-pixel6-warm-v1-$GPU-$(printf '%s' "$FLAGS" | sha1sum | cut -c1-8)-${{ hashFiles('.github/workflows/android-e2e.yml') }}" >> "$GITHUB_OUTPUT"
       - id: avd-cache
         uses: actions/cache/restore@v4
         with:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-37-playstore-pixel6-warm-v1-${{ github.event.inputs.gpu || 'swiftshader_indirect' }}-${{ hashFiles('.github/workflows/android-e2e.yml') }}-${{ github.event.inputs.emulator-flags }}
+          key: ${{ steps.key.outputs.key }}
       - name: Create the emulator and save a warmed-up snapshot
         if: steps.avd-cache.outputs.cache-hit != 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -74,7 +79,7 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-37-playstore-pixel6-warm-v1-${{ github.event.inputs.gpu || 'swiftshader_indirect' }}-${{ hashFiles('.github/workflows/android-e2e.yml') }}-${{ github.event.inputs.emulator-flags }}
+          key: ${{ steps.key.outputs.key }}
       - id: run
         name: Run the scenarios
         uses: reactivecircus/android-emulator-runner@v2
