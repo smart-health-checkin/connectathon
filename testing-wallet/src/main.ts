@@ -6,7 +6,7 @@ import {
   type SmartCheckinRequestItem,
   type SmartCheckinResponse,
 } from "@smart-health-checkin/client";
-import { selectEntries, serveWebWallet, type SelectionContent, type WebWalletAnswer } from "@smart-health-checkin/client/wallet";
+import { declineAll, selectEntries, serveWebWallet, type SelectionContent, type WebWalletAnswer } from "@smart-health-checkin/client/wallet";
 import { cborDecode, mapGet } from "@smart-health-checkin/client/wire";
 import { describeEntries, type Entry } from "./match.ts";
 import { buildQuestionnaireResponse, prefill, renderForm, resolveQuestionnaire, type FormState, type Questionnaire } from "./forms.ts";
@@ -98,6 +98,8 @@ type Session = {
   encryptionInfoBytes: Uint8Array;
   readerAuth: "absent" | "present";
   unknownKinds: Set<string>;
+  /** Items the library couldn't process (bad selector members, a malformed form), with why. */
+  unsupported: Map<string, string>;
 };
 let session: Session | undefined;
 
@@ -107,7 +109,7 @@ let session: Session | undefined;
  * this wallet doesn't know, so they're answered "unsupported" while the rest
  * of the request is still served (§5.4.3), and whether readerAuth was sent.
  */
-function describeRequest(request: SmartCheckinRequest, deviceRequestBytes: Uint8Array): Omit<Session, "ehrOrigin" | "answer" | "encryptionInfoBytes" | "request"> {
+function describeRequest(request: SmartCheckinRequest, deviceRequestBytes: Uint8Array): Omit<Session, "ehrOrigin" | "answer" | "encryptionInfoBytes" | "request" | "unsupported"> {
   const unknownKinds = new Set<string>(
     request.items.filter((i) => !["selection.fhir", "form.fhir"].includes(i.content.kind)).map((i) => i.id),
   );
@@ -129,6 +131,7 @@ async function prepare(s: Session): Promise<Prepared[]> {
   const observations = entries.filter((e) => e.resource.resourceType === "Observation").map((e) => e.resource as any);
   return Promise.all(
     s.request.items.map(async (item): Promise<Prepared> => {
+      if (s.unsupported.has(item.id)) return { kind: "unsupported", item, reason: s.unsupported.get(item.id)!, share: false };
       if (s.unknownKinds.has(item.id)) return { kind: "unsupported", item, reason: `selector kind "${(item.content as any).kind}" is not supported`, share: false };
       // [ACC-2] Only media types the item accepts; a form is always a QuestionnaireResponse in FHIR JSON.
       const producible = item.content.kind === "form.fhir" ? ["application/fhir+json"] : PRODUCIBLE;
@@ -351,10 +354,7 @@ async function showRequest(s: Session) {
     const button = $("decline") as HTMLButtonElement;
     button.disabled = true;
     try {
-      const smartResponse: SmartCheckinResponse = {
-        type: "smart-health-checkin-response", version: "1", requestId: s.request.id, artifacts: [],
-        requestStatus: s.request.items.map((i) => ({ item: i.id, status: "declined" as const })),
-      };
+      const smartResponse = declineAll(s.request);
       $("raw-response").textContent = JSON.stringify(smartResponse, null, 2);
       const credential = await seal({ smartResponse, encryptionInfoBytes: s.encryptionInfoBytes, ehrOrigin: s.ehrOrigin, faults: new Set() });
       reply(s, { outcome: "approved", credential });
@@ -381,9 +381,10 @@ function showError(message: string) {
 // responses (so it can inject wire faults) and closes its own tab.
 const served = serveWebWallet({
   closeAfterReply: false,
-  onRequest: ({ request, origin, parsed }) =>
+  onRequest: ({ request, origin, parsed, unsupportedItems }) =>
     new Promise<WebWalletAnswer>((answer) => {
-      session = { ehrOrigin: origin, answer, request, encryptionInfoBytes: parsed.encryptionInfoBytes, ...describeRequest(request, parsed.deviceRequestBytes) };
+      const unsupported = new Map(unsupportedItems.map((u) => [u.id, u.message] as [string, string]));
+      session = { ehrOrigin: origin, answer, request, encryptionInfoBytes: parsed.encryptionInfoBytes, unsupported, ...describeRequest(request, parsed.deviceRequestBytes) };
       void showRequest(session).catch((e) => showError((e as Error).message));
     }),
   onInvalidRequest: (message, origin) => {
