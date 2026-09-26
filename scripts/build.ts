@@ -302,7 +302,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
 ${cards}
 <h2 id="send-your-report">Send your report</h2>
 <p>Paste your report, or just write a few sentences, into the <a href="${esc(FORM_URL)}">experience form</a>. You don't need an account.</p>
-<p>Reports are public by default: we may publish them on this site and in summaries, credited with the name and organization you give, or anonymously if you leave those blank. Your email address is never published. To keep your report private, so only the organizers see it, tick the box at the end of the form.</p>
+<p>Reports are public: we may publish them on this site and in summaries, credited with the name and organization you give, or anonymously if you leave those blank. Your email address is never published. Leave out anything you wouldn't want public.</p>
 <h2>For developers: structured results</h2>
 <p>If you ran the formal test scenarios, you can also record each run as a <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">structured result</a>; they're collected on the <a href="results.html">results page</a>. That's optional. The experience report is what matters most here.</p>
 </article>

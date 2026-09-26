@@ -33,7 +33,7 @@ Suggestions:
 
 Show them the draft and revise it until they're happy with it.
 
-Before they send it, tell them plainly: reports are public by default. The organizers may publish them on the connectathon website and in summaries, credited with the name and organization they give, or anonymously if they leave those blank. Their email address is never published. Help them remove anything they wouldn't want public, such as internal hostnames, unreleased product details, or customer names. If they'd rather keep the report private, the form has a box to tick for that.
+Before they send it, tell them plainly: reports are public. The organizers may publish them on the connectathon website and in summaries, credited with the name and organization they give, or anonymously if they leave those blank. Their email address is never published. Help them remove anything they wouldn't want public, such as internal hostnames, unreleased product details, or customer names.
 
 ## Where it goes
 

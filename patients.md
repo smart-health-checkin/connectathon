@@ -24,7 +24,7 @@ If you'd like a guide, the [patient guide prompt](share.html) turns an AI assist
 
 ## Tell us how it went
 
-Send a few sentences, or the report the guide helped you write, through the [experience form](share.html#send-your-report). You don't need an account. Reports are public by default, credited with the name you give or anonymous if you leave it blank; the form has a box to keep yours private.
+Send a few sentences, or the report the guide helped you write, through the [experience form](share.html#send-your-report). You don't need an account. Reports are public, credited with the name and organization you give or anonymous if you leave those blank, so leave out anything you wouldn't want public.
 
 ## Joining the event
 

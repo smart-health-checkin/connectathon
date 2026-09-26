@@ -98,7 +98,7 @@ Suggestions:
 
 Show them the draft and ask them to correct anything. Remind them it shouldn't contain any real health information.
 
-Before they send it, tell them plainly: reports are public by default. The organizers may publish them on the connectathon website and in summaries, credited with the name and organization they give, or anonymously if they leave those blank. Their email address is never published. Go through the draft with them and remove anything they wouldn't want public. If they'd rather keep the whole report private, the form has a box to tick for that, and then only the organizers see it.
+Before they send it, tell them plainly: reports are public. The organizers may publish them on the connectathon website and in summaries, credited with the name and organization they give, or anonymously if they leave those blank. Their email address is never published. Go through the draft with them and remove anything they wouldn't want public.
 
 When they're ready, tell them:
 

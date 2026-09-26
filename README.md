@@ -17,6 +17,8 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 
 `wallets.json`, the directory, the results page, and the share page are generated at build time.
 
+Experience reports: people paste a prompt from `prompts/` into any AI assistant, which guides them and helps write a report, then they send it through the Google Form (public by default). The share page offers the prompts and the form; the form URL lives only in `scripts/links.ts`; `tools/experience-form/form.gs` rebuilds the form in place. To change a prompt, edit its file in `prompts/` and push. Structured pass/fail result issues remain optional for formal scenarios.
+
 ```
 bun install
 bun run check   # validate everything
