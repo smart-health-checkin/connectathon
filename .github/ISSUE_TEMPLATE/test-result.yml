@@ -44,6 +44,7 @@ body:
       label: Verifier
       description: The side that asked for data. EHR check-in pages, patient portals, kiosks, and clinic apps are Verifiers.
       options:
+        - "Example native Verifier app (SMART Health IT, smart-verifier-app)"
         - "Reference clinic check-in page (SMART Health IT, smart-reference-ehr)"
         - "Testing EHR (SMART Health IT, smart-testing-ehr)"
         - "Other (say which in the note)"
