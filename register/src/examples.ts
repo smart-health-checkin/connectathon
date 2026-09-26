@@ -56,7 +56,7 @@ export const EXAMPLES: { id: string; title: string; summary: string; file: strin
   {
     id: "verifier-examples",
     title: "Verifiers: a check-in page and a phone app",
-    summary: "A clinic's web check-in page, which anyone can open, and its Android app, which wallet teams install from a link.",
+    summary: "EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers (role verifier). This one has a clinic's web check-in page, which anyone can open, and its Android app, which wallet teams install from a link.",
     file: "example-clinic.json",
     participant: {
       organization: "Example Clinic",
@@ -64,7 +64,7 @@ export const EXAMPLES: { id: string; title: string; summary: string; file: strin
       components: [
         {
           id: "example-clinic-checkin",
-          role: "ehr",
+          role: "verifier",
           name: "Example Clinic check-in",
           description: "Pre-visit check-in page. Asks for insurance, allergies, and a PHQ-2.",
           status: "up",
@@ -72,7 +72,7 @@ export const EXAMPLES: { id: string; title: string; summary: string; file: strin
         },
         {
           id: "example-clinic-app",
-          role: "ehr",
+          role: "verifier",
           name: "Example Clinic app",
           description: "The patient app's pre-visit check-in, calling the phone's wallets directly.",
           status: "not-yet",

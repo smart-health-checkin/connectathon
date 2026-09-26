@@ -10,7 +10,7 @@
   "components": [
     {
       "id": "smart-reference-ehr",
-      "role": "ehr",
+      "role": "verifier",
       "name": "Reference clinic check-in page",
       "description": "The client library's clinic demo. Pick a request, pick a wallet, and see the verified response.",
       "status": "up",
@@ -18,7 +18,7 @@
     },
     {
       "id": "smart-testing-ehr",
-      "role": "ehr",
+      "role": "verifier",
       "name": "Testing EHR",
       "description": "Sends any connectathon request to any registered wallet and checks the response against the spec.",
       "status": "up",

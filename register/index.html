@@ -22,7 +22,7 @@
       <li><b>Every component</b> is listed in the <a href="../directory.html">directory</a>, where other teams find what to test against and whom to ask.</li>
       <li><b>Web wallets</b> also go into the <a href="../scenarios.html#wallet-registry">wallet registry</a> (<code>wallets.json</code>), because Verifier pages open them directly from their wallet menus. Only web wallets whose status is Up are included.</li>
       <li><b>Native wallets</b> aren't in the registry: the patient reaches them through the phone's own wallet chooser. They're listed in the directory with how testers get them, and you don't need a public build (see the <a href="#native-wallet-example">native wallet example</a>).</li>
-      <li><b>Verifiers</b> (check-in pages, portals, kiosks, and apps) are listed in the directory. A Verifier that is a phone app registers its platforms and how testers get it instead of a URL (see the <a href="#verifier-examples">Verifier examples</a>).</li>
+      <li><b>Verifiers</b> are the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers, with the role <code>verifier</code>. They're listed in the directory. A Verifier that is a phone app registers its platforms and how testers get it instead of a URL (see the <a href="#verifier-examples">Verifier examples</a>).</li>
     </ul>
   </section>
 
@@ -51,10 +51,10 @@
 
     <fieldset>
       <legend>Components</legend>
-      <p class="hint">Each piece of software others can test with you. Add one for each; a clinic with a web check-in page and an app adds two.</p>
+      <p class="hint">Each piece of software others can test with you. An EHR's check-in page, patient portal, kiosk, or clinic app is a Verifier; a patient's health app is a wallet. Add one for each; a clinic with a web check-in page and an app adds two.</p>
       <div id="components"></div>
       <div class="add-row">
-        <button type="button" data-add="ehr" class="secondary">Add a Verifier (check-in page, portal, kiosk, or app)</button>
+        <button type="button" data-add="verifier" class="secondary">Add a Verifier (EHR check-in page, portal, kiosk, or clinic app)</button>
         <button type="button" data-add="web-wallet" class="secondary">Add a web wallet</button>
         <button type="button" data-add="native-wallet" class="secondary">Add a native wallet</button>
       </div>

@@ -1,6 +1,6 @@
 # How to register for the connectathon
 
-Each participating organization has one file in [`participants/`](participants/), named after the organization, such as `participants/example-health.json`. It lists your components: Verifiers (check-in pages, portals, kiosks, and apps), web wallets, and native wallets. The site builds the [directory](https://smart-health-checkin.org/connectathon/directory.html) from these files. Only web wallets also go into the [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) (`wallets.json`), because Verifier pages open them directly; native wallets are reached through the phone's own wallet chooser, so they're listed in the directory only.
+Each participating organization has one file in [`participants/`](participants/), named after the organization, such as `participants/example-health.json`. It lists your components: Verifiers (the side that asks for data; EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers), web wallets, and native wallets. The site builds the [directory](https://smart-health-checkin.org/connectathon/directory.html) from these files. Only web wallets also go into the [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) (`wallets.json`), because Verifier pages open them directly; native wallets are reached through the phone's own wallet chooser, so they're listed in the directory only.
 
 ## The easy way: the registration form
 
@@ -23,7 +23,7 @@ Everything in your file is public. Only list contact details you're happy to pub
 
 | Role | Required | Notes |
 |---|---|---|
-| `ehr` (a Verifier) | `id`, `name`, `status`, and `url` or `platforms` | The stored value stays `ehr`; pages call it a Verifier. A web page (check-in page, portal, or kiosk) sets `url`, its public page that starts a check-in. A phone app sets the [phone app fields](#phone-app-fields) instead. |
+| `verifier` | `id`, `name`, `status`, and `url` or `platforms` | Verifier: the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers. A web page (check-in page, portal, or kiosk) sets `url`, its public page that starts a check-in. A phone app sets the [phone app fields](#phone-app-fields) instead. |
 | `web-wallet` | `id`, `name`, `status`, `walletUrl` | `walletUrl` is the page a Verifier opens. It follows the [web wallet hand-off](https://smart-health-checkin.org/client/docs/web-wallet-handoff.html). Optional: `description`, `testPatient`, `iconUrl`, `homepage` (defaults to the organization's), and `target` (`tab` or `popup`). These make up the wallet's [registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) entry. |
 | `native-wallet` | `id`, `name`, `status`, `platforms`, and `installUrl` unless `access` says otherwise | A phone app, reached through the phone's wallet chooser; not in the registry. Uses the [phone app fields](#phone-app-fields). Optional: `largeResponses` (`true` when it can answer with responses over 512 KB, the [L2 scenario](https://smart-health-checkin.org/connectathon/scenarios.html#larger-data-scenarios); on Android that means the large-payload response API) and `testPatient`. |
 

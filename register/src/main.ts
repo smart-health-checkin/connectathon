@@ -12,8 +12,9 @@ type FormComponent = Component & { runsAs?: "page" | "app" };
 type FormState = Omit<Participant, "components"> & { components: FormComponent[] };
 
 const CARD_TITLE = (c: FormComponent) =>
-  c.role === "ehr" ? (c.runsAs === "app" ? "Verifier: phone app" : "Verifier: web page") : c.role === "web-wallet" ? "Web wallet" : "Native wallet";
-const appLike = (c: FormComponent) => c.role === "native-wallet" || (c.role === "ehr" && c.runsAs === "app");
+  c.role === "verifier" ? (c.runsAs === "app" ? "Verifier: phone app" : "Verifier: web page") : c.role === "web-wallet" ? "Web wallet" : "Native wallet";
+const VERIFIER_HINT = "A Verifier is the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers.";
+const appLike = (c: FormComponent) => c.role === "native-wallet" || (c.role === "verifier" && c.runsAs === "app");
 
 type Kind = "text" | "url" | "textarea" | "status" | "target" | "platforms" | "access" | "runsAs" | "checkbox";
 type Field = { key: keyof FormComponent; label: string; hint: string; required: boolean; kind: Kind };
@@ -23,7 +24,7 @@ function fieldsFor(c: FormComponent): Field[] {
   const head = [
     f("name", "Name", "As testers should see it.", true, "text"),
     f("id", "Short id", "Filled in from the name. Lowercase letters, digits, and hyphens, unique across all participants. Result reports use it, and a web wallet's short id is also its registry id.", true, "text"),
-    ...(c.role === "ehr" ? [f("runsAs", "Runs as", "", true, "runsAs")] : []),
+    ...(c.role === "verifier" ? [f("runsAs", "Runs as", "", true, "runsAs")] : []),
     f("description", "Description", c.role === "web-wallet" ? "One or two sentences for the directory and for wallet menus on Verifier pages." : "One or two sentences for the directory.", false, "textarea"),
   ];
   const app = [
@@ -37,7 +38,7 @@ function fieldsFor(c: FormComponent): Field[] {
     f("requirements", "Phone needs", "What a tester's phone needs, such as \"Android 10 or later with Chrome 141 or later\" or \"iPhone with iOS 26 and Safari\".", false, "text"),
   ];
   const role: Field[] =
-    c.role === "ehr"
+    c.role === "verifier"
       ? c.runsAs === "app" ? app : [f("url", "Check-in page URL", "Your public page that starts a check-in.", true, "url")]
       : c.role === "web-wallet"
         ? [
@@ -85,7 +86,7 @@ let validate: Validate;
 function fromFile(p: Participant): FormState {
   const s = structuredClone(p) as FormState;
   s.contacts ??= [];
-  for (const c of s.components ?? []) if (c.role === "ehr") c.runsAs ??= c.platforms || (c.installUrl && !c.url) ? "app" : "page";
+  for (const c of s.components ?? []) if (c.role === "verifier") c.runsAs ??= c.platforms || (c.installUrl && !c.url) ? "app" : "page";
   return s;
 }
 
@@ -172,6 +173,7 @@ function renderComponents(focusId?: string) {
     const remove = el("button", { type: "button", className: "remove" }, "Remove");
     remove.onclick = () => { state.components.splice(idx, 1); renderComponents(); refresh(); };
     card.append(el("div", { className: "card-head" }, el("b", {}, CARD_TITLE(c)), remove));
+    if (c.role === "verifier") card.append(el("p", { className: "hint" }, VERIFIER_HINT));
     let idTouched = !!c.id;
     for (const { key, label, hint, required, kind } of fieldsFor(c)) {
       const fieldId = `c${idx}-${key}`;
@@ -343,7 +345,7 @@ async function start() {
       const role = b.dataset.add as Role;
       state.components.push({
         id: "", role, name: "", status: "not-yet",
-        ...(role === "ehr" ? { runsAs: "page" as const } : {}),
+        ...(role === "verifier" ? { runsAs: "page" as const } : {}),
         ...(role === "web-wallet" ? { target: "tab" as const } : {}),
         ...(role === "native-wallet" ? { platforms: ["android"], access: "install" as const } : {}),
       });

@@ -2,7 +2,7 @@
 // participants/schema.json is the source of truth; this adds labels, readable messages,
 // and the checks a schema can't express.
 
-export type Role = "ehr" | "web-wallet" | "native-wallet";
+export type Role = "verifier" | "web-wallet" | "native-wallet";
 export type Access = "install" | "invite" | "team-device";
 export type Contact = { name: string; github?: string; slack?: string; email?: string };
 export type Component = {
@@ -15,12 +15,12 @@ export type Participant = { organization: string; homepage?: string; contacts?: 
 export type Validate = ((v: unknown) => boolean) & { errors?: any[] | null };
 
 /** A component that is a phone app: every native wallet, and a Verifier registered with platforms. */
-export const isApp = (c: Partial<Component>) => c.role === "native-wallet" || (c.role === "ehr" && !!c.platforms);
+export const isApp = (c: Partial<Component>) => c.role === "native-wallet" || (c.role === "verifier" && !!c.platforms);
 /** How testers get a phone app; install when left out. */
 export const accessOf = (c: Partial<Component>): Access => c.access ?? "install";
 
 export const ROLE_LABEL: Record<Role, string> = {
-  ehr: "Verifier",
+  verifier: "Verifier",
   "web-wallet": "Web wallet",
   "native-wallet": "Native wallet",
 };

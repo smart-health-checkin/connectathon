@@ -77,11 +77,11 @@
           },
           "role": {
             "enum": [
-              "ehr",
+              "verifier",
               "web-wallet",
               "native-wallet"
             ],
-            "description": "ehr: a Verifier (check-in page, portal, kiosk, or app); the value is ehr for compatibility. web-wallet: a wallet that runs as a website, listed in wallets.json. native-wallet: a phone app reached through the phone's wallet chooser; not in wallets.json."
+            "description": "verifier: the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers. web-wallet: a wallet that runs as a website, listed in wallets.json. native-wallet: a phone app reached through the phone's wallet chooser; not in wallets.json."
           },
           "name": {
             "type": "string",
@@ -171,7 +171,7 @@
         "allOf": [
           {
             "if": {
-              "properties": { "role": { "const": "ehr" } }
+              "properties": { "role": { "const": "verifier" } }
             },
             "then": {
               "anyOf": [

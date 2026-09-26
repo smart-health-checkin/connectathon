@@ -546,7 +546,7 @@ function howToTest(c: Component): string {
 }
 function details(c: Component): string {
   const out: string[] = [];
-  if (c.role === "ehr") out.push(isApp(c) ? `${esc(platformsOf(c))} app` : "Web page");
+  if (c.role === "verifier") out.push(isApp(c) ? `${esc(platformsOf(c))} app` : "Web page");
   else if (isApp(c)) out.push(esc(platformsOf(c)));
   if (c.requirements) out.push(`Needs ${esc(c.requirements)}`);
   if (c.largeResponses) out.push(`Answers over 512 KB (<a href="scenarios.html#larger-data-scenarios">L2</a>)`);
@@ -568,8 +568,8 @@ function dirRow(p: Participant, c: Component, cols: { details: boolean; patient:
 }
 const DIRECTORY_SECTIONS = [
   {
-    id: "verifiers", title: "Verifiers", role: "ehr", noun: "Verifier", cols: { details: true, patient: false },
-    intro: "Check-in pages, portals, kiosks, and apps that ask a wallet for data. Wallet teams test against these.",
+    id: "verifiers", title: "Verifiers", role: "verifier", noun: "Verifier", cols: { details: true, patient: false },
+    intro: "Verifiers are the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers. Wallet teams test against these.",
   },
   {
     id: "web-wallets", title: "Web wallets", role: "web-wallet", noun: "Wallet", cols: { details: false, patient: true },
@@ -638,12 +638,12 @@ if (!results) {
 } else if (results.length === 0) {
   resultsBody = `<p>No results filed yet.</p>`;
 } else {
-  // Latest open result per scenario, EHR, wallet, and path.
+  // Latest open result per scenario, Verifier, wallet, and path.
   const latest = new Map<string, Result>();
   for (const r of [...results].sort((a, b) => a.created.localeCompare(b.created))) {
     if (r.state !== "open") continue;
     const f = r.fields;
-    latest.set([f["Scenario"], f["EHR"], f["Wallet"], f["Path"]].join("|"), r);
+    latest.set([f["Scenario"], f["Verifier"], f["Wallet"], f["Path"]].join("|"), r);
   }
   const byScenario = new Map<string, Result[]>();
   for (const r of latest.values()) {
@@ -654,13 +654,13 @@ if (!results) {
   resultsBody = byScenario.size === 0 ? `<p>No open results. Closed issues are withdrawn results.</p>` : [...byScenario.entries()]
     .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
     .map(([scenario, rs]) => {
-      const ehrs = [...new Set(rs.map((r) => r.fields["EHR"]))].sort();
+      const verifiers = [...new Set(rs.map((r) => r.fields["Verifier"]))].sort();
       const wallets = [...new Set(rs.map((r) => `${r.fields["Wallet"]} (${r.fields["Path"]})`))].sort();
       const cell = (e: string, w: string) => {
-        const r = rs.find((x) => x.fields["EHR"] === e && `${x.fields["Wallet"]} (${x.fields["Path"]})` === w);
+        const r = rs.find((x) => x.fields["Verifier"] === e && `${x.fields["Wallet"]} (${x.fields["Path"]})` === w);
         return r ? `<td><a class="pill ${cls(r.fields["Result"])}" href="${r.url}">${esc(r.fields["Result"] || "?")} #${r.number}</a></td>` : "<td></td>";
       };
-      return `<h2>${esc(scenario)}</h2><div class="table-wrap"><table><thead><tr><th>EHR \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${ehrs.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
+      return `<h2>${esc(scenario)}</h2><div class="table-wrap"><table><thead><tr><th>Verifier \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
     })
     .join("");
 }
@@ -668,7 +668,7 @@ writeFileSync(
   join(OUT, "results.html"),
   page(
     "Results",
-    `<article class="doc"><h1>Results</h1><p>The latest open result for each scenario and EHR and wallet pair, from the <a href="https://github.com/${REPO}/issues?q=label%3Aresult">result issues</a>. <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">File a result</a>. Close an issue to withdraw its result. Rebuilt whenever a result issue changes.</p></article>${resultsBody}`,
+    `<article class="doc"><h1>Results</h1><p>The latest open result for each scenario and Verifier and wallet pair, from the <a href="https://github.com/${REPO}/issues?q=label%3Aresult">result issues</a>. <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">File a result</a>. Close an issue to withdraw its result. Rebuilt whenever a result issue changes.</p></article>${resultsBody}`,
   ),
 );
 

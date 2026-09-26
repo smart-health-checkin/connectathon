@@ -43,13 +43,13 @@ test("a native wallet needs platforms", () => {
   expect(check(file({ role: "native-wallet", access: "invite", platforms: [] }))).toEqual(["Component 0: pick at least one platform"]);
 });
 
-test("the stored role for a Verifier is still ehr, as a web page or a phone app", () => {
-  expect(check(file({ role: "ehr", url: "https://example.org/checkin" }))).toEqual([]);
-  expect(check(file({ role: "ehr", platforms: ["android"], installUrl: "https://example.org/app.apk" }))).toEqual([]);
-  expect(check(file({ role: "ehr", platforms: ["ios"], access: "team-device" }))).toEqual([]);
-  expect(check(file({ role: "ehr", platforms: ["android"] }))).toHaveLength(1);
-  expect(check(file({ role: "ehr" }))).toEqual(["Component 0: a Verifier needs a check-in page URL, or platforms if it is a phone app"]);
-  expect(check(file({ role: "verifier" as any, url: "https://example.org/checkin" }))[0]).toStartWith("Component 0: Role must be one of");
+test("a Verifier (role verifier) is a web page or a phone app", () => {
+  expect(check(file({ role: "verifier", url: "https://example.org/checkin" }))).toEqual([]);
+  expect(check(file({ role: "verifier", platforms: ["android"], installUrl: "https://example.org/app.apk" }))).toEqual([]);
+  expect(check(file({ role: "verifier", platforms: ["ios"], access: "team-device" }))).toEqual([]);
+  expect(check(file({ role: "verifier", platforms: ["android"] }))).toHaveLength(1);
+  expect(check(file({ role: "verifier" }))).toEqual(["Component 0: a Verifier needs a check-in page URL, or platforms if it is a phone app"]);
+  expect(check(file({ role: "ehr" as any, url: "https://example.org/checkin" }))[0]).toStartWith("Component 0: Role must be one of");
 });
 
 test("a web wallet needs its wallet URL", () => {
@@ -58,25 +58,25 @@ test("a web wallet needs its wallet URL", () => {
 });
 
 test("contacts: at least one, each reachable, GitHub usernames without @", () => {
-  expect(check({ ...file({ role: "ehr", url: "https://example.org/" }), contacts: undefined })).toEqual(["Contacts: add at least one contact"]);
-  expect(check({ ...file({ role: "ehr", url: "https://example.org/" }), contacts: [] })).toEqual(["Contacts: add at least one contact"]);
-  expect(check({ ...file({ role: "ehr", url: "https://example.org/" }), contacts: [{ name: "Pat" }] })).toEqual([
+  expect(check({ ...file({ role: "verifier", url: "https://example.org/" }), contacts: undefined })).toEqual(["Contacts: add at least one contact"]);
+  expect(check({ ...file({ role: "verifier", url: "https://example.org/" }), contacts: [] })).toEqual(["Contacts: add at least one contact"]);
+  expect(check({ ...file({ role: "verifier", url: "https://example.org/" }), contacts: [{ name: "Pat" }] })).toEqual([
     "Contact 1: add a GitHub username, Slack display name, or email, so testers can reach them",
   ]);
-  expect(check({ ...file({ role: "ehr", url: "https://example.org/" }), contacts: [{ name: "Pat", slack: "Pat D" }] })).toEqual([]);
-  expect(check({ ...file({ role: "ehr", url: "https://example.org/" }), contacts: [{ name: "Pat", github: "@pat" }] })).toEqual([
+  expect(check({ ...file({ role: "verifier", url: "https://example.org/" }), contacts: [{ name: "Pat", slack: "Pat D" }] })).toEqual([]);
+  expect(check({ ...file({ role: "verifier", url: "https://example.org/" }), contacts: [{ name: "Pat", github: "@pat" }] })).toEqual([
     "Contact 1: GitHub username only, without @ or a URL",
   ]);
 });
 
 test("readable messages for URLs, ids, and duplicates", () => {
-  expect(check(file({ role: "ehr", url: "http://example.org/" }))).toEqual(["Component 0: Check-in page URL must start with https://"]);
-  expect(check(file({ role: "ehr", url: "example.org" }))).toContain("Component 0: Check-in page URL must be a full URL starting with https://");
-  expect(check(file({ role: "ehr", url: "https://example.org/", id: "Bad Id" }))).toEqual([
+  expect(check(file({ role: "verifier", url: "http://example.org/" }))).toEqual(["Component 0: Check-in page URL must start with https://"]);
+  expect(check(file({ role: "verifier", url: "example.org" }))).toContain("Component 0: Check-in page URL must be a full URL starting with https://");
+  expect(check(file({ role: "verifier", url: "https://example.org/", id: "Bad Id" }))).toEqual([
     "Component 0: Short id may use only lowercase letters, digits, and hyphens, starting with a letter or digit",
   ]);
-  expect(check(file({ role: "ehr", url: "https://example.org/", id: "x" }, { role: "ehr", url: "https://example.org/", id: "x" }))).toEqual([
+  expect(check(file({ role: "verifier", url: "https://example.org/", id: "x" }, { role: "verifier", url: "https://example.org/", id: "x" }))).toEqual([
     'Component 1: short id "x" is used twice in this file',
   ]);
-  expect(check(file({ role: "ehr", url: "https://example.org/", installUrI: "typo" } as any))).toEqual(['Component 0: unknown field "installUrI"']);
+  expect(check(file({ role: "verifier", url: "https://example.org/", installUrI: "typo" } as any))).toEqual(['Component 0: unknown field "installUrI"']);
 });
