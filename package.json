@@ -8,7 +8,7 @@
     "test": "bun test tests"
   },
   "dependencies": {
-    "@smart-health-checkin/client": "https://github.com/smart-health-checkin/client/releases/download/v0.4.1/smart-health-checkin-client-0.4.1.tgz",
+    "@smart-health-checkin/client": "https://github.com/smart-health-checkin/client/releases/download/v0.4.2/smart-health-checkin-client-0.4.2.tgz",
     "marked": "^18.0.14",
     "marked-gfm-heading-id": "^4.1.4"
   },
