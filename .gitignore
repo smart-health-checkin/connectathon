@@ -5,6 +5,6 @@ _site/
 .tools/
 android-e2e-evidence/
 
-# The spec's conformance cases (scripts/fetch-conformance.sh)
+# The spec's conformance cases, fetched by tag (scripts/fetch-spec.sh)
 spec-conformance/
 .cache/

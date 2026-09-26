@@ -4,19 +4,20 @@
  * hpke-open and mdoc-verify cases go through checkResponse: a case is accepted
  * when no wire check rejects it. cross-validation cases go through
  * checkSmartResponse, comparing per-item and per-Artifact outcomes too. Cases are fetched at a
- * pinned ref by scripts/fetch-conformance.sh. Listed known failures must keep
+ * pinned tag by scripts/fetch-spec.sh. Listed known failures must keep
  * failing; remove a case from known-failures.json when it starts passing.
  */
 import { describe, expect, test } from "bun:test";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { base64UrlDecodeBytes } from "@smart-health-checkin/client/wire";
 import { checkResponse, checkSmartResponse, groupOf } from "../../testing-ehr/src/checks.ts";
 
 const ROOT = join(import.meta.dir, "../../spec-conformance");
-if (process.env.SPEC_CONFORMANCE_DIR || !existsSync(join(ROOT, ".ref"))) {
-  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-conformance.sh")], { stdout: "inherit", stderr: "inherit" });
-  if (!fetched.success) throw new Error("could not fetch conformance cases: run scripts/fetch-conformance.sh");
+// fetch-spec.sh returns at once when the cases are already current.
+{
+  const fetched = Bun.spawnSync([join(import.meta.dir, "../../scripts/fetch-spec.sh")], { stdout: "inherit", stderr: "inherit" });
+  if (!fetched.success) throw new Error("could not fetch conformance cases: run scripts/fetch-spec.sh");
 }
 
 type Case = { id: string; capability: string; description: string; inputs: Record<string, string>; expected: { outcome: string; warnings?: string[]; items?: Record<string, string>; artifacts?: Record<string, string> }; status: string };

@@ -23,8 +23,8 @@ The practice system. Its check-in page builds a request, lets the patient choose
 
 1. **Build the request.** A small JSON document listing the items you want: records by FHIR profile, or a form to fill in. ([§5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model))
 2. **Wrap it and create a one-time key.** The request goes inside an mdoc request, and the page makes a fresh encryption key for the answer. ([§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction))
-3. **Send it to the wallet the patient picked.** A native wallet goes through the browser's Digital Credentials API. A web wallet goes through the [web wallet hand-off](#web-wallet). ([A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers))
-4. **Decrypt the answer and check its signatures.** ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing), [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist))
+3. **Send it to the wallet the patient picked.** A native wallet goes through the browser's Digital Credentials API. A web wallet goes through the [web wallet hand-off](#web-wallet). ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8))
+4. **Decrypt the answer and check its signatures.** ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing))
 5. **Check the answer against the request, then show it to staff.** ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation))
 
 The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5 for JavaScript pages: drop in `<smart-checkin-picker>`, or call `runCheckin`. Install it from GitHub with `npm install github:smart-health-checkin/client`.
@@ -38,11 +38,11 @@ The [client library](https://smart-health-checkin.org/client/) does steps 2 to 5
 | Where the request goes | `ItemsRequest.requestInfo["org.smarthealthit.checkin.request"]`, as a JSON string | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
 | mdoc `docType` | `org.smarthealthit.checkin.1` | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
 | mdoc namespace and element | `org.smarthealthit.checkin`, `smart_health_checkin_response` | [§8.1](https://smart-health-checkin.org/spec/#8-1-identifiers-and-constants) |
-| `DeviceRequest` | version `1.0`, with the `ItemsRequest` tag-24 wrapped | [A.3](https://smart-health-checkin.org/spec/#a-3-devicerequest-docrequest-and-tag-24-itemsrequest) |
+| `DeviceRequest` | version `1.0`, with the `ItemsRequest` tag-24 wrapped | [§8.7](https://smart-health-checkin.org/spec/#8-7-message-structures) |
 | Encryption | a fresh P-256 HPKE key per request, sent in a CBOR `encryptionInfo` with a nonce | [§8.2](https://smart-health-checkin.org/spec/#8-2-verifier-request-construction) |
-| Digital Credentials API argument | `{ protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } }` | [A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers) |
+| Digital Credentials API argument | `{ protocol: "org-iso-mdoc", data: { deviceRequest, encryptionInfo } }` | [VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8) |
 | Session transcript | built from the exact `encryptionInfo` string and the page's origin | [§8.3](https://smart-health-checkin.org/spec/#8-3-sessiontranscript) |
-| Response checks | HPKE opens; `DeviceResponse` version and status; issuer signature; device signature; value digest | [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist) |
+| Response checks | HPKE opens; `DeviceResponse` version and status; issuer signature; device signature; value digest | [§8.5](https://smart-health-checkin.org/spec/#VRS-0) |
 | Cross-checks | `requestId` matches; one status per item; every artifact's media type accepted by the items it fulfills | [§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation) |
 
 </details>
@@ -281,12 +281,12 @@ Use Baselines 1 to 3, with responses under 512 KB. Run them for every EHR and wa
 4. The response arrives back in the EHR's page.
 
 Pass:
-- **EHR:** the response opens and verifies ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing), [§8.6](https://smart-health-checkin.org/spec/#8-6-validation-checklist)), passes cross-validation ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation)), and the page shows each item's status and data.
+- **EHR:** the response opens and verifies ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)), passes cross-validation ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation)), and the page shows each item's status and data.
 - **Wallet:** shows the EHR's origin during consent, returns `fulfilled` for each item, and the returned resources carry the matching US Core `meta.profile`.
 
 ### M2. Native wallet through the Digital Credentials API
 
-Same as M1, but the tester picks the phone's own wallet, and the EHR calls `navigator.credentials.get` ([A.2](https://smart-health-checkin.org/spec/#a-2-digital-credentials-api-wrappers)). Record the phone, OS version, browser, and wallet app.
+Same as M1, but the tester picks the phone's own wallet, and the EHR calls `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)). Record the phone, OS version, browser, and wallet app.
 
 ### M3. Insurance
 
