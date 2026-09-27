@@ -16,3 +16,5 @@ jobs:
         run: bun run check
       - name: Unit tests
         run: bun test tests
+      - name: Typecheck
+        run: bunx tsc --noEmit -p .
