@@ -10,7 +10,7 @@ These test that a large response arrives intact, from the wallet through the bro
 
 ## Optional scenarios
 
-These exercise parts of the spec that the minimum scenarios leave out: forms and selectors beyond the basics, SMART Health Cards, other ways of reaching the check-in page, and what happens when a patient shares nothing. Some need a feature that few wallets have yet, such as answering two items with one record ([shared-artifact](#shared-artifact)), which the SMART Testing Wallet can do on request.
+These exercise parts of the spec that the minimum scenarios leave out: forms and selectors beyond the basics, SMART Health Cards, other ways of reaching the check-in page, and a patient who declines every item. Some need a feature that few wallets have yet, such as answering two items with one record ([shared-artifact](#shared-artifact)), which the SMART Testing Wallet can do on request.
 
 <!-- test cases: advanced -->
 

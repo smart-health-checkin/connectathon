@@ -38,6 +38,8 @@ type Run = {
   /** A test case, or a request file with no case. */
   caseId?: string; request?: string;
   faults?: string[]; size?: string; byUrl?: boolean; rawUrl?: string; declineAll?: boolean;
+  /** Item statuses the Testing Wallet forces, set through a config URL (needs `byUrl`). */
+  status?: Record<string, string>;
   /** Leave the case's step undone (untick it in "Testing Wallet options"). */
   skipStep?: boolean;
   /** Check ids (or id prefixes) that must fail or warn. No other check may fail or warn. */
@@ -45,9 +47,12 @@ type Run = {
 };
 const ALL_RUNS: Run[] = [
   // Every test case with a web path that this EHR and wallet can run on their own.
-  ...["share-records", "fill-form", "decline-item", "any-us-core", "large-response", "nothing-to-share", "form-by-reference", "versioned-canonical", "physician-form", "narrowed-family", "no-selector", "health-card", "insurance-card", "shared-artifact", "prefilled-form", "unknown-selector"].map((caseId) => ({ name: caseId, caseId })),
+  ...["share-records", "fill-form", "decline-item", "any-us-core", "large-response", "decline-all", "form-by-reference", "versioned-canonical", "physician-form", "narrowed-family", "no-selector", "health-card", "insurance-card", "shared-artifact", "prefilled-form", "unknown-selector"].map((caseId) => ({ name: caseId, caseId })),
   // A case whose step isn't done: its expectation is not met, and the run fails.
   { name: "decline-item without its step", caseId: "decline-item", skipStep: true, expectFail: ["expect-1"] },
+  // share-records passes whatever the wallet shares: some items, or none.
+  { name: "share-records with items unavailable or declined", caseId: "share-records", byUrl: true, status: { coverage: "unavailable", immunizations: "declined" } },
+  { name: "share-records with nothing shared", caseId: "share-records", byUrl: true, status: { patient: "unavailable", problems: "declined", allergies: "unavailable", medications: "declined", immunizations: "declined", coverage: "unavailable" } },
   { name: "decline all (HOLD-4)", request: "records.json", declineAll: true, expectText: /declined/i },
   // The Testing Wallet's response size setting: valid responses, only larger.
   { name: "size 512 KB", request: "records.json", size: "512k" },
@@ -85,7 +90,7 @@ async function runOne(browser: Browser, run: Run) {
   // Pick the wallet (a real click, so the page updates), set any Testing Wallet options, then Send.
   const plain = `${BASE}testing-wallet/`;
   const step: WalletConfig = (!run.skipStep && tc?.walletStep?.testingWallet) || {};
-  const config: WalletConfig = { ...step, faults: [...(step.faults ?? []), ...(run.faults ?? [])], size: run.size ?? step.size };
+  const config: WalletConfig = { ...step, faults: [...(step.faults ?? []), ...(run.faults ?? [])], size: run.size ?? step.size, status: { ...step.status, ...run.status } };
   const expectUrl = run.rawUrl ? plain + run.rawUrl : configUrl(plain, config);
   let radio = `input[name="wallet"][value="${WALLET}"]`;
   if (run.byUrl) {

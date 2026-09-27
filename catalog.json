@@ -40,33 +40,23 @@
       "id": "share-records",
       "title": "Share records",
       "tier": "minimum",
-      "summary": "The patient shares their records and insurance card from a wallet. A web wallet is listed in the Verifier's wallet registry and opens in a new tab; a native wallet is an app on the phone, reached through the phone's wallet chooser. A team runs whichever path its component uses, and a Verifier that supports both runs each.",
+      "summary": "The patient shares their records and insurance card from a wallet: all of them, some of them, or none. Any status for an item passes, including unavailable and declined. A web wallet is listed in the Verifier's wallet registry and opens in a new tab; a native wallet is an app on the phone, reached through the phone's wallet chooser. A team runs whichever path its component uses, and a Verifier that supports both runs each.",
       "request": "records.json",
       "paths": [
         "web",
         "native"
       ],
-      "expect": [
-        {
-          "check": "every-status",
-          "status": [
-            "fulfilled"
-          ]
-        },
-        {
-          "check": "profiles"
-        },
-        {
-          "check": "includes-type",
-          "item": "coverage",
-          "resourceType": "Coverage"
-        }
-      ],
+      "walletStep": {
+        "text": "Share whatever the wallet offers."
+      },
+      "expect": [],
       "walletShows": [
         "The wallet shows the Verifier's origin during consent."
       ],
       "verifierShows": [
-        "The Verifier shows each item's status and data, including the member, payer, and plan from the insurance card, whichever profile or format the wallet chose.",
+        "The Verifier shows each item's status and whatever records came back, including the member, payer, and plan from an insurance card, whichever profile or format the wallet chose.",
+        "It shows an unavailable or declined item, and a response with no records at all, as a normal outcome, not as an error.",
+        "It sets a record aside, with a warning, only when the spec's cross-checks ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation)) say to.",
         "If the wallet returns a SMART Health Card, the Verifier verifies its signature before showing it."
       ],
       "notes": "On the native path, record the phone, OS version, browser, and wallet app.",
@@ -112,14 +102,14 @@
       "id": "decline-item",
       "title": "Decline one item",
       "tier": "minimum",
-      "summary": "The person declines one item and shares the rest, and the Verifier tells a declined item from an error.",
+      "summary": "The person declines one item, so the Verifier is sure to receive a declined status.",
       "request": "records.json",
       "paths": [
         "web",
         "native"
       ],
       "walletStep": {
-        "text": "Decline Immunizations and share everything else.",
+        "text": "Decline Immunizations and share whatever else the wallet offers.",
         "testingWallet": {
           "status": {
             "immunizations": "declined"
@@ -132,27 +122,15 @@
           "item": "immunizations",
           "status": [
             "declined"
-          ]
-        },
-        {
-          "check": "status",
-          "item": "patient",
-          "status": [
-            "fulfilled"
-          ]
-        },
-        {
-          "check": "status",
-          "item": "medications",
-          "status": [
-            "fulfilled"
-          ]
+          ],
+          "rule": "HOLD-1"
         }
       ],
       "verifierShows": [
-        "The Verifier shows Immunizations as declined, not as an error, and the rest normally."
+        "The Verifier shows Immunizations as declined, as [share-records](#share-records) describes."
       ],
       "specSections": [
+        "5-7-identity-trust-and-holder-control",
         "6-2-artifact-and-status-semantics"
       ]
     },
@@ -225,10 +203,10 @@
       ]
     },
     {
-      "id": "nothing-to-share",
-      "title": "Nothing to share",
+      "id": "decline-all",
+      "title": "Decline every item",
       "tier": "advanced",
-      "summary": "Every item comes back declined or unavailable, and the check-in still ends cleanly.",
+      "summary": "The person reviews the request and declines every item, and the wallet still answers, with every item declined, rather than cancelling.",
       "request": "records.json",
       "paths": [
         "web",
@@ -251,15 +229,16 @@
         {
           "check": "every-status",
           "status": [
-            "declined",
-            "unavailable"
-          ]
+            "declined"
+          ],
+          "rule": "HOLD-4"
         }
       ],
       "verifierShows": [
-        "The Verifier handles every item declined or unavailable without breaking the page, and the patient can continue without the wallet."
+        "The Verifier shows every item as declined, as [share-records](./#share-records) describes, and the patient can go on with the check-in without the wallet."
       ],
       "specSections": [
+        "5-7-identity-trust-and-holder-control",
         "6-2-artifact-and-status-semantics"
       ]
     },
@@ -499,16 +478,9 @@
         "native"
       ],
       "walletStep": {
-        "text": "Scan the QR code the desktop browser shows with the phone, and share everything."
+        "text": "Scan the QR code the desktop browser shows with the phone, and share whatever the wallet offers."
       },
-      "expect": [
-        {
-          "check": "every-status",
-          "status": [
-            "fulfilled"
-          ]
-        }
-      ],
+      "expect": [],
       "verifierShows": [
         "The response arrives in the desktop page."
       ],
@@ -526,16 +498,9 @@
         "native"
       ],
       "walletStep": {
-        "text": "Open the check-in page on the phone from the front-desk QR code or kiosk, then share everything."
+        "text": "Open the check-in page on the phone from the front-desk QR code or kiosk, then share whatever the wallet offers."
       },
-      "expect": [
-        {
-          "check": "every-status",
-          "status": [
-            "fulfilled"
-          ]
-        }
-      ],
+      "expect": [],
       "verifierShows": [
         "The Verifier shows each item's status and data, as in [share-records](./#share-records), and the handoff."
       ],

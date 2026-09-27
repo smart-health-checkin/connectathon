@@ -276,7 +276,7 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
       : `**Request:** [\`${tc.request}\`](requests/${tc.request}), the same request as [${first.id}](${link(first)}), asks for ${catalog.requests[tc.request].asks}.`;
     const step = tc.walletStep ? tc.walletStep.text : "None: share everything the wallet offers.";
     const sees = tc.expect.length
-      ? tc.expect.map((e) => describeExpectation(e, req)).join(" ")
+      ? tc.expect.map((e) => { const d = describeExpectation(e, req); return e.rule ? `${d.replace(/\.$/, "")} ([${e.rule}](${catalog.specBase}${e.rule})).` : d; }).join(" ")
       : "Whatever the wallet sends; this case has no checks beyond the spec's own.";
     const walletPass = [tc.expect.length ? "The Verifier sees the above." : "The response passes the spec's checks.", sentences(tc.walletShows)].filter(Boolean).join(" ");
     const web = tc.paths.includes("web");

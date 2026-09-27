@@ -21,7 +21,7 @@ body:
         - "decline-item: Decline one item"
         - "any-us-core: Anything in US Core"
         - "large-response: Large response"
-        - "nothing-to-share: Nothing to share"
+        - "decline-all: Decline every item"
         - "form-by-reference: Form by reference only"
         - "versioned-canonical: Versioned form canonical"
         - "physician-form: Physician-authored form"

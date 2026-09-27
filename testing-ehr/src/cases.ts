@@ -6,15 +6,21 @@
 // the same sentences.
 import type { WalletConfig } from "../../testing-wallet/src/config.ts";
 
-export type Expectation =
+export type Expectation = (
   | { check: "status"; item: string; status: string[] }
   | { check: "every-status"; status: string[] }
-  | { check: "profiles" }
   | { check: "includes-type"; item: string; resourceType: string }
   | { check: "only-types"; item: string; resourceTypes: string[] }
   | { check: "media-type"; item: string; mediaType: string }
   | { check: "one-artifact"; items: string[] }
-  | { check: "min-size"; kb: number };
+  | { check: "min-size"; kb: number }
+) & {
+  /** The spec requirement the expectation checks, such as "HOLD-4" (its anchor in the spec). */
+  rule?: string;
+};
+
+/** A spec requirement's address, from its id. */
+export const ruleHref = (rule: string): string => `https://smart-health-checkin.org/spec/#${rule}`;
 
 export type TestCase = {
   /** A short kebab-case name, used as the anchor, in the Testing EHR's #case=, and in results. */
@@ -65,7 +71,6 @@ export function describeExpectation(e: Expectation, request: Request): string {
   switch (e.check) {
     case "status": return `${t(e.item)} is ${or(e.status)}.`;
     case "every-status": return `Every item is ${or(e.status)}.`;
-    case "profiles": return "Each item that names profiles gets at least one record that claims one of them.";
     case "includes-type": return `${t(e.item)} includes a ${e.resourceType} record.`;
     case "only-types": return `${t(e.item)} has only ${or(e.resourceTypes)} records, apart from the resources they reference.`;
     case "media-type": return `${t(e.item)} comes as ${e.mediaType}.`;
@@ -82,7 +87,8 @@ export function caseProblems(tc: TestCase, request: Request): string[] {
   for (const e of tc.expect) {
     if ("item" in e) known(e.item);
     if (e.check === "one-artifact") e.items.forEach(known);
-    if (!["status", "every-status", "profiles", "includes-type", "only-types", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
+    if (e.rule !== undefined && !/^[A-Z]+-\d+$/.test(e.rule)) problems.push(`${tc.id}: rule "${e.rule}" isn't a spec requirement id such as HOLD-4`);
+    if (!["status", "every-status", "includes-type", "only-types", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
   }
   for (const id of Object.keys(tc.walletStep?.testingWallet?.status ?? {})) known(id);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(tc.id)) problems.push(`${tc.id}: the id must be kebab-case`);
@@ -91,7 +97,7 @@ export function caseProblems(tc: TestCase, request: Request): string[] {
   return problems;
 }
 
-export type Evaluated = { id: string; title: string; outcome: "pass" | "fail"; detail: string };
+export type Evaluated = { id: string; title: string; outcome: "pass" | "fail"; detail: string; rule?: string };
 export type Observed = {
   request: Request;
   smartResponse?: { artifacts?: any[] };
@@ -111,7 +117,7 @@ export function evaluateExpectations(expect: Expectation[], o: Observed): Evalua
   const records = (id: string) => forItem(id).flatMap(o.resourcesOf);
   return expect.map((e, n) => {
     const title = describeExpectation(e, o.request);
-    const result = (ok: boolean, detail: string): Evaluated => ({ id: `expect-${n + 1}`, title, outcome: ok ? "pass" : "fail", detail });
+    const result = (ok: boolean, detail: string): Evaluated => ({ id: `expect-${n + 1}`, title, outcome: ok ? "pass" : "fail", detail, ...(e.rule ? { rule: e.rule } : {}) });
     if (!o.items) return result(false, "the response was rejected");
     switch (e.check) {
       case "status": {
@@ -121,18 +127,6 @@ export function evaluateExpectations(expect: Expectation[], o: Observed): Evalua
       case "every-status": {
         const off = o.request.items.filter((i) => !e.status.includes(o.items![i.id] ?? "no status"));
         return result(!off.length, off.length ? off.map((i) => `${i.id} is ${o.items![i.id] ?? "no status"}`).join("; ") : "");
-      }
-      case "profiles": {
-        const missing: string[] = [];
-        for (const item of o.request.items) {
-          const c = item.content;
-          if (c.kind !== "selection.fhir" || !(c.profiles?.length || c.profilesFrom?.length)) continue;
-          if (!["fulfilled", "partial"].includes(o.items[item.id] ?? "")) continue;
-          const claims = records(item.id).flatMap((r) => r?.meta?.profile ?? []).map((p: string) => p.split("|")[0]!);
-          const hit = claims.some((p) => (c.profiles ?? []).some((w) => w.split("|")[0] === p) || (c.profilesFrom ?? []).some((f) => p.startsWith(f.replace(/\/+$/, "") + "/")));
-          if (!hit) missing.push(item.id);
-        }
-        return result(!missing.length, missing.length ? `no record claims a requested profile for ${missing.join(", ")}` : "");
       }
       case "includes-type": {
         const n = records(e.item).filter((r) => r?.resourceType === e.resourceType).length;
