@@ -9,7 +9,8 @@
  *   participants/*.json                    validated; web wallets that are up become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
- *   catalog.json                           test cases, cross-checked against requests
+ *   catalog.json                           test cases, cross-checked against requests and the
+ *                                          spec's requirements.json at the pinned tag (scripts/fetch-spec.sh)
  *   testing-ehr/, testing-wallet/          bundled with Bun
  * Result issues (label "result") are read from GitHub when a token is available.
  */
@@ -22,7 +23,7 @@ import addFormats from "ajv-formats";
 import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join } from "node:path";
-import { caseHref, caseLabel, caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
+import { STEP_DONE, caseHref, caseLabel, caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
 import { TESTING_WALLET_URL, configProblems, configUrl } from "../testing-wallet/src/config.ts";
 import { PLATFORM_LABEL, accessOf, isApp, participantProblems, type Component, type Participant as ParticipantFile } from "../register/src/participant.ts";
 
@@ -202,14 +203,21 @@ for (const file of jsonFiles("requests")) {
 
 // ---------------------------------------------------------------- catalog
 const catalog = existsSync(join(ROOT, "catalog.json")) ? readJson(join(ROOT, "catalog.json")) : undefined;
+/** The spec's requirement ids at the tag this repo pins, which an expectation's `rule` must name. */
+function specRequirementIds(): Set<string> {
+  const fetched = Bun.spawnSync([join(ROOT, "scripts/fetch-spec.sh")], { stdout: "inherit", stderr: "inherit" });
+  if (!fetched.success) { fail("scripts/fetch-spec.sh failed, so the catalog's rule ids can't be checked"); return new Set(); }
+  return new Set((readJson(join(ROOT, "spec-requirements.json"))?.requirements ?? []).map((r: { id: string }) => r.id));
+}
 if (catalog) {
+  const requirementIds = specRequirementIds();
   const ids = new Set<string>();
   for (const tc of catalog.testCases ?? []) {
     if (ids.has(tc.id)) fail(`catalog.json: duplicate test case ${tc.id}`);
     ids.add(tc.id);
     const req = requests.find((r) => r.file === tc.request);
     if (!req) { fail(`catalog.json: ${tc.id} points at missing request ${tc.request}`); continue; }
-    for (const problem of caseProblems(tc, req.request)) fail(`catalog.json: ${problem}`);
+    for (const problem of caseProblems(tc, req.request, requirementIds)) fail(`catalog.json: ${problem}`);
     const config = tc.walletStep?.testingWallet;
     if (config) for (const problem of configProblems(config)) fail(`catalog.json: ${tc.id} Testing Wallet config: ${problem}`);
   }
@@ -276,7 +284,7 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
       : `**Request:** [\`${tc.request}\`](requests/${tc.request}), the same request as [${first.id}](${link(first)}), asks for ${catalog.requests[tc.request].asks}.`;
     const step = tc.walletStep ? tc.walletStep.text : "None: share everything the wallet offers.";
     const sees = tc.expect.length
-      ? tc.expect.map((e) => { const d = describeExpectation(e, req); return e.rule ? `${d.replace(/\.$/, "")} ([${e.rule}](${catalog.specBase}${e.rule})).` : d; }).join(" ")
+      ? tc.expect.map((e) => `${describeExpectation(e, req).replace(/\.$/, "")} (${e.rule ? `[${e.rule}](${catalog.specBase}${e.rule})` : STEP_DONE}).`).join(" ")
       : "Whatever the wallet sends; this case has no checks beyond the spec's own.";
     const walletPass = [tc.expect.length ? "The Verifier sees the above." : "The response passes the spec's checks.", sentences(tc.walletShows)].filter(Boolean).join(" ");
     const web = tc.paths.includes("web");

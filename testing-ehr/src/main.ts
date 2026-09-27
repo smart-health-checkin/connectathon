@@ -9,7 +9,7 @@ import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 import { jsonHtml } from "../../shared/smart-json.ts";
 import { configUrl, FAULTS, isTestingWalletUrl, RESPONSE_SIZES, STATUSES, type WalletConfig } from "../../testing-wallet/src/config.ts";
-import { caseHref, caseLabel, describeExpectation, evaluateExpectations, ruleHref, type Evaluated, type RequestInfo, type TestCase } from "./cases.ts";
+import { STEP_DONE, caseHref, caseLabel, describeExpectation, evaluateExpectations, ruleHref, type Evaluated, type RequestInfo, type TestCase } from "./cases.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
@@ -187,10 +187,10 @@ function describeCase() {
   const stepText = step ? step.text.replace(/^./, (c) => c.toLowerCase()) : "";
   box.innerHTML = `<p>${esc(tc.summary)}${tc.paths.length === 1 ? ` Meant for the ${esc(tc.paths[0]!)} path.` : ""}</p>
     ${step ? walletDoesStep(tc)
-      ? `<p class="step"><b>The SMART Testing Wallet will do this step:</b> ${esc(stepText)}</p>`
-      : `<p class="step"><b>Ask the person using the wallet to</b> ${esc(stepText)}</p>` : ""}
-    ${tc.expect.length ? `<p><b>This EHR will check that:</b></p><ul>${tc.expect.map((e) => `<li>${esc(describeExpectation(e, req))}${ruleLink(e.rule)}</li>`).join("")}</ul>` : `<p>This case has no expectations to check on the response; <a href="../${caseHref(tc)}">its description</a> says what to look for.</p>`}
-    ${tc.walletShows?.length ? `<p><b>Look in the wallet for:</b> ${esc(tc.walletShows.join(" "))}</p>` : ""}`;
+      ? `<p class="step"><b>The SMART Testing Wallet will do this step:</b> ${withLinks(stepText)}</p>`
+      : `<p class="step"><b>Ask the person using the wallet to</b> ${withLinks(stepText)}</p>` : ""}
+    ${tc.expect.length ? `<p><b>This EHR will check that:</b></p><ul>${tc.expect.map((e) => `<li>${esc(describeExpectation(e, req))}${basisOf(e)}</li>`).join("")}</ul>` : `<p>This case has no expectations to check on the response; <a href="../${caseHref(tc)}">its description</a> says what to look for.</p>`}
+    ${tc.walletShows?.length ? `<p><b>Look in the wallet for:</b> ${withLinks(tc.walletShows.join(" "))}</p>` : ""}`;
 }
 
 /** The request Send will use, or why there isn't one. */
@@ -445,8 +445,12 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
   refresh();
 }
 
-/** A link to the spec requirement an expectation checks, if it names one. */
-const ruleLink = (rule?: string) => (rule ? ` <a href="${esc(ruleHref(rule))}" target="_blank" rel="noopener">${esc(rule)}</a>` : "");
+/** What an expectation traces to: a link to the spec requirement it checks, or the case's step. */
+const basisOf = (e: { rule?: string; basis?: "step" }) =>
+  e.rule ? ` <a href="${esc(ruleHref(e.rule))}" target="_blank" rel="noopener">${esc(e.rule)}</a>` : e.basis === "step" ? ` <span class="small">(${STEP_DONE})</span>` : "";
+/** Catalog text, escaped, with its Markdown links ([text](url)) as links. */
+const withLinks = (md: string) =>
+  esc(md).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, text: string, href: string) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`).replace(/`([^`]+)`/g, "<code>$1</code>");
 
 /** One line saying what happened: rejected, usable with problems, or passed (with warnings). */
 function headlineFor(checks: Check[], rejected: boolean): string {
@@ -466,7 +470,7 @@ function logFor(r: Run): string {
     ...(r.checks.length
       ? r.checks.map((c) => `[${c.outcome.toUpperCase()}] ${c.id}${c.rule ? ` (${c.rule})` : ""}: ${c.title}${c.detail ? ` — ${c.detail}` : ""}`)
       : [`${r.verdict === "declined" ? "DECLINED" : "ERROR"}: ${r.message}`]),
-    ...(r.expectations ?? []).map((e) => `[${e.outcome.toUpperCase()}] ${e.id} (${r.caseId}${e.rule ? `, ${e.rule}` : ""}): ${e.title}${e.detail ? ` — ${e.detail}` : ""}`),
+    ...(r.expectations ?? []).map((e) => `[${e.outcome.toUpperCase()}] ${e.id} (${r.caseId}${e.rule ? `, ${e.rule}` : e.basis === "step" ? `, ${STEP_DONE}` : ""}): ${e.title}${e.detail ? ` — ${e.detail}` : ""}`),
   ].join("\n");
 }
 
@@ -527,7 +531,7 @@ function show(r: Run) {
 
   const expectHtml = r.expectations
     ? `<section class="card"><h2>Test case ${esc(r.caseId ?? "")} <span>${r.expectations.filter((e) => e.outcome === "pass").length} of ${r.expectations.length} met</span></h2>${r.expectations.length
-        ? `<div class="checks">${r.expectations.map((e) => `<div class="check"><span class="dot ${e.outcome}"></span><span>${esc(e.title)}${ruleLink(e.rule)}</span>${e.detail ? `<small>${esc(e.detail)}</small>` : ""}</div>`).join("")}</div>`
+        ? `<div class="checks">${r.expectations.map((e) => `<div class="check"><span class="dot ${e.outcome}"></span><span>${esc(e.title)}${basisOf(e)}</span>${e.detail ? `<small>${esc(e.detail)}</small>` : ""}</div>`).join("")}</div>`
         : `<p class="small">This case has no expectations to check on the response.</p>`}</section>`
     : "";
   $("result").innerHTML = verdict + expectHtml + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, [...failures, ...warnings]) : "");

@@ -34,7 +34,11 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   (the section of its page), `request`, an optional `walletStep` (text for the
   person using the wallet, and the Testing Wallet config that does it), `expect` (checks
   on the response, defined and evaluated in `testing-ehr/src/cases.ts`), and what to look
-  for by eye. Its `requests` says in plain words what each file in `requests/` asks for;
+  for by eye. Every check traces to the spec or to the step: it has a `rule`, a requirement
+  id in the spec's `requirements.json` at the pinned tag (fetched by `scripts/fetch-spec.sh`),
+  or `"basis": "step"`, which confirms the case's `walletStep` was done and needs one. The
+  build fails otherwise. A preference the spec doesn't require is not a check; at most it is
+  something to look for by eye. Its `requests` says in plain words what each file in `requests/` asks for;
   the scenario pages, the Test requests page, and the Testing EHR's request menu use it.
   The build validates the catalog and writes each case's block where its page has
   `<!-- test cases: TIER -->` (cases with no group) or `<!-- test cases: TIER GROUP -->`, failing if a case is

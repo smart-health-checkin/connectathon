@@ -10,14 +10,18 @@ export type Expectation = (
   | { check: "status"; item: string; status: string[] }
   | { check: "every-status"; status: string[] }
   | { check: "includes-type"; item: string; resourceType: string }
-  | { check: "only-types"; item: string; resourceTypes: string[] }
   | { check: "media-type"; item: string; mediaType: string }
   | { check: "one-artifact"; items: string[] }
   | { check: "min-size"; kb: number }
-) & {
+) & (
   /** The spec requirement the expectation checks, such as "HOLD-4" (its anchor in the spec). */
-  rule?: string;
-};
+  | { rule: string; basis?: never }
+  /** Not a spec rule: the check confirms the case's step for the person using the wallet was done. */
+  | { basis: "step"; rule?: never }
+);
+
+/** How the scenario blocks and the Testing EHR label a step check. */
+export const STEP_DONE = "the step was done";
 
 /** A spec requirement's address, from its id. */
 export const ruleHref = (rule: string): string => `https://smart-health-checkin.org/spec/#${rule}`;
@@ -60,8 +64,6 @@ export const caseLabel = (tc: Pick<TestCase, "id" | "title">): string => `${tc.i
 type Item = { id: string; title: string; content: { kind: string; profiles?: readonly string[]; profilesFrom?: readonly string[] } };
 type Request = { items: readonly Item[] };
 
-/** Resources that support a record (a reference target) rather than being one. */
-const SUPPORTING = new Set(["Patient", "Practitioner", "PractitionerRole", "Organization", "Location", "Medication"]);
 const or = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} or ${xs.at(-1)}` : xs[0] ?? "");
 const and = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}` : xs[0] ?? "");
 
@@ -72,7 +74,6 @@ export function describeExpectation(e: Expectation, request: Request): string {
     case "status": return `${t(e.item)} is ${or(e.status)}.`;
     case "every-status": return `Every item is ${or(e.status)}.`;
     case "includes-type": return `${t(e.item)} includes a ${e.resourceType} record.`;
-    case "only-types": return `${t(e.item)} has only ${or(e.resourceTypes)} records, apart from the resources they reference.`;
     case "media-type": return `${t(e.item)} comes as ${e.mediaType}.`;
     case "one-artifact": return `One record answers ${and(e.items.map(t))}.`;
     case "min-size": return `The response is at least ${e.kb >= 1024 ? `${e.kb / 1024} MB` : `${e.kb} KB`}.`;
@@ -80,15 +81,22 @@ export function describeExpectation(e: Expectation, request: Request): string {
 }
 
 /** Problems with a test case against its request, in words. */
-export function caseProblems(tc: TestCase, request: Request): string[] {
+export function caseProblems(tc: TestCase, request: Request, requirementIds?: ReadonlySet<string>): string[] {
   const ids = new Set(request.items.map((i) => i.id));
   const problems: string[] = [];
   const known = (id: string) => { if (!ids.has(id)) problems.push(`${tc.id}: item "${id}" isn't in ${tc.request}`); };
   for (const e of tc.expect) {
     if ("item" in e) known(e.item);
     if (e.check === "one-artifact") e.items.forEach(known);
-    if (e.rule !== undefined && !/^[A-Z]+-\d+$/.test(e.rule)) problems.push(`${tc.id}: rule "${e.rule}" isn't a spec requirement id such as HOLD-4`);
-    if (!["status", "every-status", "includes-type", "only-types", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
+    // Every check traces to the spec (a requirement id) or to the case's own step.
+    const n = `${tc.id} expectation ${tc.expect.indexOf(e) + 1} (${e.check})`;
+    if (e.rule !== undefined && e.basis !== undefined) problems.push(`${n}: has both a rule and a basis; give one`);
+    else if (e.rule !== undefined) {
+      if (requirementIds ? !requirementIds.has(e.rule) : !/^[A-Z0-9]+-\d+$/.test(e.rule)) problems.push(`${n}: rule "${e.rule}" isn't a requirement id in the spec's requirements.json`);
+    } else if (e.basis === "step") {
+      if (!tc.walletStep?.text) problems.push(`${n}: a step check needs the case's walletStep to state the step`);
+    } else problems.push(`${n}: needs a "rule" (a spec requirement id) or "basis": "step"; a check that traces to neither doesn't belong in the case`);
+    if (!["status", "every-status", "includes-type", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
   }
   for (const id of Object.keys(tc.walletStep?.testingWallet?.status ?? {})) known(id);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(tc.id)) problems.push(`${tc.id}: the id must be kebab-case`);
@@ -97,7 +105,7 @@ export function caseProblems(tc: TestCase, request: Request): string[] {
   return problems;
 }
 
-export type Evaluated = { id: string; title: string; outcome: "pass" | "fail"; detail: string; rule?: string };
+export type Evaluated = { id: string; title: string; outcome: "pass" | "fail"; detail: string; rule?: string; basis?: "step" };
 export type Observed = {
   request: Request;
   smartResponse?: { artifacts?: any[] };
@@ -117,7 +125,7 @@ export function evaluateExpectations(expect: Expectation[], o: Observed): Evalua
   const records = (id: string) => forItem(id).flatMap(o.resourcesOf);
   return expect.map((e, n) => {
     const title = describeExpectation(e, o.request);
-    const result = (ok: boolean, detail: string): Evaluated => ({ id: `expect-${n + 1}`, title, outcome: ok ? "pass" : "fail", detail, ...(e.rule ? { rule: e.rule } : {}) });
+    const result = (ok: boolean, detail: string): Evaluated => ({ id: `expect-${n + 1}`, title, outcome: ok ? "pass" : "fail", detail, ...(e.rule ? { rule: e.rule } : {}), ...(e.basis ? { basis: e.basis } : {}) });
     if (!o.items) return result(false, "the response was rejected");
     switch (e.check) {
       case "status": {
@@ -131,11 +139,6 @@ export function evaluateExpectations(expect: Expectation[], o: Observed): Evalua
       case "includes-type": {
         const n = records(e.item).filter((r) => r?.resourceType === e.resourceType).length;
         return result(n > 0, `${n} ${e.resourceType} record${n === 1 ? "" : "s"}`);
-      }
-      case "only-types": {
-        const rs = records(e.item).filter((r) => !SUPPORTING.has(r?.resourceType));
-        const other = [...new Set(rs.map((r) => r?.resourceType).filter((t) => !e.resourceTypes.includes(t)))];
-        return result(rs.length > 0 && !other.length, other.length ? `also ${other.join(", ")}` : `${rs.length} record${rs.length === 1 ? "" : "s"}`);
       }
       case "media-type": {
         const types = [...new Set(forItem(e.item).map((a) => a.mediaType))];

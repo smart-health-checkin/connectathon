@@ -78,13 +78,17 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Fill in the PHQ-2 form and share it."
+      },
       "expect": [
         {
           "check": "status",
           "item": "phq2",
           "status": [
             "fulfilled"
-          ]
+          ],
+          "basis": "step"
         }
       ],
       "walletShows": [
@@ -123,7 +127,7 @@
           "status": [
             "declined"
           ],
-          "rule": "HOLD-1"
+          "basis": "step"
         }
       ],
       "verifierShows": [
@@ -139,19 +143,24 @@
       "title": "Anything in US Core",
       "tier": "advanced",
       "group": "larger-data",
-      "summary": "A request for anything in US Core, answered with a modest record of whatever resource types the wallet holds.",
+      "summary": "A request for anything in US Core, answered with whatever resource types the wallet holds.",
       "request": "uscdi.json",
       "paths": [
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Share the patient's US Core records."
+      },
       "expect": [
         {
           "check": "status",
           "item": "uscdi",
           "status": [
-            "fulfilled"
-          ]
+            "fulfilled",
+            "partial"
+          ],
+          "basis": "step"
         }
       ],
       "walletShows": [
@@ -176,22 +185,16 @@
         "native"
       ],
       "walletStep": {
-        "text": "Answer as a patient with a large record.",
+        "text": "Answer as a patient with a large record, and share at least 1 MB of it.",
         "testingWallet": {
           "patient": "large"
         }
       },
       "expect": [
         {
-          "check": "status",
-          "item": "uscdi",
-          "status": [
-            "fulfilled"
-          ]
-        },
-        {
           "check": "min-size",
-          "kb": 1024
+          "kb": 1024,
+          "basis": "step"
         }
       ],
       "verifierShows": [
@@ -252,21 +255,26 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Fill in the form and share it. A wallet that can't fetch or show the form reports the item unsupported or error instead ([FORM-4](https://smart-health-checkin.org/spec/#FORM-4))."
+      },
       "expect": [
         {
           "check": "status",
           "item": "gad7",
           "status": [
             "fulfilled",
-            "unsupported"
-          ]
+            "unsupported",
+            "error"
+          ],
+          "basis": "step"
         }
       ],
       "walletShows": [
-        "The wallet renders the fetched form, or reports the item unsupported rather than inventing a form."
+        "The wallet renders the fetched form, or reports the item unsupported or error rather than inventing a form."
       ],
       "verifierShows": [
-        "The Verifier shows the answers."
+        "The Verifier shows the answers, or the item's status when there are none."
       ],
       "specSections": [
         "5-4-2-form-fhir"
@@ -282,13 +290,17 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Fill in the form and share it."
+      },
       "expect": [
         {
           "check": "status",
           "item": "phq2",
           "status": [
             "fulfilled"
-          ]
+          ],
+          "basis": "step"
         }
       ],
       "verifierShows": [
@@ -308,13 +320,17 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Fill in the form and share it."
+      },
       "expect": [
         {
           "check": "status",
           "item": "semaglutide",
           "status": [
             "fulfilled"
-          ]
+          ],
+          "basis": "step"
         }
       ],
       "walletShows": [
@@ -337,21 +353,22 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Share the patient's recent lab results and vital signs."
+      },
       "expect": [
         {
           "check": "status",
           "item": "labs-vitals",
           "status": [
-            "fulfilled"
-          ]
-        },
-        {
-          "check": "only-types",
-          "item": "labs-vitals",
-          "resourceTypes": [
-            "Observation"
-          ]
+            "fulfilled",
+            "partial"
+          ],
+          "basis": "step"
         }
+      ],
+      "walletShows": [
+        "The wallet matches only Observations to this item, since `resourceTypes` narrows the profile family ([SEL-3](https://smart-health-checkin.org/spec/#SEL-3))."
       ],
       "verifierShows": [
         "The Verifier shows the Observations."
@@ -391,11 +408,15 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Share the immunizations as a SMART Health Card."
+      },
       "expect": [
         {
           "check": "media-type",
           "item": "immunizations",
-          "mediaType": "application/smart-health-card"
+          "mediaType": "application/smart-health-card",
+          "basis": "step"
         }
       ],
       "verifierShows": [
@@ -415,16 +436,21 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Share the insurance card as a SMART Health Card."
+      },
       "expect": [
         {
           "check": "media-type",
           "item": "coverage",
-          "mediaType": "application/smart-health-card"
+          "mediaType": "application/smart-health-card",
+          "basis": "step"
         },
         {
           "check": "includes-type",
           "item": "coverage",
-          "resourceType": "Coverage"
+          "resourceType": "Coverage",
+          "basis": "step"
         }
       ],
       "verifierShows": [
@@ -458,7 +484,8 @@
           "items": [
             "allergies",
             "medications"
-          ]
+          ],
+          "basis": "step"
         }
       ],
       "verifierShows": [
@@ -518,13 +545,17 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Check the prefilled answers, change any that are wrong, fill in the rest, and share the form."
+      },
       "expect": [
         {
           "check": "status",
           "item": "semaglutide",
           "status": [
             "fulfilled"
-          ]
+          ],
+          "basis": "step"
         }
       ],
       "walletShows": [
@@ -565,20 +596,25 @@
         "web",
         "native"
       ],
+      "walletStep": {
+        "text": "Share Demographics."
+      },
       "expect": [
         {
           "check": "status",
           "item": "mystery",
           "status": [
             "unsupported"
-          ]
+          ],
+          "rule": "SEL-9"
         },
         {
           "check": "status",
           "item": "patient",
           "status": [
             "fulfilled"
-          ]
+          ],
+          "basis": "step"
         }
       ],
       "verifierShows": [

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Put the spec's conformance cases where this repo's tests read them.
-# They come from github.com/smart-health-checkin/spec at SPEC_REF, a vX.Y.Z tag.
+# Put the spec's conformance cases where this repo's tests read them, and its
+# requirements.json where the build checks catalog.json's rule ids. They come from github.com/smart-health-checkin/spec at SPEC_REF, a vX.Y.Z tag.
 # Tags never move, so bump SPEC_REF to take a new set. The tag is fetched once
 # into .cache/spec/<ref> and copied into place (all gitignored).
 #   scripts/fetch-spec.sh
@@ -15,7 +15,7 @@ if [ -n "${SPEC_DIR:-}" ]; then
 else
   SRC=".cache/spec/$SPEC_REF"
   STAMP="$SPEC_REF"
-  if [ ! -d "$SRC/conformance" ]; then
+  if [ ! -d "$SRC/conformance" ] || [ ! -f "$SRC/requirements.json" ]; then
     TMP="$(mktemp -d)"
     git -C "$TMP" init -q
     git -C "$TMP" remote add origin https://github.com/smart-health-checkin/spec
@@ -29,7 +29,7 @@ else
     fi
     rm -rf "$SRC"
     mkdir -p "$SRC"
-    mv "$TMP/fixtures" "$TMP/conformance" "$SRC/"
+    mv "$TMP/fixtures" "$TMP/conformance" "$TMP/requirements.json" "$SRC/"
     rm -rf "$TMP"
   fi
 fi
@@ -46,3 +46,8 @@ place() {
 }
 
 place conformance spec-conformance
+if [ -n "${SPEC_DIR:-}" ] || [ "$(cat .spec-requirements.ref 2>/dev/null || true)" != "$STAMP" ] || [ ! -f spec-requirements.json ]; then
+  cp "$SRC/requirements.json" spec-requirements.json
+  echo "$STAMP" > .spec-requirements.ref
+  echo "spec-requirements.json is spec $STAMP requirements.json"
+fi
