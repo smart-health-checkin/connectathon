@@ -41,18 +41,22 @@ const RELEASE_APK = "https://github.com/smart-health-checkin/android-wallet/rele
 const adb = (...a: string[]) => $`${ADB} -s ${SERIAL} ${a}`.quiet().nothrow();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type Node = { text: string; desc: string; cls: string; checked: boolean; left: number; top: number; bottom: number; x: number; y: number };
+type Node = { text: string; id: string; desc: string; cls: string; checked: boolean; left: number; top: number; bottom: number; x: number; y: number };
 async function screen(): Promise<Node[]> {
   await adb("shell", "uiautomator", "dump", "/sdcard/ui.xml");
   const xml = (await adb("shell", "cat", "/sdcard/ui.xml")).stdout.toString();
   return [...xml.matchAll(/<node ([^>]*)>/g)].map((m) => {
     const a = Object.fromEntries([...m[1]!.matchAll(/([\w-]+)="([^"]*)"/g)].map((x) => [x[1], x[2]]));
     const [l, t, r, b] = (a.bounds ?? "[0,0][0,0]").match(/\d+/g)!.map(Number);
-    return { text: a.text ?? "", desc: a["content-desc"] ?? "", cls: a.class ?? "", checked: a.checked === "true", left: l!, top: t!, bottom: b!, x: (l! + r!) >> 1, y: (t! + b!) >> 1 };
+    return { text: a.text ?? "", id: (a["resource-id"] ?? "").replace(/^.*:id\//, ""), desc: a["content-desc"] ?? "", cls: a.class ?? "", checked: a.checked === "true", left: l!, top: t!, bottom: b!, x: (l! + r!) >> 1, y: (t! + b!) >> 1 };
   });
 }
+// The wallet's controls carry test tags, which show as resource ids (wallet 0.4.5
+// and later); older wallets are matched by their labels and layout.
+const isShare = (n: Node) => n.id === "share-selected" || n.text === "Share selected data";
+const SHARE = /^(share-selected|Share selected data)$/;
 async function tapIfShown(re: RegExp): Promise<boolean> {
-  const n = (await screen()).find((n) => re.test(n.text) || re.test(n.desc));
+  const n = (await screen()).find((n) => re.test(n.text) || re.test(n.desc) || re.test(n.id));
   if (!n) return false;
   await adb("shell", "input", "tap", String(n.x), String(n.y));
   return true;
@@ -69,8 +73,9 @@ async function choosePatient(patient: "aria" | "large") {
 }
 
 // In the wallet's consent screen: scroll through, and for each question whose
-// radio buttons are all unchecked, tap the first one. A question starts at a
-// text line on the left margin; its options are the radio buttons after it.
+// radio buttons are all unchecked, tap the first one. A question starts at its
+// label (test tag "question"; in older wallets, a text line on the left
+// margin); its options are the radio buttons after it.
 async function answerForms(): Promise<number> {
   const answered = new Set<string>();
   let last = "";
@@ -79,7 +84,8 @@ async function answerForms(): Promise<number> {
     const signature = nodes.map((n) => n.text + n.checked).join("|");
     if (signature === last) break; // scrolled to the end
     last = signature;
-    const viewBottom = Math.max(...nodes.filter((n) => /Share selected data/.test(n.text)).map((n) => n.top), 0) || 2000;
+    const viewBottom = Math.max(...nodes.filter(isShare).map((n) => n.top), 0) || 2000;
+    const tagged = nodes.some((n) => n.id === "question");
     let question = "";
     let group: Node[] = [];
     const flush = async () => {
@@ -91,7 +97,7 @@ async function answerForms(): Promise<number> {
     };
     for (const n of nodes) {
       if (n.cls.endsWith("RadioButton")) group.push(n);
-      else if (n.cls.endsWith("TextView") && n.text && n.left <= 110) { await flush(); question = n.text; }
+      else if (tagged ? n.id === "question" : n.cls.endsWith("TextView") && n.text && n.left <= 110) { await flush(); question = n.text; }
     }
     await flush();
     await adb("shell", "input", "swipe", "540", "1500", "540", "700", "300");
@@ -236,10 +242,10 @@ async function runCase(caseId: string) {
     const status = await page.$eval("#status", (e) => e.textContent ?? "").catch(() => "");
     if (/passed|failed|Error|declined/.test(status)) break;
     const nodes = await screen();
-    if (nodes.some((n) => n.text === "Share selected data")) {
+    if (nodes.some(isShare)) {
       const n = await answerForms();
       if (n) steps.push(`answered ${n} question(s)`);
-      if (await tapIfShown(/^Share selected data$/)) steps.push("shared from the wallet");
+      if (await tapIfShown(SHARE)) steps.push("shared from the wallet");
     } else {
       for (const [re, what] of STEPS) if (await tapIfShown(re)) { steps.push(what); break; }
       if (steps.includes("shared from the wallet") && steps.at(-1) === "picked the wallet in the system sheet") {
