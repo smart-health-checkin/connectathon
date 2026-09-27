@@ -16,7 +16,8 @@ main { min-height: calc(100vh - 59px); }
 .tool-head p { margin:0; font-size:13px; color:var(--fg-3); }
 .muted { color:var(--fg-3); } .small { font-size:13px; }
 h3 { font-size:14px; margin:16px 0 6px; }
-.asker { font-size:18px; margin:4px 0; } .asker b { font-family: var(--font-mono); font-size:16px; }
+.asker { font-size:18px; margin:4px 0; }
+.asker-origin { margin:0 0 8px; } .asker-origin b { font-family: var(--font-mono); font-size:20px; overflow-wrap:anywhere; }
 .purpose { margin:0 0 4px; }
 .patient { display:block; margin:12px 0; }
 .items { list-style:none; padding:0; margin:0; display:grid; gap:12px; }

@@ -79,7 +79,7 @@ options for exercising a Verifier's error handling.
 
 - One card per item: title, summary, and what would be shared, counted by
   resource type (including records the response size setting adds). A share/don't-share switch, defaulting to share.
-- `required: true` is shown as "the clinic says this is required" and changes
+- `required: true` is shown as "the request marks this as required" and changes
   nothing else.
 - Items the patient switches off become `declined`.
 - "Decline all" answers with every item `declined` and no artifacts

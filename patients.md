@@ -4,7 +4,7 @@ For patients, caregivers, and community advocates who want to try a new way to c
 
 ## Background
 
-When you check in for a visit, you usually fill out the same forms again and again. With SMART Health Check-in, you answer from a health app of your choice that already has your records, like your allergies, medications, or insurance card, and that can help you answer the clinic's other questions. You see exactly what the clinic is asking for, choose what to share, and the answers go straight to the clinic.
+When you check in for a visit, you usually fill out the same forms again and again. With SMART Health Check-in, you answer from a health app of your choice that already has your records, like your allergies, medications, or insurance card, and that can help you answer the clinic's other questions. Your app shows which website or app is asking and exactly what it's asking for, you choose what to share, and the answers go straight back to it.
 
 At this event, clinics and health apps are trying it together for the first time. Your view of what's clear, what's confusing, and what would make you trust it is some of the most useful feedback we can get.
 

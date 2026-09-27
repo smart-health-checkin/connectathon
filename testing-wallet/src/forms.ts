@@ -135,7 +135,7 @@ export function renderForm(host: HTMLElement, state: FormState, idPrefix: string
     const current = state.answers.get(item.linkId) ?? [];
     const wrap = el("div", { className: `q q-${item.type}` });
     const heading = el("div", { className: "q-text" }, label);
-    if (item.required) heading.append(el("span", { className: "q-req" }, " (the clinic marks this required)"));
+    if (item.required) heading.append(el("span", { className: "q-req" }, " (the request marks this required)"));
     if (state.prefilled.has(item.linkId)) heading.append(el("span", { className: "q-prefilled" }, " filled in from your record"));
 
     if (item.type === "display") {

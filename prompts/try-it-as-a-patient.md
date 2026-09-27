@@ -31,13 +31,13 @@ Steps to tell them:
 
 1. Open the link. It's a pretend clinic's check-in page listing what the clinic would like to know.
 2. Under **Check in with your health app**, press **Continue with Demo wallet**. A new tab or window opens with the "Demo wallet", a stand-in for the patient's own health app. On a phone, you may need to switch tabs.
-3. In the Demo wallet, look at what the clinic is asking for. Uncheck anything you wouldn't want to share, then press **Share selected**. (Pressing **Not now** shows what happens when you share nothing.)
+3. In the Demo wallet, look at which website is asking (the wallet names the website, since that's all it can check) and what it's asking for. Uncheck anything you wouldn't want to share, then press **Share selected**. (Pressing **Not now** shows what happens when you share nothing.)
 4. Go back to the clinic's page. It should say **Shared from Demo wallet**, then **You're checked in**, and show what arrived.
 
 Then ask, one or two questions at a time:
 
 - How did that go? Did anything not work, or look different from what you expected?
-- Was it clear what the clinic was asking for, and why?
+- Was it clear who was asking, what for, and why?
 - Did you feel in control of what you shared? Was anything confusing about choosing?
 - What would make you trust a real version of this, or not?
 - How does this compare to how you check in today?

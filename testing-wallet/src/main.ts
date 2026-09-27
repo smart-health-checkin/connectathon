@@ -396,12 +396,12 @@ function renderItems(items: Prepared[]) {
       const head = el("label", { htmlFor: toggle.id, className: "item-head" }, toggle, " ", el("b", {}, p.item.title));
       card.append(head);
       if (p.item.summary) card.append(el("p", { className: "summary" }, p.item.summary));
-      if (p.item.required) card.append(el("p", { className: "required" }, "The clinic says this is required. You can still choose not to share it."));
+      if (p.item.required) card.append(el("p", { className: "required" }, "The request marks this as required. You can still choose not to share it."));
       if (p.kind === "selection") {
         card.append(el("p", { className: "preview", id: `preview-${idx}` }, previewText(p.entries)));
       } else if (p.kind === "form") {
         const host = el("div", { className: "form" });
-        card.append(el("p", { className: "preview" }, p.state.questionnaire.title ?? "A form from the clinic"), host);
+        card.append(el("p", { className: "preview" }, p.state.questionnaire.title ?? "A form in the request"), host);
         renderForm(host, p.state, `f${idx}`);
       } else {
         card.append(el("p", { className: "preview warn" }, `This wallet can't answer this item: ${p.reason}. It will be reported as unsupported.`));
@@ -468,7 +468,7 @@ async function showRequest(s: Session) {
       $("consent").hidden = true;
       $("done").hidden = false;
       const on = optionsOn();
-      $("done-text").textContent = `Sent ${formatSize(chars)}${on.length ? `, with test options: ${on.join("; ")}.` : ". You can close this tab."}`;
+      $("done-text").textContent = `Sent ${formatSize(chars)} to ${s.ehrOrigin}${on.length ? `, with test options: ${on.join("; ")}.` : ". You can close this tab."}`;
       setShareLink("shared");
       if (!settings.panelOpen && !on.length) setTimeout(() => window.close(), 800);
     } catch (e) {
@@ -491,7 +491,7 @@ async function showRequest(s: Session) {
       reply(s, { outcome: "approved", credential });
       $("consent").hidden = true;
       $("done").hidden = false;
-      $("done-text").textContent = "Declined every item; the clinic was told. You can close this tab.";
+      $("done-text").textContent = `Declined every item; ${s.ehrOrigin} was told. You can close this tab.`;
       setShareLink("declined");
       if (!settings.panelOpen && !optionsOn().length) setTimeout(() => window.close(), 800);
     } catch (e) {
