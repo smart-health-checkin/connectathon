@@ -9,14 +9,6 @@
   ],
   "components": [
     {
-      "id": "smart-clinic-checkin",
-      "role": "verifier",
-      "name": "Clinic check-in",
-      "description": "The client library's clinic check-in demo. Pick a request, pick a wallet, and see the decrypted, checked response.",
-      "status": "up",
-      "url": "https://smart-health-checkin.org/client/demo/"
-    },
-    {
       "id": "smart-testing-ehr",
       "role": "verifier",
       "name": "Testing EHR",
