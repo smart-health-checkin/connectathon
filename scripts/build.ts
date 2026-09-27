@@ -271,7 +271,7 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
   const sentences = (xs?: string[]) => (xs ?? []).join(" ");
   /** A link to a section of the front page, from this page. */
   const main = (anchor: string) => `${page === "index.html" ? "" : "./"}#${anchor}`;
-  return cases.filter((tc) => tc.tier === tier && tc.group === group).map((tc) => {
+  return cases.filter((tc) => tc.tier === tier && tc.group === group).map((tc, n) => {
     if (casesWritten.has(tc.id)) fail(`${page}: test case ${tc.id} is already on ${casesWritten.get(tc.id)}`);
     casesWritten.set(tc.id, page);
     const req = requests.find((r) => r.file === tc.request)!.request;
@@ -303,7 +303,8 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
     const verifierRun = web && native ? `on the web path, ${webRun}; on the native path, ${nativeRun}.` : web ? `${webRun}.` : `${nativeRun}.`;
     return [
       `<a id="${tc.id}"></a>`,
-      `### ${caseLabel(tc)}`,
+      // The front page numbers its scenarios; the id stays the name used everywhere.
+      `### ${tier === "minimum" ? `Scenario ${n + 1}: ${tc.id} (${tc.title})` : caseLabel(tc)}`,
       tc.summary,
       request,
       `**Step for the person using the wallet:** ${step}`,
