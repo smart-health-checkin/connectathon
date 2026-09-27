@@ -1,7 +1,7 @@
 /**
- * End-to-end check against the live site: the reference EHR sends a request
- * to a web wallet from the event registry, the wallet shares everything, and
- * the EHR shows the verified outcome.
+ * End-to-end check against the live site: the clinic check-in demo sends a
+ * request to a web wallet from the event registry, the wallet shares
+ * everything, and the demo shows the verified outcome.
  *
  *   bun scripts/e2e-demo.ts [request-file] [wallet-id] [wallet-fragment]
  *

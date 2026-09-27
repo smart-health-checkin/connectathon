@@ -1,7 +1,7 @@
 name: Self-test
 
 # Drives the live testing EHR against the live SMART Testing Wallet for every
-# web-path scenario and injected fault, and the reference EHR against the
+# web-path scenario and injected fault, and the clinic check-in demo against the
 # testing wallet. Opens (or updates) an issue labeled "self-test" on failure,
 # and closes it when a later run passes.
 on:

@@ -28,7 +28,7 @@ const ROOT = join(import.meta.dir, "..");
 const OUT = join(ROOT, "_site");
 const SITE = "https://smart-health-checkin.org/connectathon/";
 const REPO = "smart-health-checkin/connectathon";
-const DEMO_EHR = "https://smart-health-checkin.org/client/demo/";
+const CLINIC_DEMO = "https://smart-health-checkin.org/client/demo/";
 const CHECK_ONLY = process.argv.includes("--check-only");
 
 // Requests that are meant to fail the request validator, with the reason.
@@ -519,7 +519,7 @@ let reqRows = "";
 for (const { file, request, valid } of requests) {
   writeFileSync(join(OUT, "requests", file), JSON.stringify(request, null, 2) + "\n");
   const tryIt = valid
-    ? `<a href="${DEMO_EHR}#request=${b64url(JSON.stringify(request))}&amp;wallets=${encodeURIComponent(registryUrl)}">Try in the reference EHR</a>`
+    ? `<a href="${CLINIC_DEMO}#request=${b64url(JSON.stringify(request))}&amp;wallets=${encodeURIComponent(registryUrl)}">Try in the clinic check-in demo</a>`
     : `<span class="muted">Not sendable by the client library: it ${esc(EXPECTED_INVALID[file])}. Use the testing EHR.</span>`;
   reqRows += `<section class="req"><h2 id="${esc(file.replace(/\.json$/, ""))}"><a href="${file}">${esc(file)}</a></h2><ul>${describe(request)}</ul><p>${tryIt}</p></section>`;
 }

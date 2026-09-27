@@ -4,7 +4,7 @@ Every baseline and optional-scenario request from the [Test scenarios](../scenar
 
 Each file's `id` is `replace-with-a-unique-id`. Your EHR must send a fresh, unique `id` with every request, and the wallet echoes it back as `requestId`.
 
-"Try in the reference EHR" opens the client library's demo check-in page with that request and the event wallet registry loaded.
+"Try in the clinic check-in demo" opens the client library's clinic check-in demo with that request and the event wallet registry loaded.
 
 | Scenario | File |
 |---|---|

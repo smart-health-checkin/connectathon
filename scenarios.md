@@ -35,7 +35,7 @@ Everything the event provides, in one place. The event's own resources are all u
 | How web wallets talk to the EHR page | [Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) in the client docs |
 | Baseline and scenario requests | [Test requests](requests/) |
 | Example questionnaires | [Test questionnaires](Questionnaire/) |
-| Reference EHR check-in page | [Clinic check-in demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
+| Clinic check-in | [Clinic check-in demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
 | Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
 | Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk); [install steps](#reference-android-wallet) |
 | SMART Testing EHR | [SMART Testing EHR](testing-ehr/) ([details](#testing-ehr-and-testing-wallet)) |
