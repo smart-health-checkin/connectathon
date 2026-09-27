@@ -5,7 +5,7 @@
  *   bun scripts/build.ts --check-only validate only (used on pull requests)
  *
  * Inputs (all in this repo):
- *   index.md, the per-type pages, scenarios.md   rendered to HTML pages
+ *   index.md, the per-type pages, scenarios.md, advanced.md   rendered to HTML pages
  *   participants/*.json                    validated; web wallets that are up become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
@@ -22,8 +22,8 @@ import addFormats from "ajv-formats";
 import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join } from "node:path";
-import { caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
-import { configProblems } from "../testing-wallet/src/config.ts";
+import { caseHref, caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
+import { TESTING_WALLET_URL, configProblems, configUrl } from "../testing-wallet/src/config.ts";
 import { PLATFORM_LABEL, accessOf, isApp, participantProblems, type Component, type Participant as ParticipantFile } from "../register/src/participant.ts";
 
 const ROOT = join(import.meta.dir, "..");
@@ -213,54 +213,119 @@ if (catalog) {
     const config = tc.walletStep?.testingWallet;
     if (config) for (const problem of configProblems(config)) fail(`catalog.json: ${tc.id} Testing Wallet config: ${problem}`);
   }
+  // Every request file has a plain description, and every description a file.
+  const described = Object.keys(catalog.requests ?? {});
+  for (const { file } of requests) if (!catalog.requests?.[file]?.asks) fail(`catalog.json: requests has no "asks" for ${file}`);
+  for (const file of described) if (!requests.some((r) => r.file === file)) fail(`catalog.json: requests describes ${file}, which isn't in requests/`);
+}
+
+/** The page each tier of test cases is on. */
+const TIER_PAGE: Record<TestCase["tier"], string> = { minimum: "scenarios.html", advanced: "advanced.html" };
+/** Where each case was written, to check every case appears once, on its tier's page. */
+const casesWritten = new Map<string, string>();
+
+/** A request's items as a Markdown table: id, title, what it asks for, and the media types it accepts. */
+function itemsTable(request: any): string {
+  const cell = (s: string) => s.replace(/\|/g, "\\|");
+  const selector = (c: any): string => {
+    if (c.kind === "form.fhir") return `The form \`${c.questionnaireCanonical}\`, ${c.questionnaire ? "sent inline" : "by reference only"}`;
+    if (c.kind !== "selection.fhir") return `Selector kind \`${c.kind}\``;
+    const parts = [
+      ...(c.profiles?.length ? [`Profile ${c.profiles.map((p: string) => `\`${p.split("/").pop()}\``).join(" or ")}`] : []),
+      ...(c.profilesFrom ?? []).map((f: string) => `Any profile in \`${f}\``),
+      ...(c.resourceTypes?.length ? [`only ${c.resourceTypes.join(", ")}`] : []),
+    ];
+    return parts.join(", ") || "Anything: no selector";
+  };
+  return [
+    "| Item id | Title | Asks for | Accepts |",
+    "|---|---|---|---|",
+    ...request.items.map((i: any) => `| \`${i.id}\` | ${cell(i.title)} | ${cell(selector(i.content))} | ${i.accept.map((a: string) => `\`${a}\``).join(", ")} |`),
+  ].join("\n");
 }
 
 /**
- * The scenario sections of scenarios.md, from catalog.json: each case's request, the step for the
- * person using the wallet, what a Verifier checks on the response, and what to look for by eye.
- * `<!-- test cases: M -->` in the Markdown becomes the cases whose id starts with M.
+ * The scenario sections of scenarios.md and advanced.md, from catalog.json. `<!-- test cases: TIER -->`
+ * becomes that tier's cases; `<!-- test cases: TIER PREFIX -->` only those whose id starts with PREFIX.
+ * Each case gets the same block: what it tests, its request, the step for the person using the wallet,
+ * what the Verifier should see, what passes for each side, how to run it with the test tools, and the spec.
  */
-function testCaseMarkdown(prefix: string): string {
+function testCaseMarkdown(page: string, tier: TestCase["tier"], prefix = ""): string {
   const cases = (catalog?.testCases ?? []) as TestCase[];
+  if (TIER_PAGE[tier] !== page) fail(`${page}: lists ${tier} test cases, which belong on ${TIER_PAGE[tier]}`);
   const section = (anchor: string) => {
     const parts = anchor.split("-");
     const n: string[] = [];
     for (const [i, t] of parts.entries()) if (/^\d+$/.test(t) || (i === 0 && /^[a-z]$/.test(t))) n.push(t.toUpperCase()); else break;
     return `[§${n.join(".")}](${catalog.specBase}${anchor})`;
   };
-  return cases.filter((tc) => new RegExp(`^${prefix}\\d`).test(tc.id)).map((tc) => {
+  const link = (tc: TestCase) => (TIER_PAGE[tc.tier] === page ? `#${tc.id.toLowerCase()}` : caseHref(tc));
+  const sentences = (xs?: string[]) => (xs ?? []).join(" ");
+  /** A link to a section of scenarios.html, from this page. */
+  const main = (anchor: string) => `${page === "scenarios.html" ? "" : "scenarios.html"}#${anchor}`;
+  return cases.filter((tc) => tc.tier === tier && tc.id.startsWith(prefix)).map((tc) => {
+    if (casesWritten.has(tc.id)) fail(`${page}: test case ${tc.id} is already on ${casesWritten.get(tc.id)}`);
+    casesWritten.set(tc.id, page);
     const req = requests.find((r) => r.file === tc.request)!.request;
-    const baseline = /^baseline-(\d+)\.json$/.exec(tc.request);
-    const requestLink = baseline ? `[Baseline ${baseline[1]}](#baseline-${baseline[1]})` : `[${tc.request}](requests/${tc.request})`;
-    const paths = tc.paths.length > 1 ? "through the web or native path" : `through the ${tc.paths[0]} path only`;
-    const step = tc.walletStep
-      ? `${tc.walletStep.text}${tc.walletStep.testingWallet ? ` The SMART Testing Wallet does this step with the config \`${JSON.stringify(tc.walletStep.testingWallet)}\` ([config URLs](https://github.com/${REPO}/blob/main/testing-wallet/FEATURES.md#config-urls)); the Testing EHR applies it when you choose this case.` : ""}`
-      : "None: share what the wallet offers.";
-    const checks = tc.expect.length ? tc.expect.map((e) => describeExpectation(e, req)).join(" ") : "Nothing beyond the spec's own checks.";
+    const first = cases.find((t) => t.request === tc.request)!;
+    const sample = existsSync(join(ROOT, "responses", tc.request.replace(/\.json$/, ".sample.json")))
+      ? ` The [sample response](responses/${tc.request.replace(/\.json$/, ".sample.json")}) is what the SMART Testing Wallet sends when the patient shares everything.`
+      : "";
+    const request = first === tc
+      ? `**Request:** [\`${tc.request}\`](requests/${tc.request}) asks for ${catalog.requests[tc.request].asks}.${sample}\n\n<details>\n<summary>The request's items</summary>\n\n${itemsTable(req)}\n\n</details>`
+      : `**Request:** [\`${tc.request}\`](requests/${tc.request}), the same request as [${first.id}](${link(first)}), asks for ${catalog.requests[tc.request].asks}.`;
+    const step = tc.walletStep ? tc.walletStep.text : "None: share everything the wallet offers.";
+    const sees = tc.expect.length
+      ? tc.expect.map((e) => describeExpectation(e, req)).join(" ")
+      : "Whatever the wallet sends; this case has no checks beyond the spec's own.";
+    const walletPass = [tc.expect.length ? "The Verifier sees the above." : "The response passes the spec's checks.", sentences(tc.walletShows)].filter(Boolean).join(" ");
+    const web = tc.paths.includes("web");
+    const native = tc.paths.includes("native");
+    const ehr = `[SMART Testing EHR with ${tc.id} chosen](testing-ehr/#case=${tc.id})`;
+    const walletRun = native && !web
+      ? `open the ${ehr}, choose “Your phone's health app” under “Which wallet”, and send.`
+      : web && !native
+        ? `open the ${ehr}, choose your web wallet under “Which wallet” (or add it by its URL), and send.`
+        : `open the ${ehr}, choose your wallet under “Which wallet” (“Your phone's health app” for a native wallet), and send.`;
+    const config = tc.walletStep?.testingWallet;
+    const webRun = config
+      ? `add \`${configUrl(TESTING_WALLET_URL, config)}\` as a web wallet on your page and check in with it; at that address the [SMART Testing Wallet](testing-wallet/) does the step itself ([config URLs](https://github.com/${REPO}/blob/main/testing-wallet/FEATURES.md#config-urls))`
+      : `check in from your page with the [SMART Testing Wallet](testing-wallet/), which is in the [wallet registry](${main("wallet-registry")})`;
+    const nativeRun = `check in on an Android phone with the [reference Android wallet](${main("reference-android-wallet")}), picking it from the phone's wallet chooser${tc.walletStep ? " and doing the step in it" : ""}`;
+    const verifierRun = web && native ? `on the web path, ${webRun}; on the native path, ${nativeRun}.` : web ? `${webRun}.` : `${nativeRun}.`;
     return [
       `<a id="${tc.id.toLowerCase()}"></a>`,
       `### ${tc.id}. ${tc.title}`,
       tc.summary,
-      [
-        `- **Request:** ${requestLink}, ${paths}.`,
-        `- **Step for the person using the wallet:** ${step}`,
-        `- **Checks on the response:** ${checks}`,
-        tc.walletShows?.length ? `- **Look for in the wallet:** ${tc.walletShows.join(" ")}` : "",
-        tc.verifierShows?.length ? `- **Look for in the Verifier:** ${tc.verifierShows.join(" ")}` : "",
-        tc.notes ? `- **Also:** ${tc.notes}` : "",
-        `- **Spec:** ${tc.specSections.map(section).join(", ")}`,
-      ].filter(Boolean).join("\n"),
-    ].join("\n\n");
+      request,
+      `**Step for the person using the wallet:** ${step}`,
+      `**The Verifier should see:** ${sees}`,
+      `**Pass for the wallet:** ${walletPass}`,
+      `**Pass for the Verifier:** ${sentences(tc.verifierShows)}`,
+      `**How to run it:**\n\n- Wallet teams: ${walletRun} The Testing EHR reports each check as met or not.\n- Verifier teams: ${verifierRun}`,
+      tc.notes ? `**Also:** ${tc.notes}` : "",
+      `**Spec:** ${tc.specSections.map(section).join(", ")}`,
+    ].filter(Boolean).join("\n\n");
   }).join("\n\n");
 }
 
 // ---------------------------------------------------------------- page sources
 // The Markdown pages may hold {{TBD: …}} (rendered as "To be announced"); nothing else in {{…}}.
-const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "scenarios.md", "requests/README.md"];
+const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "scenarios.md", "advanced.md", "requests/README.md"];
 for (const src of PAGES) {
   if (!existsSync(join(ROOT, src))) continue;
   const left = readFileSync(join(ROOT, src), "utf8").replace(/\{\{TBD:[^}]*\}\}/g, "");
   if (left.includes("{{")) fail(`${src}: stray {{ (only {{TBD: …}} is allowed in pages)`);
+}
+
+/** A page's Markdown with its `<!-- test cases: … -->` markers written out. */
+const withTestCases = (md: string, out: string) =>
+  md.replace(/<!-- test cases: (minimum|advanced)(?: ([A-Z]))? -->/g, (_m, tier: TestCase["tier"], prefix?: string) => testCaseMarkdown(out, tier, prefix));
+// Every test case appears once, on its tier's page.
+if (catalog) {
+  for (const [src, out] of [["scenarios.md", "scenarios.html"], ["advanced.md", "advanced.html"]]) withTestCases(readFileSync(join(ROOT, src!), "utf8"), out!);
+  for (const tc of catalog.testCases as TestCase[]) if (!casesWritten.has(tc.id)) fail(`catalog.json: test case ${tc.id} isn't on ${TIER_PAGE[tc.tier]}`);
+  casesWritten.clear();
 }
 
 // ---------------------------------------------------------------- stop on errors
@@ -489,7 +554,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
 }
 
 function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
-  const md = tbd(readFileSync(join(ROOT, src), "utf8")).replace(/<!-- test cases: ([A-Z]) -->/g, (_m, prefix: string) => testCaseMarkdown(prefix));
+  const md = withTestCases(tbd(readFileSync(join(ROOT, src), "utf8")), out);
   const title = md.match(/^# (.+)$/m)?.[1] ?? fallbackTitle;
   writeFileSync(join(OUT, out), page(title, `<article class="doc">${wrapTables(marked.parse(md) as string)}</article>`, { front: out === "index.html" }));
 }
@@ -506,6 +571,7 @@ renderMarkdownPage("verifier-developers.md", "verifier-developers.html", "Verifi
 renderMarkdownPage("wallet-developers.md", "wallet-developers.html", "Wallet developers");
 renderMarkdownPage("observers.md", "observers.html", "Observers");
 renderMarkdownPage("scenarios.md", "scenarios.html", "Test scenarios");
+renderMarkdownPage("advanced.md", "advanced.html", "Advanced scenarios");
 
 // Prompts people paste into an AI assistant, and the page that offers them.
 mkdirSync(join(OUT, "prompts"), { recursive: true });
@@ -565,7 +631,10 @@ for (const { file, request, valid } of requests) {
   const tryIt = valid
     ? `<a href="${CLINIC_DEMO}#request=${b64url(JSON.stringify(request))}&amp;wallets=${encodeURIComponent(registryUrl)}">Try in the clinic check-in demo</a>`
     : `<span class="muted">Not sendable by the client library: it ${esc(EXPECTED_INVALID[file])}. Use the testing EHR.</span>`;
-  reqRows += `<section class="req"><h2 id="${esc(file.replace(/\.json$/, ""))}"><a href="${file}">${esc(file)}</a></h2><ul>${describe(request)}</ul><p>${tryIt}</p></section>`;
+  const usedBy = ((catalog?.testCases ?? []) as TestCase[]).filter((t) => t.request === file).map((t) => `<a href="../${caseHref(t)}">${esc(t.id)}</a>`);
+  const asks = catalog?.requests?.[file]?.asks;
+  const about = asks ? `<p>Asks for ${esc(asks)}.${usedBy.length ? ` Used by ${usedBy.join(", ")}.` : ""}</p>` : "";
+  reqRows += `<section class="req"><h2 id="${esc(file.replace(/\.json$/, ""))}"><a href="${file}">${esc(file)}</a></h2>${about}<ul>${describe(request)}</ul><p>${tryIt}</p></section>`;
 }
 const reqReadme = existsSync(join(ROOT, "requests/README.md"))
   ? wrapTables(marked.parse(readFileSync(join(ROOT, "requests/README.md"), "utf8")) as string)

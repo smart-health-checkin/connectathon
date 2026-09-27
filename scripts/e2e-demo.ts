@@ -11,7 +11,7 @@
 import puppeteer from "puppeteer-core";
 import { readFileSync } from "node:fs";
 
-const requestFile = process.argv[2] ?? "requests/baseline-1.json";
+const requestFile = process.argv[2] ?? "requests/records.json";
 const walletId = process.argv[3] ?? "smart-testing-wallet";
 const walletSettings = process.argv[4] ?? "";
 const request = JSON.parse(readFileSync(requestFile, "utf8"));

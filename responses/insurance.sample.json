@@ -1,7 +1,7 @@
 {
   "type": "smart-health-checkin-response",
   "version": "1",
-  "requestId": "sample-baseline-2",
+  "requestId": "sample-insurance",
   "artifacts": [
     {
       "id": "fhir-patient",

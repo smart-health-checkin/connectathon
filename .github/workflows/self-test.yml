@@ -36,7 +36,7 @@ jobs:
         run: |
           set +e
           { bun scripts/self-test.ts; echo "exit=$?" > code.txt; } 2>&1 | tee out.txt
-          { bun scripts/e2e-demo.ts requests/baseline-1.json smart-testing-wallet; echo "e2e=$?" >> code.txt; } 2>&1 | tee -a out.txt
+          { bun scripts/e2e-demo.ts requests/records.json smart-testing-wallet; echo "e2e=$?" >> code.txt; } 2>&1 | tee -a out.txt
           cat code.txt
           grep -q "exit=0" code.txt && grep -q "e2e=0" code.txt
       - if: success()

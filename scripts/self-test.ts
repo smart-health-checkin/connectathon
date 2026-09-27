@@ -48,22 +48,22 @@ const ALL_RUNS: Run[] = [
   ...["M1", "M3", "M4", "M5", "M6", "L1", "L2", "O1", "O2", "O3", "O4", "O5", "O6", "O7", "O10", "O12"].map((caseId) => ({ name: caseId, caseId })),
   // A case whose step isn't done: its expectation is not met, and the run fails.
   { name: "M5 without its step", caseId: "M5", skipStep: true, expectFail: ["expect-1"] },
-  { name: "decline all (HOLD-4)", request: "baseline-1.json", declineAll: true, expectText: /declined/i },
+  { name: "decline all (HOLD-4)", request: "records.json", declineAll: true, expectText: /declined/i },
   // The Testing Wallet's response size setting: valid responses, only larger.
-  { name: "size 512 KB", request: "baseline-1.json", size: "512k" },
-  { name: "size 5 MB", request: "baseline-4.json", size: "5m" },
-  { name: "fault wrong-canonical", request: "baseline-3.json", faults: ["wrong-canonical"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
-  { name: "fault missing-status", request: "baseline-1.json", faults: ["missing-status"], expectFail: ["status-"] },
-  { name: "fault duplicate-status", request: "baseline-1.json", faults: ["duplicate-status"], expectFail: ["status-"] },
-  { name: "fault wrong-request-id", request: "baseline-1.json", faults: ["wrong-request-id"], expectFail: ["request-id"], expectText: /Response rejected/ },
-  { name: "fault unaccepted-media-type", request: "baseline-1.json", faults: ["unaccepted-media-type"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
-  { name: "fault bad-signature", request: "baseline-1.json", faults: ["bad-signature"], expectWarn: ["issuer-sig"], expectText: /Passed with 1 warning/ },
-  { name: "fault bad-encryption", request: "baseline-1.json", faults: ["bad-encryption"], expectFail: ["hpke"], expectText: /Response rejected/ },
-  { name: "fault wrong-origin", request: "baseline-1.json", faults: ["wrong-origin"], expectFail: ["hpke"], expectText: /Likely cause[\s\S]*trailing slash/ },
-  { name: "fault bad-shc-signature", request: "o6-smart-health-card.json", faults: ["bad-shc-signature"], expectFail: ["shc-"], expectWarn: ["fulfilled-"] },
+  { name: "size 512 KB", request: "records.json", size: "512k" },
+  { name: "size 5 MB", request: "uscdi.json", size: "5m" },
+  { name: "fault wrong-canonical", request: "form-phq2.json", faults: ["wrong-canonical"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
+  { name: "fault missing-status", request: "records.json", faults: ["missing-status"], expectFail: ["status-"] },
+  { name: "fault duplicate-status", request: "records.json", faults: ["duplicate-status"], expectFail: ["status-"] },
+  { name: "fault wrong-request-id", request: "records.json", faults: ["wrong-request-id"], expectFail: ["request-id"], expectText: /Response rejected/ },
+  { name: "fault unaccepted-media-type", request: "records.json", faults: ["unaccepted-media-type"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
+  { name: "fault bad-signature", request: "records.json", faults: ["bad-signature"], expectWarn: ["issuer-sig"], expectText: /Passed with 1 warning/ },
+  { name: "fault bad-encryption", request: "records.json", faults: ["bad-encryption"], expectFail: ["hpke"], expectText: /Response rejected/ },
+  { name: "fault wrong-origin", request: "records.json", faults: ["wrong-origin"], expectFail: ["hpke"], expectText: /Likely cause[\s\S]*trailing slash/ },
+  { name: "fault bad-shc-signature", request: "health-card.json", faults: ["bad-shc-signature"], expectFail: ["shc-"], expectWarn: ["fulfilled-"] },
   // Config URLs added by hand, as on any Verifier page: a combination, and one the wallet can't read (it says so and answers normally).
-  { name: "config URL bad-signature + 512 KB", request: "baseline-1.json", faults: ["bad-signature"], size: "512k", byUrl: true, expectWarn: ["issuer-sig"] },
-  { name: "config URL unreadable", request: "baseline-1.json", rawUrl: "bm90LWpzb24/", byUrl: true },
+  { name: "config URL bad-signature + 512 KB", request: "records.json", faults: ["bad-signature"], size: "512k", byUrl: true, expectWarn: ["issuer-sig"] },
+  { name: "config URL unreadable", request: "records.json", rawUrl: "bm90LWpzb24/", byUrl: true },
 ];
 
 /** The Testing Wallet's response sizes, in characters of base64url. */

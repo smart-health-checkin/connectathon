@@ -36,7 +36,7 @@ options for exercising a Verifier's error handling.
   - **Aria Test**: demographics, three problems, two allergies, three
     medications, three immunizations, lab and vital signs, and insurance.
   - **Aria Test, large record**: the same, plus eight years of labs,
-    blood pressures, and progress notes. Used for scenario L2, which tests
+    blood pressures, and progress notes. Used for scenario [L2](https://smart-health-checkin.org/connectathon/advanced.html#l2), which tests
     that large responses arrive intact.
 - Every resource claims its US Core profile. Patient, Coverage, and the payer
   also claim the CARIN digital insurance card profiles. Both files validate
@@ -72,7 +72,7 @@ options for exercising a Verifier's error handling.
 - Builds a QuestionnaireResponse, status `completed`, whose `questionnaire`
   echoes the requested canonical exactly, including any `|version`. Hidden
   items and unanswered items are left out.
-- Prefill (O10): an item carrying a LOINC code the record has an Observation
+- Prefill ([O10](https://smart-health-checkin.org/connectathon/advanced.html#o10)): an item carrying a LOINC code the record has an Observation
   for starts filled in and marked as prefilled.
 
 ## Consent
@@ -97,7 +97,7 @@ options for exercising a Verifier's error handling.
   accepts neither type, or a form that doesn't accept `application/fhir+json`,
   is answered `unsupported`.
 - Form items become one QuestionnaireResponse.
-- One artifact for several items (O7), on the testing panel: allergies and
+- One artifact for several items ([O7](https://smart-health-checkin.org/connectathon/advanced.html#o7)), on the testing panel: allergies and
   medications share one Bundle whose `fulfills` lists both.
 - Sealed with the client library, with the transcript bound to the EHR origin.
 

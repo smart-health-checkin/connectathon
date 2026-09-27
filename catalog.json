@@ -1,11 +1,47 @@
 {
   "specBase": "https://smart-health-checkin.org/spec/#",
+  "requests": {
+    "records.json": {
+      "asks": "demographics, problems, allergies, medications, and immunizations"
+    },
+    "insurance.json": {
+      "asks": "demographics and insurance"
+    },
+    "form-phq2.json": {
+      "asks": "demographics and the answers to the PHQ-2 form, sent inline"
+    },
+    "uscdi.json": {
+      "asks": "anything in the patient's record that conforms to US Core"
+    },
+    "form-by-reference.json": {
+      "asks": "the answers to the GAD-7 form, named by its URL only"
+    },
+    "form-versioned.json": {
+      "asks": "the answers to the PHQ-2 form, named with a version suffix and sent inline"
+    },
+    "form-semaglutide.json": {
+      "asks": "the answers to a physician-authored semaglutide check-in form, sent inline"
+    },
+    "observations.json": {
+      "asks": "recent lab results and vital signs, as US Core Observations"
+    },
+    "no-selector.json": {
+      "asks": "anything the patient thinks is relevant, with no selector"
+    },
+    "health-card.json": {
+      "asks": "immunizations, preferably as a SMART Health Card"
+    },
+    "unknown-selector.json": {
+      "asks": "demographics, and one item with a selector kind no wallet knows"
+    }
+  },
   "testCases": [
     {
       "id": "M1",
       "title": "Web wallet from the registry",
-      "summary": "The EHR lists the registry's web wallets, opens the one the person picks, and sends the request to it by postMessage.",
-      "request": "baseline-1.json",
+      "tier": "minimum",
+      "summary": "The Verifier lists the event's web wallets, opens the one the person picks, and exchanges the request and response with it by postMessage.",
+      "request": "records.json",
       "paths": [
         "web"
       ],
@@ -21,11 +57,10 @@
         }
       ],
       "walletShows": [
-        "The wallet shows the EHR's origin during consent."
+        "The wallet shows the Verifier's origin during consent."
       ],
       "verifierShows": [
-        "The EHR lists every wallet in the registry, with the phone's own wallet alongside.",
-        "The EHR shows each item's status and data."
+        "The Verifier lists every wallet in the registry, with the phone's own wallet alongside, and shows each item's status and data."
       ],
       "specSections": [
         "8-5-hpke-encryption-and-verifier-processing",
@@ -36,8 +71,9 @@
     {
       "id": "M2",
       "title": "Native wallet through the Digital Credentials API",
-      "summary": "Same as M1, but the person picks the phone's own wallet and the EHR calls navigator.credentials.get.",
-      "request": "baseline-1.json",
+      "tier": "minimum",
+      "summary": "The same check-in as M1, with a wallet app on the phone that the Verifier reaches through the browser's Digital Credentials API.",
+      "request": "records.json",
       "paths": [
         "native"
       ],
@@ -53,10 +89,10 @@
         }
       ],
       "walletShows": [
-        "The wallet shows the EHR's origin during consent."
+        "The wallet shows the Verifier's origin during consent."
       ],
       "verifierShows": [
-        "The EHR shows each item's status and data."
+        "The Verifier shows each item's status and data."
       ],
       "notes": "Record the phone, OS version, browser, and wallet app.",
       "specSections": [
@@ -67,8 +103,9 @@
     {
       "id": "M3",
       "title": "Insurance",
-      "summary": "Demographics and insurance, as CARIN or US Core coverage, in FHIR JSON or a SMART Health Card.",
-      "request": "baseline-2.json",
+      "tier": "minimum",
+      "summary": "The wallet returns insurance as either requested coverage profile, in FHIR JSON or as a SMART Health Card, and the Verifier shows it either way.",
+      "request": "insurance.json",
       "paths": [
         "web",
         "native"
@@ -88,8 +125,8 @@
         }
       ],
       "verifierShows": [
-        "The EHR shows the member, payer, and plan from the returned Coverage, whichever profile or format the wallet chose.",
-        "If the wallet returns a SMART Health Card, the EHR verifies its signature before showing it."
+        "The Verifier shows the member, payer, and plan from the returned Coverage, whichever profile or format the wallet chose.",
+        "If the wallet returns a SMART Health Card, the Verifier verifies its signature before showing it."
       ],
       "specSections": [
         "5-4-1-selection-fhir",
@@ -99,8 +136,9 @@
     {
       "id": "M4",
       "title": "Pre-visit questionnaire, inline",
-      "summary": "The PHQ-2, sent inline. The QuestionnaireResponse must name exactly the requested canonical.",
-      "request": "baseline-3.json",
+      "tier": "minimum",
+      "summary": "The wallet fills in a form sent inline, and its QuestionnaireResponse names exactly the requested form.",
+      "request": "form-phq2.json",
       "paths": [
         "web",
         "native"
@@ -118,7 +156,7 @@
         "The wallet renders the inline form."
       ],
       "verifierShows": [
-        "The EHR shows each answer next to its question."
+        "The Verifier shows each answer next to its question."
       ],
       "specSections": [
         "5-4-2-form-fhir",
@@ -128,8 +166,9 @@
     {
       "id": "M5",
       "title": "One item declined",
-      "summary": "The person declines one item and shares the rest.",
-      "request": "baseline-1.json",
+      "tier": "minimum",
+      "summary": "The person declines one item and shares the rest, and the Verifier tells a declined item from an error.",
+      "request": "records.json",
       "paths": [
         "web",
         "native"
@@ -166,7 +205,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR shows Immunizations as declined, not as an error, and the rest normally."
+        "The Verifier shows Immunizations as declined, not as an error, and the rest normally."
       ],
       "specSections": [
         "6-2-artifact-and-status-semantics"
@@ -175,8 +214,9 @@
     {
       "id": "M6",
       "title": "Nothing to share",
-      "summary": "Every item comes back declined or unavailable.",
-      "request": "baseline-2.json",
+      "tier": "minimum",
+      "summary": "Every item comes back declined or unavailable, and the check-in still ends cleanly.",
+      "request": "insurance.json",
       "paths": [
         "web",
         "native"
@@ -200,7 +240,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR handles every item declined or unavailable without breaking the page, and the patient can continue without the wallet."
+        "The Verifier handles every item declined or unavailable without breaking the page, and the patient can continue without the wallet."
       ],
       "specSections": [
         "6-2-artifact-and-status-semantics"
@@ -209,8 +249,9 @@
     {
       "id": "L1",
       "title": "Anything in USCDI, small patient",
-      "summary": "A modest record, whatever resource types the wallet holds.",
-      "request": "baseline-4.json",
+      "tier": "advanced",
+      "summary": "A request for anything in US Core, answered with a modest record of whatever resource types the wallet holds.",
+      "request": "uscdi.json",
       "paths": [
         "web",
         "native"
@@ -228,7 +269,7 @@
         "The wallet lets the patient choose what to include."
       ],
       "verifierShows": [
-        "The EHR shows every returned resource, whatever the resource types."
+        "The Verifier shows every returned resource, whatever the resource types."
       ],
       "specSections": [
         "5-4-content-selectors"
@@ -237,8 +278,9 @@
     {
       "id": "L2",
       "title": "Anything in USCDI, large patient",
-      "summary": "A full record with years of history, to test that large responses arrive intact.",
-      "request": "baseline-4.json",
+      "tier": "advanced",
+      "summary": "A patient with years of history, to test that a response over 1 MB arrives intact.",
+      "request": "uscdi.json",
       "paths": [
         "web",
         "native"
@@ -263,7 +305,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR shows the whole record."
+        "The Verifier shows the whole record."
       ],
       "notes": "On Android, the wallet returns the response with the three-argument `setGetCredentialResponse`, which passes it to the browser as a file ([Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android)). Record the browser, phone, and wallet version.",
       "specSections": [
@@ -273,8 +315,9 @@
     {
       "id": "O1",
       "title": "Questionnaire by reference only",
-      "summary": "The GAD-7 by canonical, with no inline body. The wallet fetches the hosted form.",
-      "request": "o1-questionnaire-by-reference.json",
+      "tier": "advanced",
+      "summary": "The wallet fetches a form that the request names by its URL only, with no copy inline.",
+      "request": "form-by-reference.json",
       "paths": [
         "web",
         "native"
@@ -293,7 +336,7 @@
         "The wallet renders the fetched form, or reports the item unsupported rather than inventing a form."
       ],
       "verifierShows": [
-        "The EHR shows the answers."
+        "The Verifier shows the answers."
       ],
       "specSections": [
         "5-4-2-form-fhir"
@@ -302,8 +345,9 @@
     {
       "id": "O2",
       "title": "Versioned canonical",
-      "summary": "The PHQ-2 with a |1 version suffix, body inline. The QuestionnaireResponse must echo the versioned canonical exactly.",
-      "request": "o2-versioned-canonical.json",
+      "tier": "advanced",
+      "summary": "The request names the form with a version suffix (|1), and the QuestionnaireResponse echoes that versioned name exactly.",
+      "request": "form-versioned.json",
       "paths": [
         "web",
         "native"
@@ -318,7 +362,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR shows the answers."
+        "The Verifier shows the answers."
       ],
       "specSections": [
         "5-5-canonical-version-handling"
@@ -327,8 +371,9 @@
     {
       "id": "O3",
       "title": "Physician-authored form",
-      "summary": "The semaglutide check-in form, inline, with conditional items and typed answers.",
-      "request": "o3-physician-authored-form.json",
+      "tier": "advanced",
+      "summary": "The wallet renders a physician-authored form with conditional items and typed answers.",
+      "request": "form-semaglutide.json",
       "paths": [
         "web",
         "native"
@@ -346,7 +391,7 @@
         "The wallet renders every item type, shows conditional items only when their conditions are met, and accepts typed answers on the pen question."
       ],
       "verifierShows": [
-        "The EHR shows every answer, including typed pen-trouble answers."
+        "The Verifier shows every answer, including typed pen-trouble answers."
       ],
       "specSections": [
         "5-4-2-form-fhir"
@@ -355,8 +400,9 @@
     {
       "id": "O4",
       "title": "Narrowed family",
-      "summary": "US Core profiles narrowed to Observation, for recent labs and vitals.",
-      "request": "o4-narrowed-family.json",
+      "tier": "advanced",
+      "summary": "A selector that takes any US Core profile but narrows it to Observation, for recent labs and vitals.",
+      "request": "observations.json",
       "paths": [
         "web",
         "native"
@@ -378,7 +424,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR shows the Observations."
+        "The Verifier shows the Observations."
       ],
       "specSections": [
         "5-4-1-selection-fhir"
@@ -387,8 +433,9 @@
     {
       "id": "O5",
       "title": "No selector",
-      "summary": "A selection with no profiles or types: whatever the patient thinks is relevant.",
-      "request": "o5-no-selector.json",
+      "tier": "advanced",
+      "summary": "An item with no selector at all: the patient shares whatever they think is relevant.",
+      "request": "no-selector.json",
       "paths": [
         "web",
         "native"
@@ -398,7 +445,7 @@
         "The wallet lets the patient choose."
       ],
       "verifierShows": [
-        "The EHR displays whatever arrives."
+        "The Verifier displays whatever arrives."
       ],
       "specSections": [
         "5-4-1-selection-fhir"
@@ -407,8 +454,9 @@
     {
       "id": "O6",
       "title": "SMART Health Card",
-      "summary": "Immunizations, with a SMART Health Card preferred over FHIR JSON.",
-      "request": "o6-smart-health-card.json",
+      "tier": "advanced",
+      "summary": "The wallet answers an immunizations item with a SMART Health Card, which the request prefers over FHIR JSON.",
+      "request": "health-card.json",
       "paths": [
         "web",
         "native"
@@ -421,7 +469,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR verifies the card's signature and shows its contents."
+        "The Verifier verifies the card's signature and shows its contents."
       ],
       "specSections": [
         "5-6-accepted-media-types"
@@ -430,8 +478,9 @@
     {
       "id": "O7",
       "title": "One artifact, several items",
+      "tier": "advanced",
       "summary": "One Bundle answers two items, and its fulfills lists both.",
-      "request": "baseline-1.json",
+      "request": "records.json",
       "paths": [
         "web",
         "native"
@@ -454,7 +503,7 @@
         }
       ],
       "verifierShows": [
-        "The EHR attributes the resources to both items without counting them twice."
+        "The Verifier attributes the resources to both items without counting them twice."
       ],
       "specSections": [
         "6-3-many-to-many-fulfillment"
@@ -463,8 +512,9 @@
     {
       "id": "O8",
       "title": "Cross-device",
-      "summary": "A desktop browser shows a QR code, and the phone's wallet answers.",
-      "request": "baseline-1.json",
+      "tier": "advanced",
+      "summary": "A desktop browser shows a QR code, and the wallet on a phone answers it.",
+      "request": "records.json",
       "paths": [
         "native"
       ],
@@ -489,8 +539,9 @@
     {
       "id": "O9",
       "title": "In-person handoff",
-      "summary": "A front-desk QR code or kiosk lands the patient's phone on the EHR's check-in page.",
-      "request": "baseline-1.json",
+      "tier": "advanced",
+      "summary": "A front-desk QR code or kiosk lands the patient's phone on the Verifier's check-in page.",
+      "request": "records.json",
       "paths": [
         "native"
       ],
@@ -515,8 +566,9 @@
     {
       "id": "O10",
       "title": "Prefilled form",
-      "summary": "The wallet prefills answers from the patient's records and lets the patient edit them.",
-      "request": "o3-physician-authored-form.json",
+      "tier": "advanced",
+      "summary": "The wallet prefills form answers from the patient's records and lets the patient edit them.",
+      "request": "form-semaglutide.json",
       "paths": [
         "web",
         "native"
@@ -534,7 +586,7 @@
         "Prefilled answers are visible to the patient before sending."
       ],
       "verifierShows": [
-        "The EHR shows the answers."
+        "The Verifier shows the answers."
       ],
       "specSections": [
         "5-4-2-form-fhir"
@@ -543,8 +595,9 @@
     {
       "id": "O11",
       "title": "Write back",
-      "summary": "The EHR files returned data and answers into the chart after staff review.",
-      "request": "baseline-1.json",
+      "tier": "advanced",
+      "summary": "The Verifier files returned data and answers into the chart after staff review.",
+      "request": "records.json",
       "paths": [
         "web",
         "native"
@@ -560,8 +613,9 @@
     {
       "id": "O12",
       "title": "Unknown selector",
-      "summary": "An item with an extension selector kind no wallet knows.",
-      "request": "o12-unknown-selector.json",
+      "tier": "advanced",
+      "summary": "The wallet answers an item whose selector kind it doesn't know as unsupported, and still answers the rest.",
+      "request": "unknown-selector.json",
       "paths": [
         "web",
         "native"
@@ -581,6 +635,9 @@
             "fulfilled"
           ]
         }
+      ],
+      "verifierShows": [
+        "The Verifier shows the unknown item as unsupported and the demographics normally."
       ],
       "specSections": [
         "5-4-3-extension-selectors"

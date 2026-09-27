@@ -9,7 +9,7 @@ import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 import { jsonHtml } from "../../shared/smart-json.ts";
 import { configUrl, FAULTS, isTestingWalletUrl, RESPONSE_SIZES, STATUSES, type WalletConfig } from "../../testing-wallet/src/config.ts";
-import { describeExpectation, evaluateExpectations, type Evaluated, type TestCase } from "./cases.ts";
+import { caseHref, describeExpectation, evaluateExpectations, type Evaluated, type RequestInfo, type TestCase } from "./cases.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
@@ -46,6 +46,7 @@ const store = {
 };
 
 let catalog: TestCase[] = [];
+let requestInfo: Record<string, RequestInfo> = {};
 let components: Component[] = [];
 let library: LibraryItem[] = [];
 let offered: Wallet[] = [];
@@ -61,6 +62,7 @@ async function load() {
     fetch(new URL("components.json", SITE)).then((r) => r.json()).catch(() => []),
   ]);
   catalog = cat.testCases;
+  requestInfo = cat.requests ?? {};
   components = comps;
   const files = [...new Set(catalog.map((t) => t.request))];
   await Promise.all(files.map(async (f) => requestFiles.set(f, await fetch(new URL(`requests/${f}`, SITE)).then((r) => r.json()))));
@@ -68,7 +70,9 @@ async function load() {
   offered = await registryWallets({ registry: new URL("wallets.json", SITE).href, includeUnavailable: true }).catch(() => [platformWallet()]);
 
   const requestSelect = $("request-file") as HTMLSelectElement;
-  const fileList = [...requestFiles.keys()].sort((a, b) => Number(!a.startsWith("baseline")) - Number(!b.startsWith("baseline")) || a.localeCompare(b, undefined, { numeric: true }));
+  // In the catalog's order, which starts with the minimum scenarios' requests.
+  const order = Object.keys(requestInfo);
+  const fileList = [...requestFiles.keys()].sort((a, b) => (order.indexOf(a) >>> 0) - (order.indexOf(b) >>> 0) || a.localeCompare(b));
   requestSelect.replaceChildren(...fileList.map((f) => new Option(requestLabel(f), f)));
   requestSelect.onchange = () => {
     // A test case goes with its request: choosing another request leaves the case.
@@ -76,7 +80,13 @@ async function load() {
     describeCase(); remember(); refresh();
   };
   const caseSelect = $("case") as HTMLSelectElement;
-  caseSelect.replaceChildren(new Option("None: check the response against the spec only", ""), ...catalog.map((t) => new Option(`${t.id} · ${t.title}`, t.id)));
+  const group = (label: string, tier: TestCase["tier"]) => {
+    const g = document.createElement("optgroup");
+    g.label = label;
+    g.append(...catalog.filter((t) => t.tier === tier).map((t) => new Option(`${t.id} · ${t.title}`, t.id)));
+    return g;
+  };
+  caseSelect.replaceChildren(new Option("None: check the response against the spec only", ""), group("Minimum scenarios", "minimum"), group("Advanced scenarios", "advanced"));
   caseSelect.onchange = () => { chooseCase(); remember(); refresh(); };
   const params = new URLSearchParams(location.hash.slice(1));
   if (params.get("request") && requestFiles.has(params.get("request")!)) requestSelect.value = params.get("request")!;
@@ -88,7 +98,7 @@ async function load() {
     return label;
   }));
   $("item-library").addEventListener("change", refresh);
-  ($("paste") as HTMLTextAreaElement).value = JSON.stringify(requestFiles.get("baseline-2.json") ?? {}, null, 2);
+  ($("paste") as HTMLTextAreaElement).value = JSON.stringify(requestFiles.get("insurance.json") ?? {}, null, 2);
   $("paste").addEventListener("input", refresh);
   for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.onclick = () => setMode(b.dataset.mode as typeof mode);
 
@@ -136,13 +146,11 @@ function buildLibrary(): LibraryItem[] {
   return out;
 }
 
-/** "Baseline 1: Demographics, …" or "Questionnaire by reference: …", from the file name and its items. */
+/** What a request file asks for, and the test cases that use it: "Demographics and insurance (M3, M6)". */
 function requestLabel(file: string): string {
-  const req = requestFiles.get(file)!;
-  const name = /^baseline-(\d+)/.exec(file)
-    ? `Baseline ${/^baseline-(\d+)/.exec(file)![1]}`
-    : file.replace(/^o\d+-/, "").replace(/\.json$/, "").replaceAll("-", " ").replace(/^./, (c) => c.toUpperCase()).replace(/smart health card/i, "SMART Health Card");
-  return `${name}: ${req.items.map((i) => i.title).join(", ")}`;
+  const asks = requestInfo[file]?.asks ?? requestFiles.get(file)!.items.map((i) => i.title).join(", ");
+  const ids = catalog.filter((t) => t.request === file).map((t) => t.id);
+  return `${asks.replace(/^./, (c) => c.toUpperCase())}${ids.length ? ` (${ids.join(", ")})` : ""}`;
 }
 
 function setMode(next: typeof mode) {
@@ -181,7 +189,7 @@ function describeCase() {
     ${step ? walletDoesStep(tc)
       ? `<p class="step"><b>The SMART Testing Wallet will do this step:</b> ${esc(stepText)}</p>`
       : `<p class="step"><b>Ask the person using the wallet to</b> ${esc(stepText)}</p>` : ""}
-    ${tc.expect.length ? `<p><b>This EHR will check that:</b></p><ul>${tc.expect.map((e) => `<li>${esc(describeExpectation(e, req))}</li>`).join("")}</ul>` : `<p>This case has no expectations to check on the response; <a href="../scenarios.html#${tc.id.toLowerCase()}">its description</a> says what to look for.</p>`}
+    ${tc.expect.length ? `<p><b>This EHR will check that:</b></p><ul>${tc.expect.map((e) => `<li>${esc(describeExpectation(e, req))}</li>`).join("")}</ul>` : `<p>This case has no expectations to check on the response; <a href="../${caseHref(tc)}">its description</a> says what to look for.</p>`}
     ${tc.walletShows?.length ? `<p><b>Look in the wallet for:</b> ${esc(tc.walletShows.join(" "))}</p>` : ""}`;
 }
 
@@ -194,7 +202,7 @@ function currentRequest(): { ok: true; request: SmartCheckinRequest; label: stri
     const tc = currentCase();
     return tc
       ? { ok: true, request: req, label: `${tc.id} · ${tc.title}`, short: tc.id, caseId: tc.id }
-      : { ok: true, request: req, label: requestLabel(file).split(":")[0]!, short: requestLabel(file).split(":")[0]! };
+      : { ok: true, request: req, label: file, short: file.replace(/\.json$/, "") };
   }
   if (mode === "build") {
     const keys = [...document.querySelectorAll<HTMLInputElement>("#item-library input:checked")].map((i) => i.value);

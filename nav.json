@@ -25,7 +25,8 @@
     {
       "title": "Test tools",
       "items": [
-        { "title": "Test scenarios", "href": "scenarios.html", "note": "Baselines and what passing looks like" },
+        { "title": "Test scenarios", "href": "scenarios.html", "note": "The minimum set and what passing looks like" },
+        { "title": "Advanced scenarios", "href": "advanced.html", "note": "Large responses and optional features" },
         { "title": "SMART Testing EHR", "href": "testing-ehr/", "note": "Test your wallet" },
         { "title": "SMART Testing Wallet", "href": "testing-wallet/", "note": "Test your check-in page" },
         { "title": "Test requests", "href": "requests/", "note": "The scenario requests as JSON" },

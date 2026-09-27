@@ -2,7 +2,8 @@
 // the wallet, and expectations a Verifier can check on the response. The
 // Testing EHR evaluates the expectations next to its spec checks;
 // scripts/build.ts validates the catalog and writes the scenario sections of
-// scenarios.html with the same sentences.
+// scenarios.html (the minimum tier) and advanced.html (the advanced tier) with
+// the same sentences.
 import type { WalletConfig } from "../../testing-wallet/src/config.ts";
 
 export type Expectation =
@@ -18,6 +19,9 @@ export type Expectation =
 export type TestCase = {
   id: string;
   title: string;
+  /** Which page lists the case: the minimum set on scenarios.html, the rest on advanced.html. */
+  tier: "minimum" | "advanced";
+  /** What the case tests, in one sentence. */
   summary: string;
   /** A file in requests/. */
   request: string;
@@ -33,6 +37,13 @@ export type TestCase = {
   notes?: string;
   specSections: string[];
 };
+
+/** The catalog's plain description of each request file, by file name. */
+export type RequestInfo = { asks: string };
+
+/** The page and anchor that describe a case, relative to the connectathon root. */
+export const caseHref = (tc: Pick<TestCase, "id" | "tier">): string =>
+  `${tc.tier === "minimum" ? "scenarios" : "advanced"}.html#${tc.id.toLowerCase()}`;
 
 type Item = { id: string; title: string; content: { kind: string; profiles?: readonly string[]; profilesFrom?: readonly string[] } };
 type Request = { items: readonly Item[] };
@@ -68,6 +79,7 @@ export function caseProblems(tc: TestCase, request: Request): string[] {
     if (!["status", "every-status", "profiles", "includes-type", "only-types", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
   }
   for (const id of Object.keys(tc.walletStep?.testingWallet?.status ?? {})) known(id);
+  if (tc.tier !== "minimum" && tc.tier !== "advanced") problems.push(`${tc.id}: tier must be "minimum" or "advanced"`);
   if (tc.walletStep?.testingWallet && !tc.walletStep.text) problems.push(`${tc.id}: a Testing Wallet config needs the step's text`);
   return problems;
 }

@@ -6,10 +6,11 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 |---|---|
 | `index.md` | The front page: pick your path, how the event works, the schedule. |
 | `patients.md`, `clinic-staff.md`, `verifier-developers.md`, `wallet-developers.md`, `observers.md` | One page per participant type: background, getting started, joining, sharing what you found. |
-| `scenarios.md` | The developer test reference: ground rules, shared resources, baseline requests, scenarios, test tools. |
+| `scenarios.md` | Test scenarios: the minimum scenarios M1 to M6, ground rules, recording results, and shared resources. |
+| `advanced.md` | Advanced scenarios: larger-data and optional scenarios, example questionnaires, and the test tools' options. |
 | `prompts/` | Prompts people paste into any AI assistant: a patient guide and an implementer debrief. Offered on the generated [Share your experience](https://smart-health-checkin.org/connectathon/share.html) page. |
 | `participants/` | One file per organization. [How to register](CONTRIBUTING.md). |
-| `requests/` | Baseline and optional-scenario requests. |
+| `requests/` | Every scenario's request. |
 | `Questionnaire/` | Example FHIR Questionnaires, served at their canonical URLs. |
 | `catalog.json` | Test cases used by the Testing EHR and Testing Wallet. |
 | `testing-ehr/`, `testing-wallet/` | The test tools. |

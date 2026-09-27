@@ -16,13 +16,13 @@ An online event where patients, clinic staff, and software teams try a new way o
 
 ## Schedule
 
-- **Three weeks before** ({{TBD: date}}): reference implementations, [test tools](scenarios.html#testing-ehr-and-testing-wallet), the [wallet registry](scenarios.html#wallet-registry), [example questionnaires](scenarios.html#example-questionnaires), and [baseline requests](scenarios.html#baseline-requests) are live.
+- **Three weeks before** ({{TBD: date}}): reference implementations, the [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/), the [wallet registry](scenarios.html#wallet-registry), and the [test scenarios](scenarios.html) with their [requests](requests/) are live.
 - **One week before** ({{TBD: date}}): software teams aim to have their component up for [self-serve testing](scenarios.html#how-to-test) and to have tried a first connection.
 - **The event:** ideally spent on the harder problems and live debugging. Some people will still be finishing basic setup, and that's fine.
 
 ## Scenarios and tools
 
-- [Test scenarios](scenarios.html): baseline requests, the minimum, larger-data, and optional scenarios, the ground rules, and shared resources.
+- [Test scenarios](scenarios.html): the minimum set every Verifier and wallet should pass, the ground rules, and shared resources. The [advanced scenarios](advanced.html) cover large responses and optional features.
 - [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/): known-good counterparts for self-serve testing.
 - [Participant directory](directory.html): who is bringing what, and [Results](results.html) of formal scenario runs.
 
