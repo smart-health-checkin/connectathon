@@ -2,16 +2,6 @@
 
 An online event where patients, clinic staff, and software teams try a new way of checking in for a visit and tell us how it feels.
 
-## Pick your path
-
-<div class="paths">
-<a class="path" href="patients.html"><b>Patients and community</b><span>Try the demos on any phone or computer, and tell us how it went.</span><em>Start here →</em></a>
-<a class="path" href="clinic-staff.html"><b>Clinic staff</b><span>See check-in from the practice side: what arrives, and how it fits the front desk.</span><em>Start here →</em></a>
-<a class="path" href="verifier-developers.html"><b>Verifier developers</b><span>EHRs, portals, and other Verifiers: build the check-in page that asks for data.</span><em>Start here →</em></a>
-<a class="path" href="wallet-developers.html"><b>Wallet developers</b><span>Build the health app that answers, on a phone or on the web.</span><em>Start here →</em></a>
-<a class="path" href="observers.html"><b>Observers</b><span>Follow along, and read what people found.</span><em>Start here →</em></a>
-</div>
-
 ## How the event works
 
 <p class="smart-callout warn"><b>Draft.</b> The event date isn't set yet, so dates below say "To be announced". Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">Participant directory</a> aren't ready for testing.</p>
@@ -35,6 +25,16 @@ An online event where patients, clinic staff, and software teams try a new way o
 - [Test scenarios](scenarios.html): baseline requests, the minimum, larger-data, and optional scenarios, the ground rules, and shared resources.
 - [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/): known-good counterparts for self-serve testing.
 - [Participant directory](directory.html): who is bringing what, and [Results](results.html) of formal scenario runs.
+
+## Pick your path
+
+<div class="paths">
+<a class="path" href="patients.html"><b>Patients and community</b><span>Try the demos on any phone or computer, and tell us how it went.</span><em>Start here →</em></a>
+<a class="path" href="clinic-staff.html"><b>Clinic staff</b><span>See check-in from the practice side: what arrives, and how it fits the front desk.</span><em>Start here →</em></a>
+<a class="path" href="verifier-developers.html"><b>Verifier developers</b><span>EHRs, portals, and other Verifiers: build the check-in page that asks for data.</span><em>Start here →</em></a>
+<a class="path" href="wallet-developers.html"><b>Wallet developers</b><span>Build the health app that answers, on a phone or on the web.</span><em>Start here →</em></a>
+<a class="path" href="observers.html"><b>Observers</b><span>Follow along, and read what people found.</span><em>Start here →</em></a>
+</div>
 
 ## Sharing what you found
 
