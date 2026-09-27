@@ -232,25 +232,6 @@ const TIER_PAGE: Record<TestCase["tier"], string> = { minimum: "index.html", adv
 /** Where each case was written, to check every case appears once, on its tier's page. */
 const casesWritten = new Map<string, string>();
 
-/** A request's items as a Markdown table: id, title, what it asks for, and the media types it accepts. */
-function itemsTable(request: any): string {
-  const cell = (s: string) => s.replace(/\|/g, "\\|");
-  const selector = (c: any): string => {
-    if (c.kind === "form.fhir") return `The form \`${c.questionnaireCanonical}\`, ${c.questionnaire ? "sent inline" : "by reference only"}`;
-    if (c.kind !== "selection.fhir") return `Selector kind \`${c.kind}\``;
-    const parts = [
-      ...(c.profiles?.length ? [`Profile ${c.profiles.map((p: string) => `\`${p.split("/").pop()}\``).join(" or ")}`] : []),
-      ...(c.profilesFrom ?? []).map((f: string) => `Any profile in \`${f}\``),
-      ...(c.resourceTypes?.length ? [`only ${c.resourceTypes.join(", ")}`] : []),
-    ];
-    return parts.join(", ") || "Anything: no selector";
-  };
-  return [
-    "| Item id | Title | Asks for | Accepts |",
-    "|---|---|---|---|",
-    ...request.items.map((i: any) => `| \`${i.id}\` | ${cell(i.title)} | ${cell(selector(i.content))} | ${i.accept.map((a: string) => `\`${a}\``).join(", ")} |`),
-  ].join("\n");
-}
 
 /**
  * The scenario blocks of index.md and advanced.md, from catalog.json. `<!-- test cases: TIER -->`
@@ -277,16 +258,12 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
     const req = requests.find((r) => r.file === tc.request)!.request;
     const first = cases.find((t) => t.request === tc.request)!;
     const sample = existsSync(join(ROOT, "responses", tc.request.replace(/\.json$/, ".sample.json")))
-      ? ` The [sample response](responses/${tc.request.replace(/\.json$/, ".sample.json")}) is what the SMART Testing Wallet sends when the patient shares everything.`
+      ? ` ([sample response](responses/${tc.request.replace(/\.json$/, ".sample.json")}))`
       : "";
     const request = first === tc
-      ? `**Request:** [\`${tc.request}\`](requests/${tc.request}) asks for ${catalog.requests[tc.request].asks}.${sample}\n\n<details>\n<summary>The request's items</summary>\n\n${itemsTable(req)}\n\n</details>`
+      ? `**Request:** [\`${tc.request}\`](requests/${tc.request}) asks for ${catalog.requests[tc.request].asks}${sample}.`
       : `**Request:** [\`${tc.request}\`](requests/${tc.request}), the same request as [${first.id}](${link(first)}), asks for ${catalog.requests[tc.request].asks}.`;
-    const step = tc.walletStep ? tc.walletStep.text : "None: share everything the wallet offers.";
-    const sees = tc.expect.length
-      ? tc.expect.map((e) => `${describeExpectation(e, req).replace(/\.$/, "")} (${e.rule ? `[${e.rule}](${catalog.specBase}${e.rule})` : STEP_DONE}).`).join(" ")
-      : "Whatever the wallet sends; this case has no checks beyond the spec's own.";
-    const walletPass = [tc.expect.length ? "The Verifier sees the above." : "The response passes the spec's checks.", sentences(tc.walletShows)].filter(Boolean).join(" ");
+    const checks = tc.expect.map((e) => `${describeExpectation(e, req).replace(/\.$/, "")} (${e.rule ? `[${e.rule}](${catalog.specBase}${e.rule})` : STEP_DONE}).`).join(" ");
     const web = tc.paths.includes("web");
     const native = tc.paths.includes("native");
     const ehr = `[SMART Testing EHR with ${tc.id} chosen](testing-ehr/#case=${tc.id})`;
@@ -302,16 +279,15 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
     const nativeRun = `check in on an Android phone with the [reference Android wallet](${main("reference-android-wallet")}), picking it from the phone's wallet chooser${tc.walletStep ? " and doing the step in it" : ""}`;
     const verifierRun = web && native ? `on the web path, ${webRun}; on the native path, ${nativeRun}.` : web ? `${webRun}.` : `${nativeRun}.`;
     return [
-      `<a id="${tc.id}"></a>`,
-      // The front page numbers its scenarios; the id stays the name used everywhere.
-      `### ${tier === "minimum" ? `Scenario ${n + 1}: ${tc.id} (${tc.title})` : caseLabel(tc)}`,
+      // The front page numbers its scenarios; the heading's id is the name used everywhere.
+      `<h3 id="${tc.id}">${(tier === "minimum" ? `Scenario ${n + 1}: ${tc.title}` : tc.title).replace(/&/g, "&amp;").replace(/</g, "&lt;")}</h3>`,
       tc.summary,
       request,
-      `**Step for the person using the wallet:** ${step}`,
-      `**The Verifier should see:** ${sees}`,
-      `**Pass for the wallet:** ${walletPass}`,
+      tc.walletStep ? `**Step for the person using the wallet:** ${tc.walletStep.text}` : "",
+      checks ? `**Checks, besides the spec's own:** ${checks}` : "",
+      tc.walletShows ? `**Pass for the wallet:** ${sentences(tc.walletShows)}` : "",
       `**Pass for the Verifier:** ${sentences(tc.verifierShows)}`,
-      `**How to run it:**\n\n- Wallet teams: ${walletRun} The Testing EHR reports each check as met or not.\n- Verifier teams: ${verifierRun}`,
+      `**How to run it:**\n\n- Wallet teams: ${walletRun}\n- Verifier teams: ${verifierRun}`,
       tc.notes ? `**Also:** ${tc.notes}` : "",
       `**Spec:** ${tc.specSections.map(section).join(", ")}`,
     ].filter(Boolean).join("\n\n");

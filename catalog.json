@@ -46,9 +46,6 @@
         "web",
         "native"
       ],
-      "walletStep": {
-        "text": "Share whatever the wallet offers."
-      },
       "expect": [],
       "walletShows": [
         "The wallet shows the Verifier's origin during consent."
