@@ -245,12 +245,7 @@ export async function checkResponse(input: RunInput): Promise<RunResult> {
   const clinical = await checkSmartResponse(input.request, text, { verifyHealthCards: input.verifyHealthCards ?? true });
   checks.push(...clinical.checks);
   const size = raw.length;
-  // Only one combination has a size ceiling: an Android wallet answering through the old
-  // 2-argument setGetCredentialResponse, or Chrome below 150, drops responses above ~520 KB.
-  // Wallets on androidx.credentials 1.7+ with Chrome 150+ have no transport limit.
-  add({ id: "size", title: "Response size", outcome: "info", detail: `${(size / 1024).toFixed(1)} KB base64url${size > 512 * 1024
-    ? ". Fine on current platforms; only an Android wallet using the old 2-argument setGetCredentialResponse, or Chrome below 150, would drop a response this size (the cutoff there is about 520 KB)"
-    : ""}` });
+  add({ id: "size", title: "Response size", outcome: "info", detail: `${(size / 1024).toFixed(1)} KB base64url` });
   return done({ smartResponse: clinical.smartResponse, items: clinical.items, artifacts: clinical.artifacts, responseBytes: size });
 }
 

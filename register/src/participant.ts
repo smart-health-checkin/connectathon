@@ -8,7 +8,7 @@ export type Contact = { name: string; github?: string; slack?: string; email?: s
 export type Component = {
   id: string; role: Role; name: string; status: string; description?: string;
   url?: string; walletUrl?: string; iconUrl?: string; homepage?: string; target?: "tab" | "popup";
-  platforms?: string[]; access?: Access; installUrl?: string; requirements?: string; largeResponses?: boolean;
+  platforms?: string[]; access?: Access; installUrl?: string; requirements?: string;
   testPatient?: string; notes?: string;
 };
 export type Participant = { organization: string; homepage?: string; contacts?: Contact[]; components: Component[] };
@@ -37,7 +37,7 @@ export const FIELD_LABEL: Record<string, string> = {
   id: "Short id", role: "Role", status: "Status", description: "Description",
   url: "Check-in page URL", walletUrl: "Wallet URL", iconUrl: "Icon URL", target: "Open as",
   platforms: "Platforms", access: "How testers get it", installUrl: "Install link", requirements: "Phone needs",
-  largeResponses: "Large responses", testPatient: "Test patient", notes: "Notes for testers",
+  testPatient: "Test patient", notes: "Notes for testers",
 };
 const URL_FIELDS = ["url", "walletUrl", "installUrl", "iconUrl", "homepage"] as const;
 

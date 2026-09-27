@@ -17,7 +17,7 @@ const CARD_TITLE = (c: FormComponent) =>
 const VERIFIER_HINT = "A Verifier is the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers.";
 const appLike = (c: FormComponent) => c.role === "native-wallet" || (c.role === "verifier" && c.runsAs === "app");
 
-type Kind = "text" | "url" | "textarea" | "status" | "target" | "platforms" | "access" | "runsAs" | "checkbox";
+type Kind = "text" | "url" | "textarea" | "status" | "target" | "platforms" | "access" | "runsAs";
 type Field = { key: keyof FormComponent; label: string; hint: string; required: boolean; kind: Kind };
 const f = (key: keyof FormComponent, label: string, hint: string, required: boolean, kind: Kind): Field => ({ key, label, hint, required, kind });
 
@@ -51,7 +51,6 @@ function fieldsFor(c: FormComponent): Field[] {
           ]
         : [
             ...app,
-            f("largeResponses", "Large responses", "", false, "checkbox"),
             f("testPatient", "Test patient", "The synthetic patient it holds, so Verifier testers know what to expect.", false, "text"),
           ];
   const statusHint = appLike(c)
@@ -188,7 +187,7 @@ function renderComponents(focusId?: string) {
         control = select(fieldId, [["tab", "A new tab (default)"], ["popup", "A popup window"]], c.target ?? "tab", (v) => { c.target = v as "tab" | "popup"; refresh(); });
       } else if (kind === "access") {
         control = select(fieldId, Object.entries(ACCESS_LABEL), accessOf(c), (v) => { c.access = v as Access; renderComponents(fieldId); refresh(); });
-      } else if (kind === "runsAs" || kind === "platforms" || kind === "checkbox") {
+      } else if (kind === "runsAs" || kind === "platforms") {
         // Groups of choices: a fieldset, so the legend names them.
         control = el("fieldset", { className: "choices", id: fieldId });
         lab = el("legend", {}, label, ...req);
@@ -205,16 +204,12 @@ function renderComponents(focusId?: string) {
             r.id = `${fieldId}-${v}`;
             control.append(el("label", {}, r, t));
           }
-        } else if (kind === "platforms") {
+        } else {
           for (const p of ["android", "ios"]) {
             const box = el("input", { type: "checkbox", checked: (c.platforms ?? []).includes(p), value: p });
             box.onchange = () => { c.platforms = box.checked ? [...new Set([...(c.platforms ?? []), p])] : (c.platforms ?? []).filter((x) => x !== p); refresh(); };
             control.append(el("label", {}, box, p === "ios" ? "iOS" : "Android"));
           }
-        } else {
-          const box = el("input", { type: "checkbox", checked: !!c.largeResponses, id: `${fieldId}-box` });
-          box.onchange = () => { c.largeResponses = box.checked; refresh(); };
-          control.append(el("label", {}, box, "It can answer with responses over 512 KB (scenario L2). On Android, that means it uses the large-payload response API."));
         }
         card.append(control);
         if (hint) card.append(el("p", { className: "hint" }, hint));

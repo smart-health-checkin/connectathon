@@ -1,7 +1,8 @@
 """Writes the reference wallet's synthetic patients to testing-wallet/data/.
 
-  aria-test.json     a modest record for the minimum scenarios (well under 512 KB)
-  large-record.json  the same patient plus years of history and notes (well over 512 KB)
+  aria-test.json     a modest record for the minimum scenarios
+  large-record.json  the same patient plus years of history and notes, for the
+                     larger-data scenarios
 
 Each file is a FHIR R4 collection Bundle. Every resource claims the US Core
 profile it is meant to satisfy, and the Coverage also claims the CARIN digital

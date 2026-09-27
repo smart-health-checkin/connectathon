@@ -566,7 +566,6 @@ function details(c: Component): string {
   if (c.role === "verifier") out.push(isApp(c) ? `${esc(platformsOf(c))} app` : "Web page");
   else if (isApp(c)) out.push(esc(platformsOf(c)));
   if (c.requirements) out.push(`Needs ${esc(c.requirements)}`);
-  if (c.largeResponses) out.push(`Answers over 512 KB (<a href="scenarios.html#larger-data-scenarios">L2</a>)`);
   return out.join("<br>");
 }
 function dirRow(p: Participant, c: Component, cols: { details: boolean; patient: boolean }): string {

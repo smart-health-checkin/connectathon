@@ -155,10 +155,6 @@
             "type": "string",
             "description": "Phone app: what a tester's phone needs, such as the OS and browser versions."
           },
-          "largeResponses": {
-            "type": "boolean",
-            "description": "Native wallet: it can answer with responses over 512 KB, the larger-data scenario L2. On Android that means the large-payload response API."
-          },
           "testPatient": {
             "type": "string",
             "description": "Wallets: the synthetic patient it holds, so Verifier testers know what to expect."

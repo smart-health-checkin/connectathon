@@ -33,7 +33,7 @@ Pushes to `main` deploy through GitHub Pages.
 - Web: `bun scripts/self-test.ts` drives the live Testing EHR against the live Testing Wallet for every web-path scenario and every fault. It runs nightly in CI.
 - Android: `bun scripts/android-e2e.ts [M1 M3 …]` drives the live Testing EHR in an Android device's Chrome, through the Digital Credentials API, to the installed reference Android wallet. It runs nightly in CI on an emulator (`android-e2e.yml`).
   - It picks the wallet's patient for each case, answers every choice question in a form, and checks that the answers arrived.
-  - L2 is skipped on Chrome before 150, which can't receive responses over about 520 KB from an Android wallet. The emulator image ships Chrome 145, so L2 on Android is a manual check on a real phone.
+  - L2 is skipped on Chrome before 150, which predates the browser's large-response path. The emulator image ships Chrome 145, so L2 on Android is a manual check on a real phone.
 
 Setting up an emulator for the Android run:
 

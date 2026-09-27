@@ -54,7 +54,7 @@ A health app installed on the phone. The browser passes it the EHR's request thr
 
 </details>
 
-For Android, see [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android): registering with Credential Manager, the matcher, the browser allowlist, and the large-response API. The same page covers iOS, where a wallet needs Apple's approval for this document type.
+For Android, see [Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android): registering with Credential Manager, the matcher, the browser allowlist, and returning responses of any size. The same page covers iOS, where a wallet needs Apple's approval for this document type.
 
 ### Web wallets
 

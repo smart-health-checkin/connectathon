@@ -266,12 +266,13 @@ async function runCase(caseId: string) {
 
 // Extra expectations beyond "all checks passed", per case.
 const EXPECT: Record<string, (r: Awaited<ReturnType<typeof runCase>>) => string | undefined> = {
-  L2: (r) => (r.sizeKb > 512 ? undefined : `expected a response over 512 KB, got ${r.sizeKb} KB`),
+  // L2 should return the large record, not the modest one.
+  L2: (r) => (r.sizeKb > 512 ? undefined : `expected the large record, got a ${r.sizeKb} KB response`),
 };
 const FORM_CASES = new Set(["M4", "O1", "O2", "O3", "O8", "O9", "O10"]);
 
-// Responses over about 500 KB only reach the page when Chrome offers the
-// large-payload channel (Chrome 150 and later); older Chrome drops them silently.
+// L2 needs Chrome's large-response path, where the wallet hands the response
+// over as a file. Chrome offers it from version 150.
 async function chromeMajor(): Promise<number> {
   const out = (await adb("shell", "dumpsys", "package", "com.android.chrome")).stdout.toString();
   return Number(out.match(/versionName=(\d+)/)?.[1] ?? 0);
@@ -303,7 +304,7 @@ let skipped = 0;
 for (const c of CASES) {
   if (LARGE_CASES.has(c) && chrome < 150) {
     skipped++;
-    console.log(`skip ${c}: Chrome ${chrome} can't receive responses over about 500 KB from an Android wallet (needs Chrome 150 or later)`);
+    console.log(`skip ${c}: Chrome ${chrome} predates the large-response path (Chrome 150)`);
     continue;
   }
   console.log(`...  ${c}: running`);

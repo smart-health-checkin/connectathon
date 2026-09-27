@@ -31,10 +31,11 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
 ## Patients
 
 - Two synthetic patients from `data/`, chosen at the top of the consent screen:
-  - **Aria Test**, 22 KB: demographics, three problems, two allergies, three
+  - **Aria Test**: demographics, three problems, two allergies, three
     medications, three immunizations, lab and vital signs, and insurance.
-  - **Aria Test, large record**, over 2 MB: the same, plus eight years of labs,
-    blood pressures, and progress notes. Used for scenario L2.
+  - **Aria Test, large record**: the same, plus eight years of labs,
+    blood pressures, and progress notes. Used for scenario L2, which tests
+    that large responses arrive intact.
 - Every resource claims its US Core profile. Patient, Coverage, and the payer
   also claim the CARIN digital insurance card profiles. Both files validate
   with the latest HL7 validator (`scripts/validate-fhir.sh`).
@@ -127,7 +128,7 @@ open the wallet preconfigured, for example
   | `duplicate-status` | one item has two statuses | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
   | `wrong-request-id` | requestId doesn't match | rejects the response ([XV-2](https://smart-health-checkin.org/spec/#XV-2)) |
   | `unaccepted-media-type` | a record in a type the item didn't accept | sets that record aside ([XV-7](https://smart-health-checkin.org/spec/#XV-7)) |
-  | `oversized` | pads the response past 3 MB | passes |
+  | `oversized` | pads the response with a large block of filler | passes |
   | `bad-signature` | corrupts the issuer signature | warns and continues ([VRS-5](https://smart-health-checkin.org/spec/#VRS-5)) |
   | `bad-encryption` | corrupts the HPKE ciphertext | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
   | `wrong-origin` | binds the transcript to the origin with a trailing slash | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |

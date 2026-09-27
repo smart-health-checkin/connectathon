@@ -21,7 +21,6 @@ export const EXAMPLES: { id: string; title: string; summary: string; file: strin
           platforms: ["android", "ios"],
           access: "invite",
           requirements: "Android 10 or later with Chrome 141 or later; iPhone with iOS 26 and Safari",
-          largeResponses: true,
           testPatient: "Jane Test, born 1970, with problems, medications, allergies, and an insurance card",
           notes: "Android: message Pat in Slack with the Google account to add to our test track. iPhone: awaiting Apple's approval, so find us in the event's main room and we'll run it with you on our phone.",
         },

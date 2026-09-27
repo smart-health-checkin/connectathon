@@ -150,7 +150,7 @@
         "web",
         "native"
       ],
-      "summary": "A modest record under 512 KB.",
+      "summary": "A modest record.",
       "expect": {
         "ehr": [
           "Shows every returned resource under uscdi"
@@ -171,7 +171,7 @@
         "web",
         "native"
       ],
-      "summary": "A full record well over 512 KB.",
+      "summary": "A full record with years of history: tests that large responses arrive intact.",
       "expect": {
         "ehr": [
           "Response arrives intact"

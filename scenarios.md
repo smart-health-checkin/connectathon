@@ -20,7 +20,7 @@ The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/);
 - **No patient matching.** Each wallet holds its own synthetic patient. EHRs display what arrives and do not match it to a chart.
 - **Handoff is a plain link.** The patient opens the EHR's check-in page in a browser. Portal buttons, SMS, and QR codes are product choices outside the spec ([§1.3](https://smart-health-checkin.org/spec/#1-3-handoffs-as-on-ramps)).
 - **Bring your own devices.** Native-wallet testing needs an Android phone with Chrome, or an iPhone with Safari 26, with a wallet installed. There is a [reference Android wallet](#reference-android-wallet). There is no reference iOS wallet, so iOS testing uses participants' own wallets.
-- **Small responses first.** Every minimum scenario stays under 512 KB per response, so size limits in browsers and phone APIs don't get in the way of the basics. Larger payloads have their own [scenarios](#larger-data-scenarios).
+- **Small responses first.** To keep the basics simple, every minimum scenario expects responses under 512 KB. Large responses have their own [scenarios](#larger-data-scenarios).
 - **FHIR R4 and US Core.** Requests use `fhirVersions: ["4.0.1"]` and `accept: ["application/fhir+json"]`. The insurance item also accepts a SMART Health Card ([§5.6](https://smart-health-checkin.org/spec/#5-6-accepted-media-types)).
 
 ## Shared resources
@@ -81,7 +81,7 @@ The semaglutide form asks only what the patient's record can't answer: how the w
 
 ## Baseline requests
 
-EHRs should be able to send Baselines 1 to 3, and wallets should be able to answer them with responses under 512 KB. [Baseline 4](#baseline-4) is for the [larger-data scenarios](#larger-data-scenarios). Each is published at `https://smart-health-checkin.org/connectathon/requests/baseline-N.json`. `…` stands for `http://hl7.org/fhir/us/core/StructureDefinition`.
+EHRs should be able to send Baselines 1 to 3, and wallets should be able to answer them. To keep these basics simple, their responses are expected to stay under 512 KB. [Baseline 4](#baseline-4) is for the [larger-data scenarios](#larger-data-scenarios). Each is published at `https://smart-health-checkin.org/connectathon/requests/baseline-N.json`. `…` stands for `http://hl7.org/fhir/us/core/StructureDefinition`.
 
 <a id="baseline-1"></a>**Baseline 1: demographics and PAMI** (problems, allergies, medications, immunizations)
 
@@ -206,12 +206,12 @@ Pass: the EHR handles a whole-request decline and an `unavailable` item without 
 
 ## Larger data scenarios
 
-[Baseline 4](#baseline-4), kept separate so size limits don't block the [minimum scenarios](#minimum-scenarios).
+[Baseline 4](#baseline-4), which tests that large responses work end to end. It's kept apart from the [minimum scenarios](#minimum-scenarios) so those stay simple.
 
 | # | Scenario | Pass |
 |---|---|---|
-| L1 | Anything in USCDI, small patient: a modest record, under 512 KB | The EHR shows every returned resource under `uscdi`, whatever the resource types. The wallet lets the patient choose what to include ([§5.4](https://smart-health-checkin.org/spec/#5-4-content-selectors)). |
-| L2 | Anything in USCDI, large patient: a full history with notes, well over 512 KB | The response arrives intact. On Android, this needs Chrome 150 or later and a wallet that uses the [large-payload response API](https://smart-health-checkin.org/spec/trust-and-limits.html#size); with older Chrome, responses over about 520 KB are dropped silently and the page waits forever. Record the browser, phone, and wallet version. |
+| L1 | Anything in USCDI, small patient: a modest record | The EHR shows every returned resource under `uscdi`, whatever the resource types. The wallet lets the patient choose what to include ([§5.4](https://smart-health-checkin.org/spec/#5-4-content-selectors)). |
+| L2 | Anything in USCDI, large patient: a full history with notes | The response arrives intact. On Android, the wallet returns it with the three-argument `setGetCredentialResponse`, which passes it to the browser as a file ([Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android)). Record the browser, phone, and wallet version. |
 
 ## Optional and stretch scenarios
 

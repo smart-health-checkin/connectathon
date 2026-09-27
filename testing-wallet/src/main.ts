@@ -21,7 +21,7 @@ const FAULTS: Record<string, string> = {
   "duplicate-status": "Give one item two statuses",
   "wrong-request-id": "requestId doesn't match",
   "unaccepted-media-type": "Return an artifact in a media type the item didn't accept",
-  "oversized": "Pad the response past 3 MB",
+  "oversized": "Pad the response with a large block of filler",
   "bad-signature": "Corrupt the issuer signature",
   "bad-encryption": "Corrupt the HPKE ciphertext",
   "wrong-origin": "Bind the transcript to the origin with a trailing slash",
@@ -46,7 +46,7 @@ const FAULT_EFFECT: Record<string, string> = {
 const PRODUCIBLE = ["application/fhir+json", "application/smart-health-card"];
 const PATIENTS: Record<string, { label: string; file: string }> = {
   aria: { label: "Aria Test", file: "data/aria-test.json" },
-  large: { label: "Aria Test, large record (over 2 MB)", file: "data/large-record.json" },
+  large: { label: "Aria Test, large record", file: "data/large-record.json" },
 };
 
 // ---------------------------------------------------------------- settings in the URL fragment
