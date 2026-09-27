@@ -1,12 +1,12 @@
 # Test scenarios
 
-The scenarios developers run at the connectathon: EHRs, portals, and other Verifiers on one side, wallets on the other. Start with your role's page, [Verifier developers](verifier-developers.html) or [wallet developers](wallet-developers.html), for what to build and how to register. This page is the shared reference for testing.
+The scenarios developers run at the connectathon: EHRs, portals, and other Verifiers on one side, wallets on the other. Start with your role's page, [Verifier developers](verifier-developers.html) or [Wallet developers](wallet-developers.html), for what to build and how to register. This page is the shared reference for testing.
 
 The spec is [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/); section links below go to it.
 
 ## How to test
 
-- **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [participant directory](directory.html) by [registering](register/):
+- **Make your component self-serve.** Put up something anyone can test against without you in the room, and list it in the [Participant directory](directory.html) by [registering](register/):
   - Verifier (EHR, portal, or kiosk): a public check-in page URL. A Verifier that is a phone app lists its platforms and how testers get it.
   - Web wallet: an entry in the [registry](#wallet-registry).
   - Native wallet: its platforms, how testers get it (an install link, an invite on request, or testing with you on your phone), and the name of its test patient. Native wallets aren't in the registry: the phone's own wallet chooser reaches them.
@@ -35,7 +35,7 @@ Everything the event provides, in one place. The event's own resources are all u
 | How web wallets talk to the EHR page | [Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) in the client docs |
 | Baseline and scenario requests | [Test requests](requests/) |
 | Example questionnaires | [Test questionnaires](Questionnaire/) |
-| Reference EHR check-in page | [Reference EHR demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
+| Reference EHR check-in page | [Clinic check-in demo](https://smart-health-checkin.org/client/demo/); [with the event registry loaded](https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json) |
 | Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
 | Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk); [install steps](#reference-android-wallet) |
 | SMART Testing EHR | [SMART Testing EHR](testing-ehr/) ([details](#testing-ehr-and-testing-wallet)) |
@@ -44,11 +44,11 @@ Everything the event provides, in one place. The event's own resources are all u
 
 ### Wallet registry
 
-The event registry lists every participating web wallet whose status is up in the [participant directory](directory.html#web-wallets), at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([wallet registries](https://smart-health-checkin.org/client/docs/registry.html)):
+The event registry lists every participating web wallet whose status is up in the [participant directory](directory.html#web-wallets), at <https://smart-health-checkin.org/connectathon/wallets.json>. It uses the format the client library reads ([Registry format](https://smart-health-checkin.org/client/docs/registry.html)):
 
 ```json
 {
-  "source": "KTC connectathon, October 2026",
+  "source": "KTC SMART Health Check-in connectathon registry",
   "wallets": [
     {
       "id": "example",
@@ -63,7 +63,7 @@ The event registry lists every participating web wallet whose status is up in th
 }
 ```
 
-You don't edit this file directly. Add your web wallet on the [registration form](https://smart-health-checkin.org/connectathon/register/), which fills in every registry field and opens a pull request with your organization's participant file. The registry is regenerated from those files ([details](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md#fields-for-each-component)). Native wallets aren't in it: the phone's own wallet chooser reaches them, so they're listed in the [directory](directory.html#native-wallets) only.
+You don't edit this file directly. Add your web wallet on the [registration form](https://smart-health-checkin.org/connectathon/register/), which fills in every registry field and opens a pull request with your organization's participant file. The registry is regenerated from those files ([details](https://github.com/smart-health-checkin/connectathon/blob/main/CONTRIBUTING.md#fields-for-each-component)). Native wallets aren't in it: the phone's own wallet chooser reaches them, so they're listed in the [Participant directory](directory.html#native-wallets) only.
 
 The list will change during testing. EHRs should load it from the registry URL each time the check-in page opens, or sync it automatically, so changes need no redeploy.
 
@@ -230,7 +230,7 @@ Pass: the EHR handles a whole-request decline and an `unavailable` item without 
 | O11 | Write back | EHR files returned data or answers into the chart after staff review | Staff can accept or reject each item. |
 | O12 | Unknown selector | An item with `kind: "example.ktc-test"` ([§5.4.3](https://smart-health-checkin.org/spec/#5-4-3-extension-selectors)) | Wallet reports `unsupported` for that item and still answers the others. |
 
-## Testing EHR and testing wallet
+## Testing EHR and Testing Wallet
 
 Two test tools let each participant run the scenarios above against a known-good counterpart without waiting for a partner.
 
@@ -258,10 +258,8 @@ Download: [the latest APK](https://github.com/smart-health-checkin/android-walle
 - **Requirements:** Android 8 or later, and a Chrome version with the Digital Credentials API. Open the app once after installing so it registers with the phone's Credential Manager.
 - **Test patient:** the same synthetic patients as the SMART Testing Wallet. Choose Aria Test, or the large record for [L2](#larger-data-scenarios), on the app's home screen.
 
-From 0.3.6 on, new builds install over old ones. Earlier builds were signed with a different key: uninstall one of those once (`adb uninstall org.smarthealthit.checkin.wallet`) before installing a newer build.
-
 ## Recording results
 
-Record each run of a formal scenario through the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml): EHR, wallet, path (web or native), scenario, device and browser, pass or fail, and a note. Attach a screenshot of the EHR display and, where possible, the captured request and response, or the testing tool's log. The [results page](results.html) collects them.
+Record each run of a formal scenario through the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml): EHR, wallet, path (web or native), scenario, device and browser, pass or fail, and a note. Attach a screenshot of the EHR display and, where possible, the captured request and response, or the testing tool's log. The [Results](results.html) page collects them.
 
-Then tell us how the whole thing went in a short experience report. The [developer track](share.html#developers) of the share page has a debrief prompt for any AI assistant, and the experience form.
+Then tell us how the whole thing went in a short experience report. The [developer track](share.html#developers) on the Share your experience page has a debrief prompt for any AI assistant, and the experience form.

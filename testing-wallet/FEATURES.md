@@ -17,16 +17,16 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
 - Shows the EHR's origin at the top of the consent screen.
 - Replies only to that origin, with the request's `requestId`.
 - Opened without an opener, the page explains what it is and links to the
-  testing EHR and the reference EHR.
+  [Testing EHR](https://smart-health-checkin.org/connectathon/testing-ehr/) and the [clinic check-in demo](https://smart-health-checkin.org/client/demo/).
 
 ## Request handling
 
 - Picks the `org-iso-mdoc` entry from `credentialRequestOptions.digital.requests`
   and parses the `DeviceRequest` and `encryptionInfo` with the client library.
-- Validates the SMART request (spec §5). If it's malformed, shows the problem
+- Validates the SMART request (spec [§5](https://smart-health-checkin.org/spec/#5-clinical-request-model)). If it's malformed, shows the problem
   and replies `error` with the validator's message.
 - Unknown selector kinds make that item `unsupported`. The other items are
-  still answered (§5.4.3).
+  still answered ([§5.4.3](https://smart-health-checkin.org/spec/#5-4-3-extension-selectors)).
 
 ## Patients
 
@@ -39,7 +39,7 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
   also claim the CARIN digital insurance card profiles. Both files validate
   with the latest HL7 validator (`scripts/validate-fhir.sh`).
 
-## Matching (§5.4.1, §5.5)
+## Matching ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir), [§5.5](https://smart-health-checkin.org/spec/#5-5-canonical-version-handling))
 
 - `profiles`: a resource matches when its `meta.profile` includes the
   requested canonical. An unversioned request matches any version. A
@@ -55,7 +55,7 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
   references resolve.
 - Nothing matches: status `unavailable`.
 
-## Forms (§5.4.2)
+## Forms ([§5.4.2](https://smart-health-checkin.org/spec/#5-4-2-form-fhir))
 
 - Renders the inline Questionnaire. Without an inline body, fetches an
   unversioned canonical directly. For a versioned canonical, it fetches the
@@ -83,7 +83,7 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
   ([HOLD-4](https://smart-health-checkin.org/spec/#HOLD-4)). Closing the tab
   without answering is the cancel path: the EHR's call fails.
 
-## Response (§6)
+## Response ([§6](https://smart-health-checkin.org/spec/#6-clinical-response-model))
 
 - Exactly one status per item.
 - Only media types the item accepts
@@ -135,6 +135,6 @@ open the wallet preconfigured, for example
   | `combine-allergies-meds` | allergies and medications share one Bundle (O7) | passes |
 - Shows the parsed request, and the SMART response as sent.
 
-## Limitations in this version
+## Limitations
 
 - No Android build. The reference Android wallet covers native testing.

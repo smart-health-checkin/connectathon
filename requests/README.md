@@ -1,6 +1,6 @@
 # Test requests
 
-Every baseline and optional-scenario request from the [scenarios](../), as SMART Health Check-in request JSON ([spec §5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model)).
+Every baseline and optional-scenario request from the [Test scenarios](../scenarios.html#baseline-requests), as SMART Health Check-in request JSON ([spec §5.2](https://smart-health-checkin.org/spec/#5-2-normative-typescript-model)).
 
 Each file's `id` is `replace-with-a-unique-id`. Your EHR must send a fresh, unique `id` with every request, and the wallet echoes it back as `requestId`.
 

@@ -1,6 +1,6 @@
 # How to register for the connectathon
 
-Each participating organization has one file in [`participants/`](participants/), named after the organization, such as `participants/example-health.json`. It lists your components: Verifiers (the side that asks for data; EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers), web wallets, and native wallets. The site builds the [directory](https://smart-health-checkin.org/connectathon/directory.html) from these files. Only web wallets also go into the [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) (`wallets.json`), because Verifier pages open them directly; native wallets are reached through the phone's own wallet chooser, so they're listed in the directory only.
+Each participating organization has one file in [`participants/`](participants/), named after the organization, such as `participants/example-health.json`. It lists your components: Verifiers, web wallets, and native wallets ([fields for each](#fields-for-each-component)). The site builds the [Participant directory](https://smart-health-checkin.org/connectathon/directory.html) from these files. Only web wallets also go into the [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) (`wallets.json`), because Verifier pages open them directly; native wallets are reached through the phone's own wallet chooser, so they're listed in the directory only.
 
 ## The easy way: the registration form
 
@@ -55,4 +55,4 @@ bun run check
 
 ## Filing results
 
-File one GitHub issue per test run with the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml). The [results page](https://smart-health-checkin.org/connectathon/results.html) is rebuilt from those issues.
+File one GitHub issue per test run with the [result form](https://github.com/smart-health-checkin/connectathon/issues/new?template=test-result.yml). The [Results](https://smart-health-checkin.org/connectathon/results.html) page is rebuilt from those issues.

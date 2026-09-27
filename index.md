@@ -14,14 +14,14 @@ An online event where patients, clinic staff, and software teams try a new way o
 
 ## How the event works
 
-<p class="smart-callout warn"><b>Draft.</b> The event date isn't set yet, so dates below say "To be announced". Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">directory</a> aren't ready for testing.</p>
+<p class="smart-callout warn"><b>Draft.</b> The event date isn't set yet, so dates below say "To be announced". Everything else linked here is live. Components marked "not yet" in the <a href="directory.html">Participant directory</a> aren't ready for testing.</p>
 
 - **When and where.** KTC pre-visit check-in connectathon, {{TBD: event date and time}}, about 3 hours, on Zoom: {{TBD: Zoom link}}.
 - **What it's for.** Experience with a new way of checking in, not a formal conformance test. Software teams connect clinic systems to patients' health apps, and patients, clinic staff, and community members try the result. It uses the [SMART Health Check-in 1.0](https://smart-health-checkin.org/spec/) draft specification.
 - **One Zoom meeting.** Everyone joins the main room for the opening, the hourly check-ins, and the closing report-out, where participants share what they found.
 - **One chat.** Questions, pairing, and links go in `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)).
 - **Breakout rooms you start yourself.** Two people debugging together: start a Slack huddle in a direct message; it has video and screen sharing. A group, or someone not on the Slack: open `https://meet.jit.si/ktc-checkin-<ehr>-<wallet>` and post the link in the channel.
-- **Registration is for software.** Teams bringing an EHR, portal, or wallet [register it](register/) so others can test against it (see the register step for [Verifier developers](verifier-developers.html#register) or [wallet developers](wallet-developers.html#register)). Everyone else just joins.
+- **Registration is for software.** Teams bringing an EHR, portal, or wallet [register it](register/) so others can test against it (see the register step for [Verifier developers](verifier-developers.html#register) or [Wallet developers](wallet-developers.html#register)). Everyone else just joins.
 - **Made-up data only.** Every patient, record, and clinic in the demos and test tools is synthetic. Never use real health information, even your own.
 
 ## Schedule
@@ -38,4 +38,4 @@ An online event where patients, clinic staff, and software teams try a new way o
 
 ## Sharing what you found
 
-Everyone is invited to write a short experience report: what you tried, what worked, what was hard, and what you'd change. The [share page](share.html) has a track for each kind of participant, [patients](share.html#patients), [clinic staff](share.html#clinic-staff), [developers](share.html#developers), and [observers](share.html#observers), with prompts that turn any AI assistant into a guide and the form to send your report. Reports are public, credited with the name and organization you give, or anonymous.
+Everyone is invited to write a short experience report: what you tried, what worked, what was hard, and what you'd change. The [Share your experience](share.html) page has a track for each kind of participant, [patients](share.html#patients), [clinic staff](share.html#clinic-staff), [developers](share.html#developers), and [observers](share.html#observers), with prompts that turn any AI assistant into a guide and the form to send your report. Reports are public, credited with the name and organization you give, or anonymous.

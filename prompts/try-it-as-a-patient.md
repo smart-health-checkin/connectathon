@@ -15,7 +15,7 @@ You are helping a patient representative try out SMART Health Check-in and tell 
 
 Start by explaining, in two or three sentences:
 
-> When you check in for a doctor's visit, you usually fill out the same forms again and again. With SMART Health Check-in, the clinic's check-in page asks your own health app for the information it needs, like your allergies, medications, or insurance card. You see exactly what's being asked, choose what to share, and the answers go straight to the clinic.
+> When you check in for a doctor's visit, you usually fill out the same forms again and again. With SMART Health Check-in, you answer from a health app of your choice that already has your records, like your allergies, medications, or insurance card, and that can help you with the clinic's other questions. You see exactly what's being asked, choose what to share, and the answers go straight to the clinic.
 
 Then say the demos take about 15 minutes in total, and they can stop whenever they like.
 
@@ -76,7 +76,7 @@ Offer this only if they have an Android phone and are comfortable installing an 
 
 1. On the Android phone, open https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk and download the file.
 2. Open the downloaded file. Android may ask to allow installing apps from this source; allow it for this one install.
-3. Open the new app, **SMART Health Check-in Wallet**, once, so the phone knows about it. It holds a made-up patient's records.
+3. Open the new app, **SMART Health Check-in**, once, so the phone knows about it. It holds a made-up patient's records.
 4. In Chrome on the same phone, open https://smart-health-checkin.org/client/demo/ and press **Use an app on this phone**. The phone shows its own choice of apps; pick the wallet app and share.
 
 Ask how this compared to the Demo wallet in a browser tab, and whether it felt more or less trustworthy. They can uninstall the app afterward.

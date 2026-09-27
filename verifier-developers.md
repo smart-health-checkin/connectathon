@@ -11,12 +11,12 @@ The answer comes back encrypted to a key your page made for that request, and bo
 ## Get started
 
 1. **Learn the model.** [Request and response](https://smart-health-checkin.org/spec/request-response.html) walks through what a clinic asks for and what comes back, in about ten minutes.
-2. **Build your page.** The [client library tutorial](https://smart-health-checkin.org/client/docs/tutorial.html) builds a working check-in page end to end. Try the [reference EHR demo](https://smart-health-checkin.org/client/demo/) to see the result.
+2. **Build your page.** The client library's [Tutorial](https://smart-health-checkin.org/client/docs/tutorial.html) builds a working check-in page end to end. Try the [clinic check-in demo](https://smart-health-checkin.org/client/demo/) to see the result.
 3. **Test against known-good wallets.** Point your page at the event's [wallet registry](scenarios.html#wallet-registry) and check in with the [SMART Testing Wallet](testing-wallet/). It can also send deliberately broken responses, so you can test your error handling.
 4. **Building a native app instead of a web page?** The [Native Verifier apps](https://smart-health-checkin.org/client/docs/native-apps.html) guide shows both ways: calling phone wallets directly, and running the web flow in a browser tab to reach web wallets too.
-5. <a id="register"></a>**Register your check-in page or app** with the [registration form](register/), as a Verifier (role `verifier`). Verifier is the side that asks for data: EHR check-in pages, patient portals, kiosks, and clinic apps all register as Verifiers. The form opens a pull request that adds you to the [directory](directory.html), so wallet teams can test against you. A web page lists its URL; a phone app lists its platforms and how testers get it ([examples](register/#verifier-examples)).
+5. <a id="register"></a>**Register your check-in page or app** with the [registration form](register/), as a Verifier (role `verifier`). Verifier is the side that asks for data: EHR check-in pages, patient portals, kiosks, and clinic apps all register as Verifiers. The form opens a pull request that adds you to the [Participant directory](directory.html), so wallet teams can test against you. A web page lists its URL; a phone app lists its platforms and how testers get it ([examples](register/#verifier-examples)).
 6. **Run the scenarios.** The [test scenarios](scenarios.html) list the [baseline requests](scenarios.html#baseline-requests) and what passing looks like, starting with the [minimum scenarios](scenarios.html#minimum-scenarios), M1 to M6.
-7. **Share what you found** from the [developer track](share.html#developers) of the share page ([details below](#share-what-you-found)).
+7. **Share what you found** from the [developer track](share.html#developers) on the Share your experience page ([details below](#share-what-you-found)).
 
 ## Joining
 
@@ -26,7 +26,7 @@ The answer comes back encrypted to a key your page made for that request, and bo
 
 ## Share what you found
 
-Debrief your testing from the [developer track](share.html#developers) of the share page: it has a debrief prompt for any AI assistant, and the experience form. Record each formal scenario run as a [structured result](scenarios.html#recording-results) too. Reports are public, credited with the name and organization you give.
+Debrief your testing from the [developer track](share.html#developers) on the Share your experience page: it has a debrief prompt for any AI assistant, and the experience form. Record each formal scenario run as a [structured result](scenarios.html#recording-results) too. Reports are public, credited with the name and organization you give.
 
 ## Reference
 

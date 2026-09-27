@@ -369,7 +369,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
   <li><b>Start the debrief.</b> Copy the debrief prompt, or open it in an assistant:${card(debrief)}</li>
   <li><b>Answer its questions.</b> Paste in your notes, logs, or Testing EHR runs. It asks what worked, what was hard, and where the spec or tools fell short, then drafts a short report.</li>
   <li><b>Send your report</b> through the ${form}.</li>
-  <li><b>Formal scenario runs:</b> also record each one as a <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">structured result</a>. They're collected on the <a href="results.html">results page</a>.</li>
+  <li><b>Formal scenario runs:</b> also record each one as a <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">structured result</a>. They're collected on the <a href="results.html">Results</a> page.</li>
 </ol>
 </section>
 

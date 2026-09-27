@@ -11,9 +11,9 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
 - Conformance: `tests/conformance/` runs the spec's conformance cases
   (`hpke-open`, `mdoc-verify`) through the Testing EHR's own checks;
   `known-failures.json` lists what fails today and must shrink as fixes land.
-- After changing the Testing EHR or testing wallet: `bun scripts/self-test.ts`
+- After changing the Testing EHR or Testing Wallet: `bun scripts/self-test.ts`
   (the live site), or `bun scripts/self-test.ts http://localhost:8794/` against
-  a local build whose `_site/wallets.json` points at the local testing wallet.
+  a local build whose `_site/wallets.json` points at the local Testing Wallet.
   It also runs after every deploy and nightly.
 - Android: `bun scripts/android-e2e.ts --release` against an emulator or
   device; nightly in CI (`android-e2e.yml`) with the latest APK.
@@ -28,7 +28,7 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   and in `nav.json`.
 - Every page uses the apex's shared chrome (see "The shared site" in MAINTAINING.md):
   content pages get the site bar, breadcrumb, `<main id="main">`, and footer from
-  `page()` in `scripts/build.ts`; the Testing EHR, testing wallet, and Register use
+  `page()` in `scripts/build.ts`; the Testing EHR, Testing Wallet, and Register use
   the tool bar (`data-smart-topbar="tool"`, actions in `data-smart-tool-actions`),
   and the build adds the chrome's `<head>` tags after bundling. Each page's H1 uses
   its menu wording. Page CSS must not style bare `header` or `nav`; use rem, not

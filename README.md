@@ -7,18 +7,18 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 | `index.md` | The front page: pick your path, how the event works, the schedule. |
 | `patients.md`, `clinic-staff.md`, `verifier-developers.md`, `wallet-developers.md`, `observers.md` | One page per participant type: background, getting started, joining, sharing what you found. |
 | `scenarios.md` | The developer test reference: ground rules, shared resources, baseline requests, scenarios, test tools. |
-| `prompts/` | Prompts people paste into any AI assistant: a patient guide and an implementer debrief. Offered on the generated [share page](https://smart-health-checkin.org/connectathon/share.html). |
+| `prompts/` | Prompts people paste into any AI assistant: a patient guide and an implementer debrief. Offered on the generated [Share your experience](https://smart-health-checkin.org/connectathon/share.html) page. |
 | `participants/` | One file per organization. [How to register](CONTRIBUTING.md). |
 | `requests/` | Baseline and optional-scenario requests. |
 | `Questionnaire/` | Example FHIR Questionnaires, served at their canonical URLs. |
-| `catalog.json` | Test cases used by the testing EHR and testing wallet. |
+| `catalog.json` | Test cases used by the Testing EHR and Testing Wallet. |
 | `testing-ehr/`, `testing-wallet/` | The test tools. |
 | `scripts/links.ts` | The experience-form URL and the prompt list, used by the share page and the prompts. |
 | `tools/experience-form/` | Apps Script that builds the experience-report Google Form. |
 
-`wallets.json`, the directory, the results page, and the share page are generated at build time.
+`wallets.json` and the Participant directory, Results, and Share your experience pages are generated at build time.
 
-Experience reports: people paste a prompt from `prompts/` into any AI assistant, which guides them and helps write a report, then they send it through the Google Form (reports are public). The share page offers the prompts and the form; the form URL lives only in `scripts/links.ts`; `tools/experience-form/form.gs` rebuilds the form in place. To change a prompt, edit its file in `prompts/` and push. Structured pass/fail result issues remain optional for formal scenarios.
+Experience reports: people paste a prompt from `prompts/` into any AI assistant, which guides them and helps write a report, then they send it through the Google Form (reports are public). The share page offers the prompts and the form; the form URL lives only in `scripts/links.ts`; `tools/experience-form/form.gs` rebuilds the form in place. To change a prompt, edit its file in `prompts/` and push. Structured pass/fail result issues are optional, for formal scenario runs.
 
 ```
 bun install
@@ -30,10 +30,10 @@ Pushes to `main` deploy through GitHub Pages.
 
 ## End-to-end checks
 
-- Web: `bun scripts/self-test.ts` drives the live testing EHR against the live testing wallet for every web-path scenario and every fault. It runs nightly in CI.
-- Android: `bun scripts/android-e2e.ts [M1 M3 …]` drives the live testing EHR in an Android device's Chrome, through the Digital Credentials API, to the installed reference Android wallet. It runs nightly in CI on an emulator (`android-e2e.yml`).
+- Web: `bun scripts/self-test.ts` drives the live Testing EHR against the live Testing Wallet for every web-path scenario and every fault. It runs nightly in CI.
+- Android: `bun scripts/android-e2e.ts [M1 M3 …]` drives the live Testing EHR in an Android device's Chrome, through the Digital Credentials API, to the installed reference Android wallet. It runs nightly in CI on an emulator (`android-e2e.yml`).
   - It picks the wallet's patient for each case, answers every choice question in a form, and checks that the answers arrived.
-  - L2 is skipped on Chrome before 150, which can't receive responses over about 500 KB from an Android wallet. The emulator image ships Chrome 145, so L2 on Android is a manual check on a real phone.
+  - L2 is skipped on Chrome before 150, which can't receive responses over about 520 KB from an Android wallet. The emulator image ships Chrome 145, so L2 on Android is a manual check on a real phone.
 
 Setting up an emulator for the Android run:
 
