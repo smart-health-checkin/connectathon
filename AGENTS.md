@@ -21,6 +21,9 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   Bump the URL to upgrade; nothing updates it automatically.
 - Participants edit their own `participants/*.json` by PR;
   `participant-pr.yml` validates and auto-merges owners' changes.
+- `main` has a ruleset ("Protect main") that blocks force-pushes and deleting
+  the branch. Direct pushes and the workflows' pushes and merges still work;
+  never rewrite `main`'s history.
 - Pages: `index.md` is the front page (a hub linking to one page per
   participant type); `patients.md`, `clinic-staff.md`, `verifier-developers.md`,
   `wallet-developers.md`, and `observers.md` are those pages; `scenarios.md` is the
