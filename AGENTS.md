@@ -39,6 +39,14 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
 - Undecided event details are written `{{TBD: what}}` in the page Markdown and
   render as a "To be announced" pill; any other `{{` in a page fails the build.
 - This section's menu is `nav.json`.
+- `bun run build` ends with `scripts/llms.ts`, which writes `llms.txt` (every page grouped as in
+  `nav.json`, the prompts, `wallets.json`) and `llms-full.txt`: the apex's shared background
+  (fetched from `https://smart-health-checkin.org/llms-background.md`;
+  `LLMS_BACKGROUND=../smart-health-checkin.github.io/llms-background.md` builds offline), every
+  page as Markdown, and the prompts as published. A new page must be in `nav.json` or the script's
+  `SKIP`, and a new prompt in `scripts/links.ts`, or the build fails or leaves it out. See
+  [llms.txt](https://github.com/smart-health-checkin/smart-health-checkin.github.io/blob/main/MAINTAINING.md#llmstxt)
+  in MAINTAINING.md.
 - Experience reporting (the main feedback path; reports are public):
   - `prompts/*.md` are prompts people paste into any AI assistant (patient guide,
     implementer debrief). Keep them assistant-neutral and under ~1,500 words.
