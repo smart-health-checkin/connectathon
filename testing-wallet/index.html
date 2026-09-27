@@ -25,6 +25,7 @@
     <p id="purpose" class="purpose"></p>
     <label class="patient">Answer as <select id="patient"></select></label>
     <ul id="items" class="items"></ul>
+    <p id="size-line" class="size-line small muted" aria-live="polite"></p>
     <div class="actions">
       <button id="decline" class="smart-btn" type="button">Decline all</button>
       <button id="share" class="smart-btn primary" type="button">Share</button>
@@ -39,6 +40,9 @@
   <details id="testing" class="testing smart-details">
     <summary>Testing panel</summary>
     <p class="small">Settings are saved in this page's URL, so a test case can open the wallet preconfigured.</p>
+    <h3>Response size</h3>
+    <p class="small muted">Makes the encoded response about this large, to test that large responses work. The wallet adds earlier records of one kind, such as past lab results or prescriptions, to one shared item's Bundle, and shows the size above the Share button.</p>
+    <div id="response-size" class="smart-tabs" role="group" aria-label="Response size"></div>
     <h3>Force a status per item</h3>
     <div id="status-overrides" class="overrides"><span class="muted small">Appears when a request arrives.</span></div>
     <h3>Faults</h3>

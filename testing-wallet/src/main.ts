@@ -12,6 +12,7 @@ import { describeEntries, type Entry } from "./match.ts";
 import { buildQuestionnaireResponse, prefill, renderForm, resolveQuestionnaire, type FormState, type Questionnaire } from "./forms.ts";
 import { mintHealthCard } from "./shc.ts";
 import { seal } from "./seal.ts";
+import { earlierRecords, formatSize, pickArtifact, RESPONSE_SIZES } from "./size.ts";
 import { renderJson } from "../../shared/smart-json.ts";
 
 const STATUSES = ["fulfilled", "partial", "unavailable", "declined", "unsupported", "error"] as const;
@@ -21,7 +22,6 @@ const FAULTS: Record<string, string> = {
   "duplicate-status": "Give one item two statuses",
   "wrong-request-id": "requestId doesn't match",
   "unaccepted-media-type": "Return an artifact in a media type the item didn't accept",
-  "oversized": "Pad the response with a large block of filler",
   "bad-signature": "Corrupt the issuer signature",
   "bad-encryption": "Corrupt the HPKE ciphertext",
   "wrong-origin": "Bind the transcript to the origin with a trailing slash",
@@ -35,7 +35,6 @@ const FAULT_EFFECT: Record<string, string> = {
   "duplicate-status": "the EHR treats that item as unknown",
   "wrong-request-id": "the EHR rejects the response",
   "unaccepted-media-type": "the EHR sets that record aside",
-  "oversized": "passes",
   "bad-signature": "the EHR warns and continues",
   "bad-encryption": "the EHR rejects the response",
   "wrong-origin": "the EHR rejects the response",
@@ -56,7 +55,8 @@ function readSettings() {
     patient: PATIENTS[p.get("patient") ?? ""] ? p.get("patient")! : "aria",
     faults: new Set((p.get("faults") ?? "").split(",").filter((f) => FAULTS[f])),
     status: new Map((p.get("status") ?? "").split(",").filter(Boolean).map((kv) => kv.split(":") as [string, string])),
-    testing: p.get("testing") === "1" || p.has("faults") || p.has("status"),
+    size: RESPONSE_SIZES[p.get("size") ?? ""] ? p.get("size")! : "",
+    testing: p.get("testing") === "1" || p.has("faults") || p.has("status") || p.has("size"),
   };
 }
 const settings = readSettings();
@@ -65,6 +65,7 @@ function writeSettings() {
   if (settings.patient !== "aria") p.set("patient", settings.patient);
   if (settings.faults.size) p.set("faults", [...settings.faults].join(","));
   if (settings.status.size) p.set("status", [...settings.status].map(([k, v]) => `${k}:${v}`).join(","));
+  if (settings.size) p.set("size", settings.size);
   if (settings.testing) p.set("testing", "1");
   history.replaceState(null, "", `${location.pathname}${location.search}${p.size ? "#" + p : ""}`);
 }
@@ -215,10 +216,6 @@ async function buildResponse(s: Session, items: Prepared[]): Promise<SmartChecki
 
   if (settings.faults.has("missing-status") && statuses.length) statuses.pop();
   if (settings.faults.has("duplicate-status") && statuses.length) statuses.push({ ...statuses[0]! });
-  if (settings.faults.has("oversized")) {
-    artifacts.push({ id: "padding", mediaType: "application/fhir+json", fhirVersion: "4.0.1", fulfills: [items[0]!.item.id],
-      value: { resourceType: "Basic", code: { text: "padding" }, extension: [{ url: "https://smart-health-checkin.org/connectathon/padding", valueString: "x".repeat(3_200_000) }] } });
-  }
   return {
     type: "smart-health-checkin-response",
     version: "1",
@@ -226,6 +223,50 @@ async function buildResponse(s: Session, items: Prepared[]): Promise<SmartChecki
     artifacts,
     requestStatus: statuses,
   };
+}
+
+type Sealed = {
+  credential: { protocol: string; data: { response: string } };
+  /** The response as sent, with any records the size setting added summarized, for display. */
+  shown: SmartCheckinResponse;
+  /** Characters of base64url in `data.response`: what the EHR receives. */
+  chars: number;
+  /** What the size setting did, in a sentence. */
+  sizeNote?: string;
+};
+
+/**
+ * Build and seal the response. With a response size set on the testing
+ * panel, one requested item's Bundle gets earlier records of the same kinds
+ * until the encoded response reaches about that size (./size.ts).
+ */
+async function buildAndSeal(s: Session, items: Prepared[]): Promise<Sealed> {
+  const smartResponse = await buildResponse(s, items);
+  const sealIt = () => seal({ smartResponse, encryptionInfoBytes: s.encryptionInfoBytes, ehrOrigin: s.ehrOrigin, faults: settings.faults });
+  let credential = await sealIt();
+  const target = RESPONSE_SIZES[settings.size];
+  if (!target) return { credential, shown: smartResponse, chars: credential.data.response.length };
+  const artifact = pickArtifact(smartResponse);
+  if (!artifact) {
+    return { credential, shown: smartResponse, chars: credential.data.response.length,
+      sizeNote: `The ${target.label} setting needs a shared item answered with a FHIR Bundle of records, such as labs, medications, or immunizations. This response has none, so it goes at its normal size.` };
+  }
+  const before = credential.data.response.length;
+  // base64url carries 3 bytes in 4 characters, and the JSON rides in the mdoc as UTF-8 bytes.
+  const added = before < target.chars ? earlierRecords(artifact.value, Math.floor(((target.chars - before) * 3) / 4)) : [];
+  const original = artifact.value.entry;
+  artifact.value.entry = [...original, ...added];
+  if (added.length) credential = await sealIt();
+  const counts = new Map<string, number>();
+  for (const e of added) counts.set(e.resource.resourceType, (counts.get(e.resource.resourceType) ?? 0) + 1);
+  const kinds = [...counts].map(([t, n]) => `${n.toLocaleString("en-US")} earlier ${t} records`).join(", ");
+  const titles = artifact.fulfills.map((id) => items.find((p) => p.item.id === id)?.item.title ?? id).join(" and ");
+  const shown = {
+    ...smartResponse,
+    artifacts: smartResponse.artifacts.map((a) => a !== artifact ? a : { ...a, value: { ...artifact.value, entry: [...original, `… and ${added.length.toLocaleString("en-US")} earlier records added for the response size setting`] } }),
+  } as SmartCheckinResponse;
+  return { credential, shown, chars: credential.data.response.length,
+    sizeNote: added.length ? `The ${target.label} setting added ${kinds} to ${titles}.` : undefined };
 }
 
 function reply(s: Session, message: { outcome: "approved"; credential: { protocol: string; data: { response: string } } } | { outcome: "declined" } | { outcome: "error"; message: string }) {
@@ -263,6 +304,23 @@ function renderTestingPanel() {
       return el("label", { htmlFor: `fault-${k}`, className: "fault" }, input, " ", el("code", {}, k), " ", text, el("small", {}, ` (${FAULT_EFFECT[k] ?? ""})`));
     }),
   );
+}
+
+function renderSizeDial(onChange: () => void) {
+  const host = $("response-size");
+  const options: [string, string][] = [["", "Normal"], ...Object.entries(RESPONSE_SIZES).map(([k, v]) => [k, v.label] as [string, string])];
+  const buttons = options.map(([key, label]) => {
+    const b = el("button", { type: "button", id: `size-${key || "normal"}` }, label);
+    b.setAttribute("aria-pressed", String(settings.size === key));
+    b.onclick = () => {
+      settings.size = key;
+      for (const x of buttons) x.setAttribute("aria-pressed", String(x === b));
+      writeSettings();
+      onChange();
+    };
+    return b;
+  });
+  host.replaceChildren(...buttons);
 }
 
 function renderStatusOverrides(items: Prepared[]) {
@@ -325,7 +383,34 @@ async function showRequest(s: Session) {
     renderItems(prepared);
     renderStatusOverrides(prepared);
     shareButton.disabled = declineButton.disabled = false;
+    measure();
   };
+  // The size line on the approval screen: build and seal what Share would send.
+  let generation = 0;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const measure = () => {
+    clearTimeout(timer);
+    const mine = ++generation;
+    const line = $("size-line");
+    line.dataset.state = "measuring";
+    line.textContent = settings.size ? `Response size: building a ${RESPONSE_SIZES[settings.size]!.label} response…` : "Response size: measuring…";
+    timer = setTimeout(async () => {
+      try {
+        const sealed = await buildAndSeal(s, prepared);
+        if (mine !== generation) return;
+        line.textContent = `Response size: ${formatSize(sealed.chars)} (${sealed.chars.toLocaleString("en-US")} characters of base64url).${sealed.sizeNote ? ` ${sealed.sizeNote}` : ""}`;
+        line.dataset.state = "ready";
+        line.dataset.chars = String(sealed.chars);
+      } catch (e) {
+        if (mine !== generation) return;
+        line.textContent = `Response size: could not build the response: ${(e as Error).message}`;
+        line.dataset.state = "error";
+      }
+    }, 150);
+  };
+  renderSizeDial(measure);
+  $("consent").onchange = measure;
+  $("testing").onchange = measure;
   renderPatientPicker(() => void redraw());
   await redraw();
   ($("share") as HTMLButtonElement).onclick = async () => {
@@ -333,13 +418,12 @@ async function showRequest(s: Session) {
     button.disabled = true;
     button.textContent = "Sharing…";
     try {
-      const smartResponse = await buildResponse(s, prepared);
-      renderJson($("raw-response"), smartResponse, (_k, v) => (typeof v === "string" && v.length > 2000 ? `${v.slice(0, 200)}… (${v.length} chars)` : v));
-      const credential = await seal({ smartResponse, encryptionInfoBytes: s.encryptionInfoBytes, ehrOrigin: s.ehrOrigin, faults: settings.faults });
+      const { credential, shown, chars } = await buildAndSeal(s, prepared);
+      renderJson($("raw-response"), shown);
       reply(s, { outcome: "approved", credential });
       $("consent").hidden = true;
       $("done").hidden = false;
-      $("done-text").textContent = settings.faults.size ? `Sent, with faults: ${[...settings.faults].join(", ")}.` : "Sent. You can close this tab.";
+      $("done-text").textContent = `Sent ${formatSize(chars)}${settings.faults.size ? `, with faults: ${[...settings.faults].join(", ")}.` : ". You can close this tab."}`;
       setShareLink("shared");
       if (!settings.testing) setTimeout(() => window.close(), 800);
     } catch (e) {

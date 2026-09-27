@@ -19,7 +19,6 @@ const WALLET_FAULTS: Record<string, string> = {
   "duplicate-status": "leaves one item unknown",
   "wrong-request-id": "rejects the response",
   "unaccepted-media-type": "sets one record aside",
-  "oversized": "passes",
   "bad-signature": "warning",
   "bad-encryption": "rejects the response",
   "wrong-origin": "rejects the response",

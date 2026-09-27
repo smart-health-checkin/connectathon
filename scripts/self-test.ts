@@ -2,7 +2,9 @@
  * Self-test (plan step 5.4): drives the live testing EHR against the live
  * SMART Testing Wallet for every web-path scenario and every injected fault,
  * and checks that each run gets the expected verdict: the checks that fail and
- * the checks that warn (spec §8.5: mdoc-layer problems are warnings).
+ * the checks that warn (spec §8.5: mdoc-layer problems are warnings). Runs
+ * with a response size set check that the EHR receives about that many
+ * characters of base64url.
  *
  *   bun scripts/self-test.ts [base-url] [--only substring]
  */
@@ -14,7 +16,7 @@ const ONLY = onlyAt >= 0 ? args.splice(onlyAt, 2)[1] : undefined;
 const BASE = args[0] ?? "https://smart-health-checkin.org/connectathon/";
 const WALLET = "smart-testing-wallet";
 
-type Run = { name: string; caseId: string; faults?: string[]; patient?: string; decline?: string[]; declineAll?: boolean; expectFail?: string[]; expectWarn?: string[]; expectText?: RegExp };
+type Run = { name: string; caseId: string; faults?: string[]; size?: string; patient?: string; decline?: string[]; declineAll?: boolean; expectFail?: string[]; expectWarn?: string[]; expectText?: RegExp };
 // expectFail / expectWarn: check ids (or id prefixes) that must fail / warn. No other check may fail or warn.
 const ALL_RUNS: Run[] = [
   { name: "M1 baseline 1", caseId: "M1" },
@@ -32,17 +34,22 @@ const ALL_RUNS: Run[] = [
   { name: "O6 health card", caseId: "O6" },
   { name: "O7 combined artifact", caseId: "O7", faults: ["combine-allergies-meds"] },
   { name: "O12 unknown selector", caseId: "O12" },
+  // The Testing Wallet's response size setting: valid responses, only larger.
+  { name: "size 512 KB", caseId: "M1", size: "512k" },
+  { name: "size 5 MB", caseId: "L1", size: "5m" },
   { name: "fault wrong-canonical", caseId: "M4", faults: ["wrong-canonical"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
   { name: "fault missing-status", caseId: "M1", faults: ["missing-status"], expectFail: ["status-"] },
   { name: "fault duplicate-status", caseId: "M1", faults: ["duplicate-status"], expectFail: ["status-"] },
   { name: "fault wrong-request-id", caseId: "M1", faults: ["wrong-request-id"], expectFail: ["request-id"], expectText: /Response rejected/ },
   { name: "fault unaccepted-media-type", caseId: "M1", faults: ["unaccepted-media-type"], expectFail: ["artifact-"], expectWarn: ["fulfilled-"] },
-  { name: "fault oversized", caseId: "M1", faults: ["oversized"] },
   { name: "fault bad-signature", caseId: "M1", faults: ["bad-signature"], expectWarn: ["issuer-sig"], expectText: /Passed with 1 warning/ },
   { name: "fault bad-encryption", caseId: "M1", faults: ["bad-encryption"], expectFail: ["hpke"], expectText: /Response rejected/ },
   { name: "fault wrong-origin", caseId: "M1", faults: ["wrong-origin"], expectFail: ["hpke"], expectText: /Likely cause[\s\S]*trailing slash/ },
   { name: "fault bad-shc-signature", caseId: "O6", faults: ["bad-shc-signature"], expectFail: ["shc-"], expectWarn: ["fulfilled-"] },
 ];
+
+/** The Testing Wallet's response sizes, in characters of base64url. */
+const SIZES: Record<string, number> = { "512k": 512 * 1024, "5m": 5 * 1024 * 1024 };
 
 const RUNS = ONLY ? ALL_RUNS.filter((r) => r.name.includes(ONLY)) : ALL_RUNS;
 
@@ -67,6 +74,13 @@ async function runOne(browser: Browser, run: Run) {
     await wallet.select("#patient", run.patient);
     await wallet.waitForFunction(() => !(document.getElementById("share") as HTMLButtonElement).disabled, { timeout: 60000 });
   }
+  let walletChars: number | undefined;
+  if (run.size) {
+    await wallet.$eval("#testing", (d) => ((d as HTMLDetailsElement).open = true));
+    await wallet.click(`#size-${run.size}`);
+    await wallet.waitForFunction(() => document.getElementById("size-line")!.dataset.state === "ready", { timeout: 60000 });
+    walletChars = Number(await wallet.$eval("#size-line", (e) => (e as HTMLElement).dataset.chars));
+  }
   for (const id of run.decline ?? []) {
     await wallet.evaluate((itemId) => {
       const cards = [...document.querySelectorAll(".item")];
@@ -84,15 +98,24 @@ async function runOne(browser: Browser, run: Run) {
     });
     if (!clicked) break;
   }
+  const started = Date.now();
   await wallet.$eval(run.declineAll ? "#decline" : "#share", (b) => (b as HTMLButtonElement).click());
   await page.waitForFunction(() => /passed|Passed|failed|Error|declined/.test(document.getElementById("status")!.textContent ?? ""), { timeout: 120000 });
   const status = await page.$eval("#status", (e) => e.textContent ?? "");
   const log = await page.$eval("#log", (e) => e.textContent ?? "");
   const result = await page.$eval("#result", (e) => (e as HTMLElement).innerText);
+  const ms = Date.now() - started;
   await page.close();
   // Log lines read "[FAIL] <id> (<rule>): <title> — <detail>".
   const idsWith = (outcome: string) => [...log.matchAll(new RegExp(`^\\[${outcome}\\] ([^\\s:(]+)`, "gm"))].map((m) => m[1]!);
-  return { status, log, failedIds: idsWith("FAIL"), warnedIds: idsWith("WARN"), errors, result };
+  if (run.size) {
+    const want = SIZES[run.size]!;
+    const kb = Number(/Response size[^\n]*?([\d.]+) KB/.exec(log)?.[1]);
+    if (!(kb * 1024 >= want * 0.95 && kb * 1024 <= want * 1.05)) errors.push(`the EHR received ${kb} KB, not about ${want / 1024} KB`);
+    if (walletChars && Math.abs(walletChars - kb * 1024) > 1024) errors.push(`the wallet showed ${walletChars} characters, the EHR ${kb} KB`);
+  }
+  const note = run.size ? ` (${log.match(/Response size[^\n]*?([\d.]+ KB)/)?.[1]}, ${(ms / 1000).toFixed(1)} s from Share to verdict)` : "";
+  return { status: status + note, log, failedIds: idsWith("FAIL"), warnedIds: idsWith("WARN"), errors, result };
 }
 
 const browser = await puppeteer.launch({ executablePath: process.env.CHROMIUM_PATH ?? "/usr/bin/chromium", headless: true, args: ["--no-sandbox"] });

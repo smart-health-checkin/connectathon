@@ -113,7 +113,21 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
 
 Collapsed by default. Settings persist in the URL fragment, so a test case can
 open the wallet preconfigured, for example
-`#patient=large&faults=wrong-canonical,missing-status`.
+`#patient=large&faults=wrong-canonical,missing-status&size=1m`.
+
+- Response size: Normal, 512 KB, 1 MB, 2 MB, or 5 MB (`size=512k`, `1m`,
+  `2m`, `5m` in the fragment). It tests that large responses work. The
+  wallet picks one shared item answered with a FHIR Bundle, preferring one
+  with Observations, then MedicationRequests, then Immunizations, then
+  Conditions, and adds earlier copies of that item's records of that kind
+  (new ids, dates stepped back over about ten
+  years, past prescriptions `completed`, lab and vital values varied a little)
+  until the base64url `data.response` reaches about the chosen size. The
+  response stays valid, so an EHR that follows the spec accepts it. The
+  approval screen shows the size of the response Share would send, and what
+  the setting added; the response panel below summarizes the added records.
+  A request with no such item (only forms, or only SMART Health Cards) is
+  sent at its normal size, and the approval screen says so.
 
 - Force a status per item: fulfilled, partial, unavailable, declined,
   unsupported, or error.
@@ -128,7 +142,6 @@ open the wallet preconfigured, for example
   | `duplicate-status` | one item has two statuses | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
   | `wrong-request-id` | requestId doesn't match | rejects the response ([XV-2](https://smart-health-checkin.org/spec/#XV-2)) |
   | `unaccepted-media-type` | a record in a type the item didn't accept | sets that record aside ([XV-7](https://smart-health-checkin.org/spec/#XV-7)) |
-  | `oversized` | pads the response with a large block of filler | passes |
   | `bad-signature` | corrupts the issuer signature | warns and continues ([VRS-5](https://smart-health-checkin.org/spec/#VRS-5)) |
   | `bad-encryption` | corrupts the HPKE ciphertext | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
   | `wrong-origin` | binds the transcript to the origin with a trailing slash | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
