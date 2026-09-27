@@ -60,6 +60,9 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
 - Undecided event details are written `{{TBD: what}}` in the page Markdown and
   render as a "To be announced" pill; any other `{{` in a page fails the build.
 - This section's menu is `nav.json`.
+- The Testing Wallet's option tables in `testing-wallet/FEATURES.md` (faults, config JSON fields) are
+  generated from `testing-wallet/src/config.ts`: change the code, then `bun run docs`; `bun run check` fails if
+  they differ.
 - `bun run build` ends with `scripts/llms.ts`, which writes `llms.txt`: the apex's shared
   background (fetched from `https://smart-health-checkin.org/llms-background.md`;
   `LLMS_BACKGROUND=../smart-health-checkin.github.io/llms-background.md` builds offline), every

@@ -4,8 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "bun scripts/build.ts && bun scripts/llms.ts _site",
-    "check": "bun scripts/build.ts --check-only",
-    "test": "bun test tests"
+    "check": "bun scripts/build.ts --check-only && bun scripts/wallet-docs.ts --check",
+    "test": "bun test tests",
+    "docs": "bun scripts/wallet-docs.ts"
   },
   "dependencies": {
     "@smart-health-checkin/client": "https://github.com/smart-health-checkin/client/releases/download/v0.4.4/smart-health-checkin-client-0.4.4.tgz",

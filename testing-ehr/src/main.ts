@@ -92,7 +92,7 @@ async function load() {
   $("paste").addEventListener("input", refresh);
   for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.onclick = () => setMode(b.dataset.mode as typeof mode);
 
-  $("tw-faults").replaceChildren(...Object.entries(FAULTS).map(([f, what]) => {
+  $("tw-faults").replaceChildren(...Object.entries(FAULTS).map(([f, { does: what }]) => {
     const label = document.createElement("label");
     label.className = "tw-fault";
     label.innerHTML = `<input type="checkbox" value="${esc(f)}"> <code>${esc(f)}</code> <small>${esc(what)}</small>`;

@@ -8,18 +8,22 @@
 // Testing EHR's "Testing Wallet options" builder writes it, and
 // scripts/self-test.ts builds its URLs with it, so the three can't drift.
 
-/** Faults, and what each one does to the response. */
-export const FAULTS: Record<string, string> = {
-  "wrong-canonical": "QuestionnaireResponse.questionnaire doesn't match the request",
-  "missing-status": "Leave one item without a status",
-  "duplicate-status": "Give one item two statuses",
-  "wrong-request-id": "requestId doesn't match",
-  "unaccepted-media-type": "Return an artifact in a media type the item didn't accept",
-  "bad-signature": "Corrupt the issuer signature",
-  "bad-encryption": "Corrupt the HPKE ciphertext",
-  "wrong-origin": "Bind the transcript to the origin with a trailing slash",
-  "bad-shc-signature": "Break the SMART Health Card signature",
-  "combine-allergies-meds": "Answer allergies and medications with one shared Bundle (O7)",
+/**
+ * Faults: what each one does to the response, and how a Verifier that follows
+ * the spec reacts (with the requirement that says so). FEATURES.md's fault
+ * table is generated from this (scripts/wallet-docs.ts).
+ */
+export const FAULTS: Record<string, { does: string; verifier: string; req?: string }> = {
+  "wrong-canonical": { does: "QuestionnaireResponse.questionnaire doesn't match the request", verifier: "sets that record aside", req: "XV-10" },
+  "missing-status": { does: "Leave one item without a status", verifier: "treats that item as unknown", req: "XV-3" },
+  "duplicate-status": { does: "Give one item two statuses", verifier: "treats that item as unknown", req: "XV-3" },
+  "wrong-request-id": { does: "requestId doesn't match", verifier: "rejects the response", req: "XV-2" },
+  "unaccepted-media-type": { does: "Return an artifact in a media type the item didn't accept", verifier: "sets that record aside", req: "XV-7" },
+  "bad-signature": { does: "Corrupt the issuer signature", verifier: "warns and continues", req: "VRS-5" },
+  "bad-encryption": { does: "Corrupt the HPKE ciphertext", verifier: "rejects the response", req: "VRS-3" },
+  "wrong-origin": { does: "Bind the transcript to the origin with a trailing slash", verifier: "rejects the response", req: "VRS-3" },
+  "bad-shc-signature": { does: "Break the SMART Health Card signature", verifier: "sets that card aside", req: "XV-13" },
+  "combine-allergies-meds": { does: "Answer allergies and medications with one shared Bundle (O7)", verifier: "passes" },
 };
 
 /** Statuses an item can be forced to. */

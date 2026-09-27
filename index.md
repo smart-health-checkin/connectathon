@@ -20,7 +20,7 @@ An online event where patients, clinic staff, and software teams try a new way o
 - **One week before** ({{TBD: date}}): software teams aim to have their component up for [self-serve testing](scenarios.html#how-to-test) and to have tried a first connection.
 - **The event:** ideally spent on the harder problems and live debugging. Some people will still be finishing basic setup, and that's fine.
 
-## For developers: scenarios and tools
+## Scenarios and tools
 
 - [Test scenarios](scenarios.html): baseline requests, the minimum, larger-data, and optional scenarios, the ground rules, and shared resources.
 - [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/): known-good counterparts for self-serve testing.

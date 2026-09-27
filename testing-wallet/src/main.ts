@@ -17,18 +17,6 @@ import { renderJson } from "../../shared/smart-json.ts";
 import { configFromPath, configUrl, FAULTS, PATIENTS as PATIENT_NAMES, STATUSES, type WalletConfig } from "./config.ts";
 
 /** How a Verifier that follows the spec reacts to each fault (§6.4, §8.5). */
-const FAULT_EFFECT: Record<string, string> = {
-  "wrong-canonical": "the Verifier sets that record aside",
-  "missing-status": "the Verifier treats that item as unknown",
-  "duplicate-status": "the Verifier treats that item as unknown",
-  "wrong-request-id": "the Verifier rejects the response",
-  "unaccepted-media-type": "the Verifier sets that record aside",
-  "bad-signature": "the Verifier warns and continues",
-  "bad-encryption": "the Verifier rejects the response",
-  "wrong-origin": "the Verifier rejects the response",
-  "bad-shc-signature": "the Verifier sets that card aside",
-  "combine-allergies-meds": "passes",
-};
 /** Media types this wallet can produce. */
 const PRODUCIBLE = ["application/fhir+json", "application/smart-health-card"];
 const PATIENTS: Record<string, { label: string; file: string }> = {
@@ -331,13 +319,13 @@ function renderTestingPanel() {
   panel.ontoggle = () => { settings.panelOpen = panel.open; };
   const faults = $("faults");
   faults.replaceChildren(
-    ...Object.entries(FAULTS).map(([k, text]) => {
+    ...Object.entries(FAULTS).map(([k, { does: text, verifier }]) => {
       const input = el("input", { type: "checkbox", id: `fault-${k}`, value: k, checked: settings.faults.has(k) });
       input.onchange = () => {
         input.checked ? settings.faults.add(k) : settings.faults.delete(k);
         changed();
       };
-      return el("label", { htmlFor: `fault-${k}`, className: "fault" }, input, " ", el("code", {}, k), " ", text, el("small", {}, ` (${FAULT_EFFECT[k] ?? ""})`));
+      return el("label", { htmlFor: `fault-${k}`, className: "fault" }, input, " ", el("code", {}, k), " ", text, el("small", {}, ` (${verifier === "passes" ? "passes" : `the Verifier ${verifier}`})`));
     }),
   );
   renderSizeDial();

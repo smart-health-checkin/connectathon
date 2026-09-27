@@ -135,18 +135,20 @@ apply to this tab; to use a set of options again, use a [config URL](#config-url
   ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation),
   [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
 
+  <!-- generated: faults -->
   | Fault | What it does | The Verifier |
   | --- | --- | --- |
   | `wrong-canonical` | QuestionnaireResponse.questionnaire doesn't match the request | sets that record aside ([XV-10](https://smart-health-checkin.org/spec/#XV-10)) |
-  | `missing-status` | one item has no status | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
-  | `duplicate-status` | one item has two statuses | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
+  | `missing-status` | Leave one item without a status | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
+  | `duplicate-status` | Give one item two statuses | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
   | `wrong-request-id` | requestId doesn't match | rejects the response ([XV-2](https://smart-health-checkin.org/spec/#XV-2)) |
-  | `unaccepted-media-type` | a record in a type the item didn't accept | sets that record aside ([XV-7](https://smart-health-checkin.org/spec/#XV-7)) |
-  | `bad-signature` | corrupts the issuer signature | warns and continues ([VRS-5](https://smart-health-checkin.org/spec/#VRS-5)) |
-  | `bad-encryption` | corrupts the HPKE ciphertext | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
-  | `wrong-origin` | binds the transcript to the origin with a trailing slash | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
-  | `bad-shc-signature` | a SMART Health Card with a broken signature | sets that card aside ([XV-13](https://smart-health-checkin.org/spec/#XV-13)) |
-  | `combine-allergies-meds` | allergies and medications share one Bundle (O7) | passes |
+  | `unaccepted-media-type` | Return an artifact in a media type the item didn't accept | sets that record aside ([XV-7](https://smart-health-checkin.org/spec/#XV-7)) |
+  | `bad-signature` | Corrupt the issuer signature | warns and continues ([VRS-5](https://smart-health-checkin.org/spec/#VRS-5)) |
+  | `bad-encryption` | Corrupt the HPKE ciphertext | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
+  | `wrong-origin` | Bind the transcript to the origin with a trailing slash | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
+  | `bad-shc-signature` | Break the SMART Health Card signature | sets that card aside ([XV-13](https://smart-health-checkin.org/spec/#XV-13)) |
+  | `combine-allergies-meds` | Answer allergies and medications with one shared Bundle (O7) | passes |
+  <!-- /generated -->
 - **Copy wallet URL for these settings:** the [config URL](#config-urls) for
   what the panel shows now.
 - Shows the parsed request, and the SMART response as sent.
@@ -172,12 +174,14 @@ options, and the wallet's approval screen shows them.
 
 An object. Every field is optional; a missing field means normal.
 
+<!-- generated: config-fields -->
 | Field | Value | What it does |
 | --- | --- | --- |
-| `faults` | array of fault names from the [table above](#testing-panel): `wrong-canonical`, `missing-status`, `duplicate-status`, `wrong-request-id`, `unaccepted-media-type`, `bad-signature`, `bad-encryption`, `wrong-origin`, `bad-shc-signature`, `combine-allergies-meds` | Turns those faults on |
-| `size` | `"512k"`, `"1m"`, `"2m"`, or `"5m"` | The response size setting |
+| `faults` | array of fault names: `wrong-canonical`, `missing-status`, `duplicate-status`, `wrong-request-id`, `unaccepted-media-type`, `bad-signature`, `bad-encryption`, `wrong-origin`, `bad-shc-signature`, `combine-allergies-meds` | Turns those faults on ([Faults](#testing-panel)) |
 | `status` | object of request item id to `"fulfilled"`, `"partial"`, `"unavailable"`, `"declined"`, `"unsupported"`, or `"error"` | Forces that item's status; ids not in the request are ignored |
-| `patient` | `"aria"` (default) or `"large"` | Which synthetic patient answers |
+| `size` | `"512k"`, `"1m"`, `"2m"`, or `"5m"` (512 KB, 1 MB, 2 MB, 5 MB) | The response size setting |
+| `patient` | `"aria"` or `"large"` (Aria Test; Aria Test, large record); the first is the default | Which synthetic patient answers |
+<!-- /generated -->
 
 Any other field or value is an error.
 
