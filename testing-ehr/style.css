@@ -63,13 +63,14 @@ input[type=checkbox], input[type=radio] { accent-color: var(--brand); }
 .wallet .x { border: 0; background: none; color: var(--fg-3); cursor: pointer; font-size: 16px; padding: 0 4px; }
 .add-wallet { display: flex; gap: 6px; }
 .add-wallet input { flex: 1; min-width: 0; }
-.faults { display: flex; flex-wrap: wrap; gap: 6px; }
-.fault { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border-strong); background: var(--surface-alt); cursor: pointer; }
-.fault:has(input:checked) { background: var(--status-warn-wash); border-color: var(--status-warn-border); color: var(--status-warn); }
-.fault input { margin: 0; }
-.fault small { font-family: var(--font-sans); color: var(--fg-3); }
 
-/* Send: the scenario and wallet on the first line, any faults below. */
+.tw-faults { display: grid; gap: 4px; }
+.tw-fault, .tw-status { display: block; font-size: 13px; }
+.tw-fault small { color: var(--fg-3); }
+#tw-options h3 { font-size: 13px; margin: 10px 0 4px; }
+#tw-url { font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+
+/* Send: the scenario and wallet, and a note when Testing Wallet options are on. */
 .send { flex-direction: column; gap: 2px; padding: 11px 14px; font-size: 15px; font-weight: 700; }
 .send small { font-weight: 500; font-size: 12px; }
 .send:disabled { cursor: wait; }

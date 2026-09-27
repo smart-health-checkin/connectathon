@@ -4,13 +4,8 @@
 import type { SmartArtifact, SmartCheckinResponse } from "@smart-health-checkin/client";
 import type { Entry, Resource } from "./match.ts";
 
-/** Sizes are in characters of the base64url `data.response`, which is what an EHR receives. */
-export const RESPONSE_SIZES: Record<string, { label: string; chars: number }> = {
-  "512k": { label: "512 KB", chars: 512 * 1024 },
-  "1m": { label: "1 MB", chars: 1024 * 1024 },
-  "2m": { label: "2 MB", chars: 2 * 1024 * 1024 },
-  "5m": { label: "5 MB", chars: 5 * 1024 * 1024 },
-};
+import { RESPONSE_SIZES } from "./config.ts";
+export { RESPONSE_SIZES };
 
 /** Resources that support a record (a reference target) rather than being one. Never copied. */
 const SUPPORTING = new Set(["Patient", "Practitioner", "PractitionerRole", "Organization", "Location", "Medication"]);

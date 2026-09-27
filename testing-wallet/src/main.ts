@@ -14,60 +14,77 @@ import { mintHealthCard } from "./shc.ts";
 import { seal } from "./seal.ts";
 import { earlierRecords, formatSize, pickArtifact, RESPONSE_SIZES } from "./size.ts";
 import { renderJson } from "../../shared/smart-json.ts";
+import { configFromPath, configUrl, FAULTS, PATIENTS as PATIENT_NAMES, STATUSES, type WalletConfig } from "./config.ts";
 
-const STATUSES = ["fulfilled", "partial", "unavailable", "declined", "unsupported", "error"] as const;
-const FAULTS: Record<string, string> = {
-  "wrong-canonical": "QuestionnaireResponse.questionnaire doesn't match the request",
-  "missing-status": "Leave one item without a status",
-  "duplicate-status": "Give one item two statuses",
-  "wrong-request-id": "requestId doesn't match",
-  "unaccepted-media-type": "Return an artifact in a media type the item didn't accept",
-  "bad-signature": "Corrupt the issuer signature",
-  "bad-encryption": "Corrupt the HPKE ciphertext",
-  "wrong-origin": "Bind the transcript to the origin with a trailing slash",
-  "bad-shc-signature": "Break the SMART Health Card signature",
-  "combine-allergies-meds": "Answer allergies and medications with one shared Bundle (O7)",
-};
-/** How an EHR that follows the spec reacts to each fault (§6.4, §8.5). */
+/** How a Verifier that follows the spec reacts to each fault (§6.4, §8.5). */
 const FAULT_EFFECT: Record<string, string> = {
-  "wrong-canonical": "the EHR sets that record aside",
-  "missing-status": "the EHR treats that item as unknown",
-  "duplicate-status": "the EHR treats that item as unknown",
-  "wrong-request-id": "the EHR rejects the response",
-  "unaccepted-media-type": "the EHR sets that record aside",
-  "bad-signature": "the EHR warns and continues",
-  "bad-encryption": "the EHR rejects the response",
-  "wrong-origin": "the EHR rejects the response",
-  "bad-shc-signature": "the EHR sets that card aside",
+  "wrong-canonical": "the Verifier sets that record aside",
+  "missing-status": "the Verifier treats that item as unknown",
+  "duplicate-status": "the Verifier treats that item as unknown",
+  "wrong-request-id": "the Verifier rejects the response",
+  "unaccepted-media-type": "the Verifier sets that record aside",
+  "bad-signature": "the Verifier warns and continues",
+  "bad-encryption": "the Verifier rejects the response",
+  "wrong-origin": "the Verifier rejects the response",
+  "bad-shc-signature": "the Verifier sets that card aside",
   "combine-allergies-meds": "passes",
 };
 /** Media types this wallet can produce. */
 const PRODUCIBLE = ["application/fhir+json", "application/smart-health-card"];
 const PATIENTS: Record<string, { label: string; file: string }> = {
-  aria: { label: "Aria Test", file: "data/aria-test.json" },
-  large: { label: "Aria Test, large record", file: "data/large-record.json" },
+  aria: { label: PATIENT_NAMES.aria!, file: "data/aria-test.json" },
+  large: { label: PATIENT_NAMES.large!, file: "data/large-record.json" },
 };
 
-// ---------------------------------------------------------------- settings in the URL fragment
-function readSettings() {
-  const p = new URLSearchParams(location.hash.slice(1));
+// ---------------------------------------------------------------- settings, from this page's own URL
+// The wallet's config URLs (./config.ts, specified in ../FEATURES.md) set the
+// starting test options: testing-wallet/<base64url JSON>/ starts with that
+// config; the plain testing-wallet/ starts normal. GitHub Pages serves a
+// config URL through the site's 404.html, a copy of this page with a <base>
+// pointing at testing-wallet/. Changes on the testing panel last for this tab.
+type Settings = { patient: string; faults: Set<string>; status: Map<string, string>; size: string; panelOpen: boolean; fromUrl: boolean };
+const fromPath = configFromPath(location.pathname);
+const configError = "error" in fromPath ? `This wallet URL's config can't be used: ${fromPath.error}. The wallet is answering with normal settings.` : "";
+function startingSettings(): Settings {
+  const config: WalletConfig = "config" in fromPath ? fromPath.config : {};
   return {
-    patient: PATIENTS[p.get("patient") ?? ""] ? p.get("patient")! : "aria",
-    faults: new Set((p.get("faults") ?? "").split(",").filter((f) => FAULTS[f])),
-    status: new Map((p.get("status") ?? "").split(",").filter(Boolean).map((kv) => kv.split(":") as [string, string])),
-    size: RESPONSE_SIZES[p.get("size") ?? ""] ? p.get("size")! : "",
-    testing: p.get("testing") === "1" || p.has("faults") || p.has("status") || p.has("size"),
+    patient: config.patient ?? "aria",
+    faults: new Set(config.faults ?? []),
+    status: new Map(Object.entries(config.status ?? {})),
+    size: config.size ?? "",
+    panelOpen: false,
+    fromUrl: Object.keys(config).length > 0,
   };
 }
-const settings = readSettings();
-function writeSettings() {
-  const p = new URLSearchParams();
-  if (settings.patient !== "aria") p.set("patient", settings.patient);
-  if (settings.faults.size) p.set("faults", [...settings.faults].join(","));
-  if (settings.status.size) p.set("status", [...settings.status].map(([k, v]) => `${k}:${v}`).join(","));
-  if (settings.size) p.set("size", settings.size);
-  if (settings.testing) p.set("testing", "1");
-  history.replaceState(null, "", `${location.pathname}${location.search}${p.size ? "#" + p : ""}`);
+const settings = startingSettings();
+/** The settings as a config, for "Copy wallet URL for these settings". */
+function currentConfig(): WalletConfig {
+  return { faults: [...settings.faults], status: Object.fromEntries(settings.status), size: settings.size, patient: settings.patient };
+}
+/** This wallet's plain URL: the <base> on a config URL, this page otherwise. */
+const plainUrl = () => new URL("./", document.baseURI).href;
+/** Test options that change what Share sends (the patient is not one: it's shown on the approval screen). */
+function optionsOn(): string[] {
+  const on: string[] = [];
+  if (settings.faults.size) on.push(`fault${settings.faults.size === 1 ? "" : "s"} ${[...settings.faults].join(", ")}`);
+  if (settings.size) on.push(`response size ${RESPONSE_SIZES[settings.size]!.label}`);
+  if (settings.status.size) on.push(`forced status ${[...settings.status].map(([k, v]) => `${k}: ${v}`).join(", ")}`);
+  return on;
+}
+/** Set by the approval screen: rebuild what Share would send. */
+let onSettingsChange = () => {};
+function changed() {
+  settings.fromUrl = false;
+  renderOptionsBanner();
+  onSettingsChange();
+}
+function resetOptions() {
+  settings.faults.clear();
+  settings.status.clear();
+  settings.size = "";
+  renderTestingPanel();
+  renderStatusOverrides(prepared);
+  changed();
 }
 
 // ---------------------------------------------------------------- DOM helpers
@@ -83,7 +100,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, props: Record<string,
 const patientCache = new Map<string, Promise<Entry[]>>();
 function loadPatient(key: string): Promise<Entry[]> {
   if (!patientCache.has(key)) {
-    patientCache.set(key, fetch(new URL(PATIENTS[key]!.file, location.href)).then(async (r) => {
+    patientCache.set(key, fetch(new URL(PATIENTS[key]!.file, document.baseURI)).then(async (r) => {
       if (!r.ok) throw new Error(`could not load ${PATIENTS[key]!.file}: HTTP ${r.status}`);
       return ((await r.json()) as { entry: Entry[] }).entry;
     }));
@@ -233,6 +250,8 @@ type Sealed = {
   chars: number;
   /** What the size setting did, in a sentence. */
   sizeNote?: string;
+  /** The records the size setting added, and the items whose artifact carries them. */
+  added?: { fulfills: readonly string[]; entries: Entry[] };
 };
 
 /**
@@ -266,7 +285,8 @@ async function buildAndSeal(s: Session, items: Prepared[]): Promise<Sealed> {
     artifacts: smartResponse.artifacts.map((a) => a !== artifact ? a : { ...a, value: { ...artifact.value, entry: [...original, `… and ${added.length.toLocaleString("en-US")} earlier records added for the response size setting`] } }),
   } as SmartCheckinResponse;
   return { credential, shown, chars: credential.data.response.length,
-    sizeNote: added.length ? `The ${target.label} setting added ${kinds} to ${titles}.` : undefined };
+    sizeNote: added.length ? `The ${target.label} setting added ${kinds} to ${titles}.` : undefined,
+    added: added.length ? { fulfills: artifact.fulfills, entries: added } : undefined };
 }
 
 function reply(s: Session, message: { outcome: "approved"; credential: { protocol: string; data: { response: string } } } | { outcome: "declined" } | { outcome: "error"; message: string }) {
@@ -281,32 +301,49 @@ function renderPatientPicker(onChange: () => void) {
   select.replaceChildren(...Object.entries(PATIENTS).map(([k, p]) => el("option", { value: k, selected: k === settings.patient }, p.label)));
   select.onchange = () => {
     settings.patient = select.value;
-    writeSettings();
+    renderOptionsBanner();
     onChange();
   };
 }
 
+function renderOptionsBanner() {
+  const on = optionsOn();
+  $("options-on").hidden = !on.length;
+  $("options-text").textContent = on.length ? `Test options on${settings.fromUrl ? ", from this wallet URL" : ""}: ${on.join("; ")}.` : "";
+  $("config-error").hidden = !configError;
+  $("config-error").textContent = configError;
+  ($("config-url") as HTMLInputElement).value = configUrl(plainUrl(), currentConfig());
+}
+
+function copyConfigUrl() {
+  const input = $("config-url") as HTMLInputElement;
+  input.value = configUrl(plainUrl(), currentConfig());
+  input.select();
+  navigator.clipboard?.writeText(input.value).then(
+    () => { $("copy-note").textContent = "Copied."; },
+    () => { $("copy-note").textContent = "Select the URL and copy it."; },
+  );
+}
+
 function renderTestingPanel() {
   const panel = $("testing") as HTMLDetailsElement;
-  panel.open = settings.testing;
-  panel.ontoggle = () => {
-    settings.testing = panel.open;
-    writeSettings();
-  };
+  panel.open = settings.panelOpen || optionsOn().length > 0;
+  panel.ontoggle = () => { settings.panelOpen = panel.open; };
   const faults = $("faults");
   faults.replaceChildren(
     ...Object.entries(FAULTS).map(([k, text]) => {
-      const input = el("input", { type: "checkbox", id: `fault-${k}`, checked: settings.faults.has(k) });
+      const input = el("input", { type: "checkbox", id: `fault-${k}`, value: k, checked: settings.faults.has(k) });
       input.onchange = () => {
         input.checked ? settings.faults.add(k) : settings.faults.delete(k);
-        writeSettings();
+        changed();
       };
       return el("label", { htmlFor: `fault-${k}`, className: "fault" }, input, " ", el("code", {}, k), " ", text, el("small", {}, ` (${FAULT_EFFECT[k] ?? ""})`));
     }),
   );
+  renderSizeDial();
 }
 
-function renderSizeDial(onChange: () => void) {
+function renderSizeDial() {
   const host = $("response-size");
   const options: [string, string][] = [["", "Normal"], ...Object.entries(RESPONSE_SIZES).map(([k, v]) => [k, v.label] as [string, string])];
   const buttons = options.map(([key, label]) => {
@@ -315,8 +352,7 @@ function renderSizeDial(onChange: () => void) {
     b.onclick = () => {
       settings.size = key;
       for (const x of buttons) x.setAttribute("aria-pressed", String(x === b));
-      writeSettings();
-      onChange();
+      changed();
     };
     return b;
   });
@@ -325,17 +361,38 @@ function renderSizeDial(onChange: () => void) {
 
 function renderStatusOverrides(items: Prepared[]) {
   const host = $("status-overrides");
+  if (!items.length) return;
   host.replaceChildren(
     ...items.map((p) => {
       const select = el("select", { id: `status-${p.item.id}` });
       select.append(el("option", { value: "" }, "(normal)"), ...STATUSES.map((s) => el("option", { value: s, selected: settings.status.get(p.item.id) === s }, s)));
       select.onchange = () => {
         select.value ? settings.status.set(p.item.id, select.value) : settings.status.delete(p.item.id);
-        writeSettings();
+        changed();
       };
       return el("label", { htmlFor: select.id, className: "override" }, el("code", {}, p.item.id), " ", select);
     }),
   );
+}
+
+function previewText(entries: Entry[]): string {
+  return entries.length ? `Will share ${describeEntries(entries)}` : "Nothing in this record matches, so this will be reported as unavailable.";
+}
+
+/**
+ * Make each card's count include records the size setting added: they go to
+ * the cards whose item the grown artifact fulfills and that already share
+ * records of that kind (an O7 combined Bundle fulfills two items).
+ */
+function updatePreviews(items: Prepared[], added?: Sealed["added"]) {
+  items.forEach((p, idx) => {
+    if (p.kind !== "selection") return;
+    const node = document.getElementById(`preview-${idx}`);
+    if (!node) return;
+    const types = new Set(p.entries.map((e) => e.resource.resourceType));
+    const extra = added?.fulfills.includes(p.item.id) ? added.entries.filter((e) => types.has(e.resource.resourceType)) : [];
+    node.textContent = previewText([...p.entries, ...extra]);
+  });
 }
 
 function renderItems(items: Prepared[]) {
@@ -353,8 +410,7 @@ function renderItems(items: Prepared[]) {
       if (p.item.summary) card.append(el("p", { className: "summary" }, p.item.summary));
       if (p.item.required) card.append(el("p", { className: "required" }, "The clinic says this is required. You can still choose not to share it."));
       if (p.kind === "selection") {
-        const what = p.entries.length ? `Will share ${describeEntries(p.entries)}` : "Nothing in this record matches, so this will be reported as unavailable.";
-        card.append(el("p", { className: "preview" }, what));
+        card.append(el("p", { className: "preview", id: `preview-${idx}` }, previewText(p.entries)));
       } else if (p.kind === "form") {
         const host = el("div", { className: "form" });
         card.append(el("p", { className: "preview" }, p.state.questionnaire.title ?? "A form from the clinic"), host);
@@ -399,6 +455,7 @@ async function showRequest(s: Session) {
         const sealed = await buildAndSeal(s, prepared);
         if (mine !== generation) return;
         line.textContent = `Response size: ${formatSize(sealed.chars)} (${sealed.chars.toLocaleString("en-US")} characters of base64url).${sealed.sizeNote ? ` ${sealed.sizeNote}` : ""}`;
+        updatePreviews(prepared, sealed.added);
         line.dataset.state = "ready";
         line.dataset.chars = String(sealed.chars);
       } catch (e) {
@@ -408,9 +465,8 @@ async function showRequest(s: Session) {
       }
     }, 150);
   };
-  renderSizeDial(measure);
+  onSettingsChange = measure;
   $("consent").onchange = measure;
-  $("testing").onchange = measure;
   renderPatientPicker(() => void redraw());
   await redraw();
   ($("share") as HTMLButtonElement).onclick = async () => {
@@ -423,9 +479,10 @@ async function showRequest(s: Session) {
       reply(s, { outcome: "approved", credential });
       $("consent").hidden = true;
       $("done").hidden = false;
-      $("done-text").textContent = `Sent ${formatSize(chars)}${settings.faults.size ? `, with faults: ${[...settings.faults].join(", ")}.` : ". You can close this tab."}`;
+      const on = optionsOn();
+      $("done-text").textContent = `Sent ${formatSize(chars)}${on.length ? `, with test options: ${on.join("; ")}.` : ". You can close this tab."}`;
       setShareLink("shared");
-      if (!settings.testing) setTimeout(() => window.close(), 800);
+      if (!settings.panelOpen && !on.length) setTimeout(() => window.close(), 800);
     } catch (e) {
       showError(`Could not build the response: ${(e as Error).message}`);
       reply(s, { outcome: "error", message: (e as Error).message });
@@ -448,7 +505,7 @@ async function showRequest(s: Session) {
       $("done").hidden = false;
       $("done-text").textContent = "Declined every item; the clinic was told. You can close this tab.";
       setShareLink("declined");
-      if (!settings.testing) setTimeout(() => window.close(), 800);
+      if (!settings.panelOpen && !optionsOn().length) setTimeout(() => window.close(), 800);
     } catch (e) {
       showError(`Could not build the response: ${(e as Error).message}`);
       reply(s, { outcome: "error", message: (e as Error).message });
@@ -481,6 +538,9 @@ const served = serveWebWallet({
 });
 
 renderTestingPanel();
+renderOptionsBanner();
+($("reset-options") as HTMLButtonElement).onclick = resetOptions;
+($("copy-config-url") as HTMLButtonElement).onclick = copyConfigUrl;
 if (!served.opened) {
   $("waiting").hidden = true;
   $("standalone").hidden = false;

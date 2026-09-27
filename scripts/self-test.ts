@@ -6,9 +6,19 @@
  * with a response size set check that the EHR receives about that many
  * characters of base64url.
  *
+ * Faults and sizes reach the wallet only through its own documented config
+ * URLs (testing-wallet/FEATURES.md#config-urls, built with
+ * testing-wallet/src/config.ts): most runs set them in the Testing EHR's
+ * "Testing Wallet options", as a tester does, and check the EHR opened the
+ * config URL the shared module gives; runs with `byUrl` add a config URL with
+ * the EHR's "Add a wallet by URL", as with any Verifier. The wallet's approval
+ * screen must show the options as on. The expected outcome of each case lives
+ * here, not in the EHR or the wallet.
+ *
  *   bun scripts/self-test.ts [base-url] [--only substring]
  */
 import puppeteer, { type Browser } from "puppeteer-core";
+import { configUrl } from "../testing-wallet/src/config.ts";
 
 const args = process.argv.slice(2);
 const onlyAt = args.indexOf("--only");
@@ -16,7 +26,7 @@ const ONLY = onlyAt >= 0 ? args.splice(onlyAt, 2)[1] : undefined;
 const BASE = args[0] ?? "https://smart-health-checkin.org/connectathon/";
 const WALLET = "smart-testing-wallet";
 
-type Run = { name: string; caseId: string; faults?: string[]; size?: string; patient?: string; decline?: string[]; declineAll?: boolean; expectFail?: string[]; expectWarn?: string[]; expectText?: RegExp };
+type Run = { name: string; caseId: string; faults?: string[]; size?: string; byUrl?: boolean; rawUrl?: string; patient?: string; decline?: string[]; declineAll?: boolean; expectFail?: string[]; expectWarn?: string[]; expectText?: RegExp };
 // expectFail / expectWarn: check ids (or id prefixes) that must fail / warn. No other check may fail or warn.
 const ALL_RUNS: Run[] = [
   { name: "M1 baseline 1", caseId: "M1" },
@@ -46,6 +56,9 @@ const ALL_RUNS: Run[] = [
   { name: "fault bad-encryption", caseId: "M1", faults: ["bad-encryption"], expectFail: ["hpke"], expectText: /Response rejected/ },
   { name: "fault wrong-origin", caseId: "M1", faults: ["wrong-origin"], expectFail: ["hpke"], expectText: /Likely cause[\s\S]*trailing slash/ },
   { name: "fault bad-shc-signature", caseId: "O6", faults: ["bad-shc-signature"], expectFail: ["shc-"], expectWarn: ["fulfilled-"] },
+  // Config URLs added by hand, as on any Verifier page: a combination, and one the wallet can't read (it says so and answers normally).
+  { name: "config URL bad-signature + 512 KB", caseId: "M1", faults: ["bad-signature"], size: "512k", byUrl: true, expectWarn: ["issuer-sig"] },
+  { name: "config URL unreadable", caseId: "M1", rawUrl: "bm90LWpzb24/", byUrl: true },
 ];
 
 /** The Testing Wallet's response sizes, in characters of base64url. */
@@ -60,15 +73,28 @@ async function runOne(browser: Browser, run: Run) {
   await page.goto(`${BASE}testing-ehr/#case=${run.caseId}`, { waitUntil: "networkidle0" });
   await page.waitForFunction(() => (document.getElementById("case") as HTMLSelectElement).options.length > 0);
   await page.select("#case", run.caseId);
-  // Pick the wallet, then its faults (real clicks, so the page updates), then Send.
-  const radio = `input[name="wallet"][value="${WALLET}"]`;
+  // Pick the wallet (a real click, so the page updates), set any Testing Wallet options, then Send.
+  const plain = `${BASE}testing-wallet/`;
+  const config = { faults: run.faults, size: run.size };
+  const expectUrl = run.rawUrl ? plain + run.rawUrl : configUrl(plain, config);
+  let radio = `input[name="wallet"][value="${WALLET}"]`;
+  if (run.byUrl) {
+    await page.waitForSelector("#wallet-url", { timeout: 20000 });
+    await page.type("#wallet-url", expectUrl);
+    await page.click('#add-wallet button[type="submit"]');
+    radio = `input[name="wallet"][value="url:${expectUrl}"]`;
+  }
   await page.waitForSelector(radio, { timeout: 20000 });
   await page.click(radio);
-  if (run.faults?.length) await page.$eval("#fault-box", (d) => ((d as HTMLDetailsElement).open = true));
-  for (const f of run.faults ?? []) await page.click(`#faults input[value="${f}"]`);
+  if (!run.byUrl && (run.faults?.length || run.size)) {
+    await page.$eval("#tw-options", (d) => ((d as HTMLDetailsElement).open = true));
+    for (const f of run.faults ?? []) await page.click(`#tw-faults input[value="${f}"]`);
+    if (run.size) await page.select("#tw-size", run.size);
+  }
   const walletTarget = browser.waitForTarget((t) => t.opener() === page.target(), { timeout: 20000 });
   await page.click("#send");
   const wallet = (await (await walletTarget).page())!;
+  if (wallet.url() !== expectUrl) errors.push(`the wallet opened at ${wallet.url()}, not ${expectUrl}`);
   await wallet.waitForFunction(() => { const b = document.getElementById("share") as HTMLButtonElement | null; return !!b && !b.disabled && !document.getElementById("consent")!.hidden; }, { timeout: 60000 });
   if (run.patient) {
     await wallet.select("#patient", run.patient);
@@ -76,11 +102,15 @@ async function runOne(browser: Browser, run: Run) {
   }
   let walletChars: number | undefined;
   if (run.size) {
-    await wallet.$eval("#testing", (d) => ((d as HTMLDetailsElement).open = true));
-    await wallet.click(`#size-${run.size}`);
     await wallet.waitForFunction(() => document.getElementById("size-line")!.dataset.state === "ready", { timeout: 60000 });
     walletChars = Number(await wallet.$eval("#size-line", (e) => (e as HTMLElement).dataset.chars));
   }
+  // The approval screen shows what the URL turned on, or why it couldn't.
+  const banner = await wallet.$eval("#options-text", (e) => e.textContent ?? "");
+  for (const f of run.faults ?? []) if (!banner.includes(f)) errors.push(`the wallet's approval screen doesn't show fault ${f} as on`);
+  if (run.size && !banner.includes("response size")) errors.push("the wallet's approval screen doesn't show the response size as on");
+  const configError = await wallet.$eval("#config-error", (e) => ((e as HTMLElement).hidden ? "" : e.textContent ?? ""));
+  if (!!run.rawUrl !== !!configError) errors.push(run.rawUrl ? "the wallet didn't say it couldn't read the config" : `the wallet reported a config error: ${configError}`);
   for (const id of run.decline ?? []) {
     await wallet.evaluate((itemId) => {
       const cards = [...document.querySelectorAll(".item")];

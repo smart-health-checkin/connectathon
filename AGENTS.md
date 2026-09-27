@@ -12,9 +12,25 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   (`hpke-open`, `mdoc-verify`) through the Testing EHR's own checks;
   `known-failures.json` lists what fails today and must shrink as fixes land.
 - After changing the Testing EHR or Testing Wallet: `bun scripts/self-test.ts`
-  (the live site), or `bun scripts/self-test.ts http://localhost:8794/` against
-  a local build whose `_site/wallets.json` points at the local Testing Wallet.
+  (the live site), or `bun scripts/self-test.ts http://localhost:PORT/connectathon/`
+  against a local build served under `/connectathon/` (with `/assets/` from the
+  apex repo, and `_site/404.html` with status 404 for missing paths, as GitHub
+  Pages does), whose `_site/wallets.json` points at the local Testing Wallet.
   It also runs after every deploy and nightly.
+- **Test tools talk only through the protocol.** No side channels between
+  Verifier and wallet test tools: the Testing EHR opens every wallet at the URL
+  it's given and judges every response the same way, and never passes settings
+  to a wallet any other way (URL fragments or parameters it makes up, shared
+  storage, special-casing a wallet's id). The Testing Wallet's test options come
+  only from its own testing panel and its documented
+  [config URLs](testing-wallet/FEATURES.md#config-urls)
+  (`testing-wallet/src/config.ts`); the EHR's optional "Testing Wallet options"
+  builds those public URLs with that module, as a tester would, and nothing
+  else in the EHR knows about them. Expected outcomes of test cases live in
+  `scripts/self-test.ts`, not in either tool.
+- `_site/404.html` is the Testing Wallet page with a `<base>` at `testing-wallet/`,
+  so its config URLs (`testing-wallet/<base64url JSON>/`) load it; any other
+  missing address goes on to `not-found.html` (`scripts/build.ts`).
 - Android: `bun scripts/android-e2e.ts --release` against an emulator or
   device; nightly in CI (`android-e2e.yml`) with the latest APK.
 - The client library is pinned to a release tarball in `package.json`.

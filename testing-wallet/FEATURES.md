@@ -2,7 +2,9 @@
 
 The SMART Testing Wallet, served at
 <https://smart-health-checkin.org/connectathon/testing-wallet/> and listed in
-the connectathon wallet registry. It behaves like a real wallet by default. A testing panel adds controls for exercising EHR error handling.
+the connectathon wallet registry. It behaves like a real wallet by default. A
+[testing panel](#testing-panel) and [config URLs](#config-urls) add test
+options for exercising a Verifier's error handling.
 
 ## Hand-off
 
@@ -76,7 +78,7 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
 ## Consent
 
 - One card per item: title, summary, and what would be shared, counted by
-  resource type. A share/don't-share switch, defaulting to share.
+  resource type (including records the response size setting adds). A share/don't-share switch, defaulting to share.
 - `required: true` is shown as "the clinic says this is required" and changes
   nothing else.
 - Items the patient switches off become `declined`.
@@ -111,31 +113,29 @@ the connectathon wallet registry. It behaves like a real wallet by default. A te
 
 ## Testing panel
 
-Collapsed by default. Settings persist in the URL fragment, so a test case can
-open the wallet preconfigured, for example
-`#patient=large&faults=wrong-canonical,missing-status&size=1m`.
+Collapsed unless test options are on. When they are, the approval screen says
+which ones at the top, with a **Reset to normal** button. Changes on the panel
+apply to this tab; to use a set of options again, use a [config URL](#config-urls).
 
-- Response size: Normal, 512 KB, 1 MB, 2 MB, or 5 MB (`size=512k`, `1m`,
-  `2m`, `5m` in the fragment). It tests that large responses work. The
-  wallet picks one shared item answered with a FHIR Bundle, preferring one
-  with Observations, then MedicationRequests, then Immunizations, then
-  Conditions, and adds earlier copies of that item's records of that kind
-  (new ids, dates stepped back over about ten
-  years, past prescriptions `completed`, lab and vital values varied a little)
-  until the base64url `data.response` reaches about the chosen size. The
-  response stays valid, so an EHR that follows the spec accepts it. The
-  approval screen shows the size of the response Share would send, and what
-  the setting added; the response panel below summarizes the added records.
-  A request with no such item (only forms, or only SMART Health Cards) is
-  sent at its normal size, and the approval screen says so.
-
+- Response size: Normal, 512 KB, 1 MB, 2 MB, or 5 MB. It tests that large
+  responses work. The wallet picks one shared item answered with a FHIR Bundle,
+  preferring one with Observations, then MedicationRequests, then
+  Immunizations, then Conditions, and adds earlier copies of that item's
+  records of that kind (new ids, dates stepped back over about ten years, past
+  prescriptions `completed`, lab and vital values varied a little) until the
+  base64url `data.response` reaches about the chosen size. The response stays
+  valid, so a Verifier that follows the spec accepts it. The approval screen
+  shows the size of the response Share would send and what the setting added,
+  and that item's card counts the added records; the response panel below
+  summarizes them. A request with no such item (only forms, or only SMART
+  Health Cards) is sent at its normal size, and the approval screen says so.
 - Force a status per item: fulfilled, partial, unavailable, declined,
   unsupported, or error.
-- Faults, each with how an EHR that follows the spec reacts
+- Faults, each with how a Verifier that follows the spec reacts
   ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation),
   [§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)):
 
-  | Fault | What it does | The EHR |
+  | Fault | What it does | The Verifier |
   | --- | --- | --- |
   | `wrong-canonical` | QuestionnaireResponse.questionnaire doesn't match the request | sets that record aside ([XV-10](https://smart-health-checkin.org/spec/#XV-10)) |
   | `missing-status` | one item has no status | treats that item as unknown ([XV-3](https://smart-health-checkin.org/spec/#XV-3)) |
@@ -147,7 +147,67 @@ open the wallet preconfigured, for example
   | `wrong-origin` | binds the transcript to the origin with a trailing slash | rejects the response ([VRS-3](https://smart-health-checkin.org/spec/#VRS-3)) |
   | `bad-shc-signature` | a SMART Health Card with a broken signature | sets that card aside ([XV-13](https://smart-health-checkin.org/spec/#XV-13)) |
   | `combine-allergies-meds` | allergies and medications share one Bundle (O7) | passes |
+- **Copy wallet URL for these settings:** the [config URL](#config-urls) for
+  what the panel shows now.
 - Shows the parsed request, and the SMART response as sent.
+
+## Config URLs
+
+This wallet's own URL format for starting with test options. It is not part of
+SMART Health Check-in: a Verifier opens the URL like any other wallet URL, and
+nothing in the protocol carries or needs these options.
+
+```
+https://smart-health-checkin.org/connectathon/testing-wallet/                      normal
+https://smart-health-checkin.org/connectathon/testing-wallet/<base64url JSON>/     starts with that config
+```
+
+To test your Verifier's error handling, add a config URL to your page's wallet
+list as a web wallet (for example with `webWallet({ id, name, walletUrl })` in
+the client library, or the Testing EHR's "Add a wallet by URL"), then run
+check-ins from your page as usual. Every check-in sent to that URL gets those
+options, and the wallet's approval screen shows them.
+
+### The JSON
+
+An object. Every field is optional; a missing field means normal.
+
+| Field | Value | What it does |
+| --- | --- | --- |
+| `faults` | array of fault names from the [table above](#testing-panel): `wrong-canonical`, `missing-status`, `duplicate-status`, `wrong-request-id`, `unaccepted-media-type`, `bad-signature`, `bad-encryption`, `wrong-origin`, `bad-shc-signature`, `combine-allergies-meds` | Turns those faults on |
+| `size` | `"512k"`, `"1m"`, `"2m"`, or `"5m"` | The response size setting |
+| `status` | object of request item id to `"fulfilled"`, `"partial"`, `"unavailable"`, `"declined"`, `"unsupported"`, or `"error"` | Forces that item's status; ids not in the request are ignored |
+| `patient` | `"aria"` (default) or `"large"` | Which synthetic patient answers |
+
+Any other field or value is an error.
+
+### Encoding
+
+The path segment is the JSON's UTF-8 bytes in base64url (RFC 4648 §5) without
+`=` padding, followed by `/`. The wallet's panel writes the JSON with no spaces,
+fields in the order `faults`, `status`, `size`, `patient`, and faults sorted, so
+one set of options has one URL; the wallet reads any valid JSON.
+`testing-wallet/src/config.ts` is the one implementation: the wallet, the
+Testing EHR's "Testing Wallet options", and the self-test all use it.
+
+A config the wallet can't read (not base64url, not JSON, or not the fields
+above) shows an error on the approval screen saying why, and the wallet answers
+with normal settings.
+
+GitHub Pages can't route paths, so the connectathon site's `404.html` is a copy
+of this page with a `<base>` at `testing-wallet/`: the page arrives with HTTP
+status 404, and works like the plain page. Any other missing address goes to a
+"not found" page.
+
+### Examples
+
+| Options | JSON | URL |
+| --- | --- | --- |
+| Bad issuer signature | `{"faults":["bad-signature"]}` | <https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsiYmFkLXNpZ25hdHVyZSJdfQ/> |
+| Bad encryption | `{"faults":["bad-encryption"]}` | <https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsiYmFkLWVuY3J5cHRpb24iXX0/> |
+| Wrong request id | `{"faults":["wrong-request-id"]}` | <https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsid3JvbmctcmVxdWVzdC1pZCJdfQ/> |
+| 5 MB response | `{"size":"5m"}` | <https://smart-health-checkin.org/connectathon/testing-wallet/eyJzaXplIjoiNW0ifQ/> |
+| Missing status, immunizations declined | `{"faults":["missing-status"],"status":{"immunizations":"declined"}}` | <https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsibWlzc2luZy1zdGF0dXMiXSwic3RhdHVzIjp7ImltbXVuaXphdGlvbnMiOiJkZWNsaW5lZCJ9fQ/> |
 
 ## Limitations
 

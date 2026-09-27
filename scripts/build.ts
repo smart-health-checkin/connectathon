@@ -712,6 +712,24 @@ for (const tool of ["testing-ehr", "testing-wallet", "register"]) {
   }
 }
 
+// The Testing Wallet's config URLs, testing-wallet/<base64url JSON>/ (testing-wallet/src/config.ts,
+// FEATURES.md "Config URLs"). GitHub Pages can't route, so the site's 404.html is the wallet page
+// with a <base> at testing-wallet/, which reads its config from the path. Any other missing
+// address goes on to not-found.html.
+{
+  const basePath = new URL(SITE).pathname; // /connectathon/
+  const walletPath = new RegExp(`^${basePath.replaceAll("/", "\\/")}testing-wallet\\/[A-Za-z0-9_-]+\\/?$`);
+  const router = `<script>(function(){var p=location.pathname;` +
+    `if(${walletPath}.test(p))document.write('<base href="${basePath}testing-wallet/">');` +
+    `else location.replace("${basePath}not-found.html#"+encodeURIComponent(p+location.search));})();</script>`;
+  const wallet = readFileSync(join(OUT, "testing-wallet", "index.html"), "utf8");
+  if (!/<meta charset="utf-8">/i.test(wallet)) throw new Error("testing-wallet/index.html: no <meta charset> to put the 404 router after");
+  writeFileSync(join(OUT, "404.html"), wallet.replace(/(<meta charset="utf-8">)/i, `$1${router}`));
+  writeFileSync(join(OUT, "not-found.html"), page("Not found",
+    `<h1>There's nothing at this address</h1><p id="missing"></p><p>The <a href="./">connectathon overview</a>, the <a href="scenarios.html">test scenarios</a>, the <a href="testing-ehr/">SMART Testing EHR</a>, and the <a href="testing-wallet/">SMART Testing Wallet</a> are a click away.</p>` +
+    `<script>document.getElementById("missing").textContent=location.hash?"Nothing is published at "+decodeURIComponent(location.hash.slice(1))+".":"";</script>`));
+}
+
 // No template markers in published pages: {{TBD: …}} becomes a pill and {{FORM_URL}} is filled in,
 // so any other {{ is a mistake.
 const htmlFiles = (dir: string): string[] =>

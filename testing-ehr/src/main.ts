@@ -8,23 +8,10 @@ import { checkResponse, fixFor, groupOf, type ArtifactOutcome, type Check, type 
 import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 import { jsonHtml } from "../../shared/smart-json.ts";
+import { configUrl, FAULTS, isTestingWalletUrl, RESPONSE_SIZES, STATUSES, type WalletConfig } from "../../testing-wallet/src/config.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
-const TESTING_WALLET_ID = "smart-testing-wallet";
-/** The testing wallet's faults, and how a spec-following EHR reacts to each. */
-const WALLET_FAULTS: Record<string, string> = {
-  "wrong-canonical": "sets one record aside",
-  "missing-status": "leaves one item unknown",
-  "duplicate-status": "leaves one item unknown",
-  "wrong-request-id": "rejects the response",
-  "unaccepted-media-type": "sets one record aside",
-  "bad-signature": "warning",
-  "bad-encryption": "rejects the response",
-  "wrong-origin": "rejects the response",
-  "bad-shc-signature": "sets one record aside",
-  "combine-allergies-meds": "passes",
-};
 const RUNS_KEY = "testing-ehr:runs";
 const URLS_KEY = "testing-ehr:wallet-urls";
 
@@ -34,7 +21,7 @@ type LibraryItem = { key: string; item: SmartCheckinRequest["items"][number]; la
 type CardView = { issuer?: string; valid: boolean; detail: string; resources: any[] };
 type Run = {
   id: string; at: string; ms: number;
-  label: string; caseId?: string; walletId: string; walletName: string; path: "native" | "web"; faults: string[];
+  label: string; caseId?: string; walletId: string; walletName: string; path: "native" | "web"; walletUrl?: string;
   verdict: "pass" | "fail" | "declined";
   headline: string; message?: string;
   request: SmartCheckinRequest; checks: Check[]; smartResponse?: any; responseChars?: number; wire?: WireLayers;
@@ -93,19 +80,20 @@ async function load() {
   $("paste").addEventListener("input", refresh);
   for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.onclick = () => setMode(b.dataset.mode as typeof mode);
 
-  $("faults").replaceChildren(...Object.entries(WALLET_FAULTS).map(([f, effect]) => {
+  $("tw-faults").replaceChildren(...Object.entries(FAULTS).map(([f, what]) => {
     const label = document.createElement("label");
-    label.className = "fault";
-    label.innerHTML = `<input type="checkbox" value="${f}"> ${f} <small>${esc(effect)}</small>`;
+    label.className = "tw-fault";
+    label.innerHTML = `<input type="checkbox" value="${esc(f)}"> <code>${esc(f)}</code> <small>${esc(what)}</small>`;
     return label;
   }));
-  $("faults").addEventListener("change", refresh);
+  ($("tw-size") as HTMLSelectElement).replaceChildren(new Option("Normal", ""), ...Object.entries(RESPONSE_SIZES).map(([k, v]) => new Option(v.label, k)));
+  $("tw-options").addEventListener("change", refresh);
   ($("add-wallet") as HTMLFormElement).onsubmit = (e) => { e.preventDefault(); addWalletUrl(); };
   $("send").onclick = () => send();
   $("history-btn").onclick = () => { $("history").hidden = !$("history").hidden; renderHistory(); };
   $("clear-history").onclick = () => { runs = []; saveRuns(); renderHistory(); };
 
-  renderWallets(params.get("wallet") ?? TESTING_WALLET_ID);
+  renderWallets(params.get("wallet") ?? undefined);
   describeCase();
   refresh();
   renderHistory();
@@ -195,8 +183,6 @@ function selectedWallet(): Wallet | undefined {
   return allWallets().find((w) => w.id === id);
 }
 
-const selectedFaults = (): string[] => [...document.querySelectorAll<HTMLInputElement>("#faults input:checked")].map((i) => i.value);
-
 function renderWallets(select?: string) {
   const current = select ?? selectedWallet()?.id;
   const colors = ["#6E4FA2", "#0E6FB8", "#1A8C76", "#B85C17", "#B5345C", "#3B6E8F"];
@@ -207,7 +193,7 @@ function renderWallets(select?: string) {
     const sub =
       w.kind === "platform"
         ? w.available ? "Digital Credentials API · on a computer, scan with a phone" : `Not available here: ${w.unavailableReason ?? "no Digital Credentials API"}`
-        : w.id === TESTING_WALLET_ID ? "Reference wallet · faults available" : w.description ?? w.entry?.walletUrl ?? "";
+        : w.description ?? w.entry?.walletUrl ?? "";
     const icon = w.iconUrl ? `<img alt="" src="${esc(w.iconUrl)}">` : esc(w.name[0]);
     const removable = w.id.startsWith("url:");
     label.innerHTML = `<input type="radio" name="wallet" value="${esc(w.id)}" ${w.id === current ? "checked" : ""} ${w.available ? "" : "disabled"}>
@@ -218,12 +204,16 @@ function renderWallets(select?: string) {
     label.querySelector(".x")?.addEventListener("click", (e) => {
       e.preventDefault();
       store.set(URLS_KEY, customUrls().filter((u) => `url:${u}` !== w.id));
-      renderWallets(TESTING_WALLET_ID);
+      renderWallets();
       refresh();
     });
     return label;
   }));
-  if (!selectedWallet()) document.querySelector<HTMLInputElement>('input[name="wallet"]:not(:disabled)')?.click();
+  // Nothing chosen yet: the first web wallet in the registry, or else the first available one.
+  if (!selectedWallet()) {
+    const first = allWallets().find((w) => w.available && w.kind !== "platform") ?? allWallets().find((w) => w.available);
+    if (first) document.querySelector<HTMLInputElement>(`input[name="wallet"][value="${CSS.escape(first.id)}"]`)?.click();
+  }
 }
 
 function addWalletUrl() {
@@ -247,19 +237,61 @@ function remember() {
   history.replaceState(null, "", `#case=${($("case") as HTMLSelectElement).value}${w ? `&wallet=${encodeURIComponent(w.id)}` : ""}`);
 }
 
-/** Update the fault box, the request state line, and the Send button. */
+// ---------------------------------------------------------------- Testing Wallet options
+// Only this builder knows a wallet's URL language: the SMART Testing Wallet's
+// documented config URLs (testing-wallet/FEATURES.md#config-urls, encoded in
+// testing-wallet/src/config.ts). It builds that URL from the wallet's plain URL,
+// like a tester pasting a config URL. Everything else treats every wallet the same.
+const offersOptions = (w?: Wallet) => !!w?.entry && isTestingWalletUrl(w.entry.walletUrl);
+
+function testingWalletConfig(): WalletConfig {
+  const status: Record<string, string> = {};
+  for (const sel of document.querySelectorAll<HTMLSelectElement>("#tw-status select")) if (sel.value) status[sel.dataset.item!] = sel.value;
+  return {
+    faults: [...document.querySelectorAll<HTMLInputElement>("#tw-faults input:checked")].map((i) => i.value),
+    status,
+    size: ($("tw-size") as HTMLSelectElement).value,
+  };
+}
+
+/** One forced-status menu per item of the current request, keeping choices for items still there. */
+function renderStatusMenus(items: SmartCheckinRequest["items"]) {
+  const host = $("tw-status");
+  const was = new Map([...host.querySelectorAll<HTMLSelectElement>("select")].map((s) => [s.dataset.item!, s.value]));
+  if ([...was.keys()].join() === items.map((i) => i.id).join()) return;
+  host.replaceChildren(...items.map((item) => {
+    const label = document.createElement("label");
+    label.className = "tw-status";
+    label.innerHTML = `<code>${esc(item.id)}</code> <select data-item="${esc(item.id)}"><option value="">(normal)</option>${STATUSES.map((st) => `<option${was.get(item.id) === st ? " selected" : ""}>${st}</option>`).join("")}</select>`;
+    return label;
+  }));
+}
+
+/** The URL a web wallet opens at: its own, or with the Testing Wallet options built in. */
+function walletToOpen(w: Wallet): Wallet {
+  if (!offersOptions(w)) return w;
+  const url = configUrl(w.entry!.walletUrl, testingWalletConfig());
+  return url === w.entry!.walletUrl ? w : webWallet({ ...w.entry!, walletUrl: url });
+}
+
+/** Update the Testing Wallet options, the request state line, and the Send button. */
 function refresh() {
   const w = selectedWallet();
   const r = currentRequest();
-  $("fault-box").hidden = w?.id !== TESTING_WALLET_ID;
-  const faults = w?.id === TESTING_WALLET_ID ? selectedFaults() : [];
-  $("fault-count").textContent = faults.length ? `${faults.length} on` : "";
+  const box = $("tw-options") as HTMLDetailsElement;
+  box.hidden = !offersOptions(w);
+  if (r.ok) renderStatusMenus(r.request.items);
+  const opened = w && offersOptions(w) ? walletToOpen(w).entry!.walletUrl : undefined;
+  const custom = opened && opened !== w!.entry!.walletUrl;
+  $("tw-count").textContent = custom ? "on" : "";
+  ($("tw-url") as HTMLAnchorElement).textContent = opened ?? "";
+  ($("tw-url") as HTMLAnchorElement).href = opened ?? "#";
   const state = $("request-state");
   state.className = `small ${r.ok ? "ok-line" : "bad-line"}`;
   state.textContent = r.ok ? `${r.request.items.length} item${r.request.items.length === 1 ? "" : "s"} · valid request` : r.error;
   const button = $("send") as HTMLButtonElement;
   button.disabled = !r.ok || !w || !w.available;
-  button.innerHTML = r.ok && w ? `Send ${esc(r.short)} to ${esc(w.name)}${faults.length ? `<small>with faults: ${esc(faults.join(", "))}</small>` : ""}` : "Send";
+  button.innerHTML = r.ok && w ? `Send ${esc(r.short)} to ${esc(w.name)}${custom ? "<small>with Testing Wallet options</small>" : ""}` : "Send";
   $("setup-summary").textContent = r.ok && w ? `${r.label} → ${w.name}` : "Set up a run";
 }
 
@@ -268,23 +300,19 @@ function send() {
   const r = currentRequest();
   const chosen = selectedWallet();
   if (!r.ok || !chosen) return;
-  const faults = chosen.id === TESTING_WALLET_ID ? selectedFaults() : [];
-  let wallet = chosen;
-  if (faults.length && chosen.entry) {
-    const url = new URL(chosen.entry.walletUrl);
-    url.hash = `faults=${faults.join(",")}&testing=1`;
-    wallet = webWallet({ ...chosen.entry, walletUrl: url.href });
-  }
-  // Open the wallet now, inside the click, so the browser allows its tab.
+  // Open the wallet now, inside the click, so the browser allows its tab. A
+  // wallet opens at the URL the registry (or the URL added here) gives, or,
+  // for the Testing Wallet with options set, at its documented config URL.
+  const wallet = walletToOpen(chosen);
   const session = wallet.open();
   const request = { ...r.request, id: `testing-ehr-${r.caseId ?? "custom"}-${crypto.randomUUID()}` } as SmartCheckinRequest;
-  void run({ request, label: r.label, caseId: r.caseId, wallet: chosen, session, faults });
+  void run({ request, label: r.label, caseId: r.caseId, wallet, session });
 }
 
 // The SMART starburst, as <smart-checkin-picker> shows it while waiting.
 const STARBURST = `<svg viewBox="59 -1 91 75" aria-hidden="true" focusable="false"><polygon fill="#722772" points="83.91 0 93.42 0 104.56 18.47 116.03 0 125.28 0 104.58 33.96"/><polygon fill="#e24a31" points="60.61 35.72 65.37 28.16 87.76 28.16 76.67 9.49 81.3 1.87 101.89 35.72"/><polygon fill="#e77d26" points="128 1.73 132.76 9.55 121.5 28.16 144.06 28.16 148.69 35.72 107.4 35.72"/><polygon fill="#89bf44" points="148.72 38.78 143.97 46.33 121.57 46.33 132.66 65.16 128.03 72.78 107.44 38.78"/><polygon fill="#f1b42a" points="81.28 72.77 76.53 64.94 87.78 46.33 65.23 46.33 60.6 38.78 101.89 38.78"/><polygon fill="#64aed0" points="125.46 73.22 115.89 73.22 104.68 54.63 93.14 73.22 83.82 73.22 104.66 39.04"/></svg>`;
 
-async function run(input: { request: SmartCheckinRequest; label: string; caseId?: string; wallet: Wallet; session: WalletSession; faults: string[] }) {
+async function run(input: { request: SmartCheckinRequest; label: string; caseId?: string; wallet: Wallet; session: WalletSession }) {
   const { request, wallet } = input;
   const started = performance.now();
   const at = new Date().toISOString();
@@ -295,7 +323,7 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
   $("log").textContent = "";
   if (matchMedia("(max-width: 860px)").matches) ($("setup") as HTMLDetailsElement).open = false;
 
-  const base = { id: crypto.randomUUID(), at, label: input.label, caseId: input.caseId, walletId: wallet.id, walletName: wallet.name, path, faults: input.faults, request };
+  const base = { id: crypto.randomUUID(), at, label: input.label, caseId: input.caseId, walletId: wallet.id, walletName: wallet.name, path, walletUrl: wallet.entry?.walletUrl, request };
   let result: Run;
   try {
     const bundle = await buildOrgIsoMdocRequest(request, { origin: location.origin, readerAuth: false });
@@ -352,7 +380,7 @@ function headlineFor(checks: Check[], rejected: boolean): string {
 function logFor(r: Run): string {
   return [
     `Testing EHR run ${r.at}`,
-    `Scenario ${r.label}; wallet ${r.walletId}; path ${r.path}${r.faults.length ? `; faults ${r.faults.join(",")}` : ""}`,
+    `Scenario ${r.label}; wallet ${r.walletId}${r.walletUrl ? ` at ${r.walletUrl}` : ""}; path ${r.path}`,
     ...(r.checks.length
       ? r.checks.map((c) => `[${c.outcome.toUpperCase()}] ${c.id}${c.rule ? ` (${c.rule})` : ""}: ${c.title}${c.detail ? ` — ${c.detail}` : ""}`)
       : [`${r.verdict === "declined" ? "DECLINED" : "ERROR"}: ${r.message}`]),
@@ -394,7 +422,7 @@ function show(r: Run) {
   const passed = r.checks.filter((c) => c.outcome === "pass" || c.outcome === "info");
 
   const verdict = `<section class="verdict ${r.verdict}"><div class="head"><span class="mark">${mark}</span><b>${esc(r.headline)}</b></div>
-    <div class="meta"><span>${esc(r.label)}</span><span>→ ${esc(r.walletName)}</span>${r.faults.length ? `<span>faults: ${esc(r.faults.join(", "))}</span>` : ""}${kb ? `<span>${kb}</span>` : ""}<span>${(r.ms / 1000).toFixed(1)} s</span><span>${new Date(r.at).toLocaleTimeString()}</span></div>
+    <div class="meta"><span>${esc(r.label)}</span><span>→ ${esc(r.walletName)}</span>${kb ? `<span>${kb}</span>` : ""}<span>${(r.ms / 1000).toFixed(1)} s</span><span>${new Date(r.at).toLocaleTimeString()}</span></div>
     ${r.message ? `<p class="small">${esc(r.message)}</p>` : ""}
     <div class="actions"><a id="file" class="smart-btn sm primary" target="_blank" rel="noopener" href="${esc(resultLink(r))}">File this result</a><button type="button" class="smart-btn sm" data-act="download">Download run</button><a class="share-link" target="_blank" rel="noopener" href="${esc(shareLink("testing-ehr", r.verdict, r.at))}">Tell us how it went</a></div></section>`;
 

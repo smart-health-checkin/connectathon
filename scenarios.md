@@ -39,7 +39,7 @@ Everything the event provides, in one place. The event's own resources are all u
 | Sample responses: what a wallet sends for Baselines 1 to 3, decrypted | [Baseline 1](responses/baseline-1.sample.json), [Baseline 2](responses/baseline-2.sample.json), [Baseline 3](responses/baseline-3.sample.json) |
 | Reference Android wallet | [Download the APK](https://github.com/smart-health-checkin/android-wallet/releases/latest/download/smart-health-checkin-wallet.apk); [install steps](#reference-android-wallet) |
 | SMART Testing EHR | [SMART Testing EHR](testing-ehr/) ([details](#testing-ehr-and-testing-wallet)) |
-| SMART Testing Wallet: the reference web wallet, also usable for fault testing | [SMART Testing Wallet](testing-wallet/), also in the registry; [what it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md) |
+| SMART Testing Wallet: the reference web wallet, also usable for fault testing | [SMART Testing Wallet](testing-wallet/), also in the registry; [what it does](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md); [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls) for fault and size tests |
 | Chat for questions and pairing | `#kill-the-clipboard` on the CMS Health Tech Ecosystem Slack ([open channel](https://app.slack.com/client/E09AR4N78GN/C09BPE4NXPT)) |
 
 ### Wallet registry
@@ -235,13 +235,15 @@ Pass: the EHR handles a whole-request decline and an `unavailable` item without 
 Two test tools let each participant run the scenarios above against a known-good counterpart without waiting for a partner.
 
 - **[SMART Testing EHR](testing-ehr/)**
-  - Sends any scenario's request to any registry wallet, or to the phone's own wallet.
+  - Sends any scenario's request to any registry wallet, any web wallet by URL, or the phone's own wallet. It opens each wallet at the URL it's given and judges every response the same way.
+  - With the SMART Testing Wallet chosen, "Testing Wallet options" sets faults, forced statuses, and a response size by opening that wallet at one of its [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls).
   - Checks the response against the spec, each check linked to its requirement. The verdict says whether the response was rejected, usable with problems in some items or records, or passed (possibly with warnings).
   - As the spec says for receivers, problems in the mdoc layer (signatures, digests, validity dates) are warnings, not failures.
 - **[SMART Testing Wallet](testing-wallet/)**
   - Answers with a choice of patient, statuses, and artifact shapes.
   - Checks each incoming request against [§5](https://smart-health-checkin.org/spec/#5-clinical-request-model) and reports problems.
-  - Can send deliberately broken responses so EHRs can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, a bad signature, and more. Each is labeled with how an EHR that follows the spec reacts: reject the response, set one record aside, treat one item as unknown, or warn. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md).
+  - Can send deliberately broken or very large responses so Verifiers can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, a bad signature, a 5 MB response, and more. Each fault is labeled with how a Verifier that follows the spec reacts: reject the response, set one record aside, treat one item as unknown, or warn. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#testing-panel).
+  - To test your own Verifier with these options, open the wallet, set them in its testing panel, choose "Copy wallet URL for these settings", and add that URL as a web wallet on your page. Then run check-ins from your page as usual. For example, bad signature is `https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsiYmFkLXNpZ25hdHVyZSJdfQ/` and a 5 MB response is `https://smart-health-checkin.org/connectathon/testing-wallet/eyJzaXplIjoiNW0ifQ/`. These [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls) are the Testing Wallet's own format, not part of SMART Health Check-in.
 
 Each scenario is a named test case in both tools, so a self-serve run gives a pass or fail, with a link that files it as a result.
 

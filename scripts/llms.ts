@@ -33,7 +33,7 @@ const SUMMARY =
   "The SMART Health Check-in connectathon: an online event where patients, clinic staff, and software teams try the draft standard and report how it went. It has a page for each kind of participant, how the event works, the test scenarios and their requests and questionnaires, the SMART Testing EHR (to test a wallet) and the SMART Testing Wallet (to test a check-in page), registration, the participant directory, results, and two prompts that turn an AI assistant into a guide for writing an experience report. The event's date isn't set yet.";
 // Pages published but not in llms.txt, with the reason. A key ending in "/"
 // skips everything under that folder.
-const SKIP: Record<string, string> = {};
+const SKIP: Record<string, string> = { "not-found.html": "where a missing address goes; no content" };
 // Pages in llms.txt that no menu lists, after the menu's pages.
 const PAGES: string[] = [];
 // Published Markdown or text files llms.txt includes as they are, after the

@@ -13,12 +13,20 @@
   <p id="waiting">Waiting for a check-in request from the page that opened this wallet…</p>
 
   <section id="standalone" hidden>
-    <p>This is the reference web wallet for the <a href="https://smart-health-checkin.org/connectathon/">SMART Health Check-in connectathon</a>. It answers check-in requests from an EHR page that opens it. It isn't meant to be opened on its own.</p>
+    <p>This is the reference web wallet for the <a href="https://smart-health-checkin.org/connectathon/">SMART Health Check-in connectathon</a>. It answers check-in requests from a Verifier page that opens it.</p>
+    <p>To test how your Verifier handles bad or large responses, set options in the testing panel below, choose "Copy wallet URL for these settings", and add that URL as a wallet on your page. Every check-in sent to that URL gets those options. The URL format is <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls">this wallet's own</a>, not part of SMART Health Check-in.</p>
     <p>To try it, open the <a href="https://smart-health-checkin.org/connectathon/testing-ehr/">testing EHR</a> or the <a href="https://smart-health-checkin.org/client/demo/#wallets=https%3A%2F%2Fsmart-health-checkin.org%2Fconnectathon%2Fwallets.json&amp;wallet=smart-testing-wallet">reference clinic check-in page</a>, and choose this wallet.</p>
     <p>What it does: <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md">features and behavior</a>.</p>
   </section>
 
   <div id="error" class="error smart-callout bad" role="alert" hidden></div>
+
+  <div id="config-error" class="smart-callout bad" role="alert" hidden></div>
+
+  <div id="options-on" class="options-on smart-callout warn" role="status" hidden>
+    <span id="options-text"></span>
+    <button id="reset-options" class="smart-btn sm" type="button">Reset to normal</button>
+  </div>
 
   <section id="consent" hidden>
     <p class="asker">Check-in request from <b id="origin"></b></p>
@@ -39,7 +47,13 @@
 
   <details id="testing" class="testing smart-details">
     <summary>Testing panel</summary>
-    <p class="small">Settings are saved in this page's URL, so a test case can open the wallet preconfigured.</p>
+    <p class="small">Changes here apply to this tab. To use a set of options again, copy this wallet's URL for them and open or add that URL as the wallet: <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls">config URLs</a>.</p>
+    <div class="config-url">
+      <label class="smart-sr" for="config-url">Wallet URL for these settings</label>
+      <input id="config-url" type="text" readonly>
+      <button id="copy-config-url" class="smart-btn sm" type="button">Copy wallet URL for these settings</button>
+      <span id="copy-note" class="small muted" aria-live="polite"></span>
+    </div>
     <h3>Response size</h3>
     <p class="small muted">Makes the encoded response about this large, to test that large responses work. The wallet adds earlier records of one kind, such as past lab results or prescriptions, to one shared item's Bundle, and shows the size above the Share button.</p>
     <div id="response-size" class="smart-tabs" role="group" aria-label="Response size"></div>

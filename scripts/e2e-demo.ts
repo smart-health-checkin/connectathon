@@ -3,17 +3,17 @@
  * request to a web wallet from the event registry, the wallet shares
  * everything, and the demo shows the verified outcome.
  *
- *   bun scripts/e2e-demo.ts [request-file] [wallet-id] [wallet-fragment]
+ *   bun scripts/e2e-demo.ts [request-file] [wallet-id] [wallet-settings]
  *
  * wallet-id: smart-testing-wallet (default) or smart-demo-wallet.
- * wallet-settings: testing wallet settings applied after the request arrives, for example "patient=large".
+ * wallet-settings: settings chosen on the wallet's approval screen once the request arrives, for example "patient=large".
  */
 import puppeteer from "puppeteer-core";
 import { readFileSync } from "node:fs";
 
 const requestFile = process.argv[2] ?? "requests/baseline-1.json";
 const walletId = process.argv[3] ?? "smart-testing-wallet";
-const walletFragment = process.argv[4] ?? "";
+const walletSettings = process.argv[4] ?? "";
 const request = JSON.parse(readFileSync(requestFile, "utf8"));
 request.id = `e2e-${Date.now()}`;
 const registry = "https://smart-health-checkin.org/connectathon/wallets.json";
@@ -35,7 +35,7 @@ try {
   await wallet.waitForSelector("#share", { visible: true, timeout: 30000 });
   await wallet.waitForFunction(() => !(document.getElementById("share") as HTMLButtonElement).disabled, { timeout: 60000 });
   // Settings that can change after the request arrives, e.g. "patient=large".
-  const patientKey = new URLSearchParams(walletFragment).get("patient");
+  const patientKey = new URLSearchParams(walletSettings).get("patient");
   if (patientKey) {
     await wallet.select("#patient", patientKey);
     await wallet.waitForFunction(() => document.querySelectorAll(".item").length > 0, { timeout: 30000 });
