@@ -5,7 +5,7 @@
  *   bun scripts/build.ts --check-only validate only (used on pull requests)
  *
  * Inputs (all in this repo):
- *   index.md, the per-type pages, scenarios.md, advanced.md   rendered to HTML pages
+ *   index.md, the per-type pages, scenarios.md   rendered to HTML pages
  *   participants/*.json                    validated; web wallets that are up become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
@@ -22,7 +22,7 @@ import addFormats from "ajv-formats";
 import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join } from "node:path";
-import { caseHref, caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
+import { caseHref, caseLabel, caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
 import { TESTING_WALLET_URL, configProblems, configUrl } from "../testing-wallet/src/config.ts";
 import { PLATFORM_LABEL, accessOf, isApp, participantProblems, type Component, type Participant as ParticipantFile } from "../register/src/participant.ts";
 
@@ -220,7 +220,7 @@ if (catalog) {
 }
 
 /** The page each tier of test cases is on. */
-const TIER_PAGE: Record<TestCase["tier"], string> = { minimum: "scenarios.html", advanced: "advanced.html" };
+const TIER_PAGE: Record<TestCase["tier"], string> = { minimum: "index.html", advanced: "scenarios.html" };
 /** Where each case was written, to check every case appears once, on its tier's page. */
 const casesWritten = new Map<string, string>();
 
@@ -245,12 +245,12 @@ function itemsTable(request: any): string {
 }
 
 /**
- * The scenario sections of scenarios.md and advanced.md, from catalog.json. `<!-- test cases: TIER -->`
- * becomes that tier's cases; `<!-- test cases: TIER PREFIX -->` only those whose id starts with PREFIX.
+ * The scenario blocks of index.md and scenarios.md, from catalog.json. `<!-- test cases: TIER -->`
+ * becomes that tier's cases with no group; `<!-- test cases: TIER GROUP -->` those in GROUP.
  * Each case gets the same block: what it tests, its request, the step for the person using the wallet,
  * what the Verifier should see, what passes for each side, how to run it with the test tools, and the spec.
  */
-function testCaseMarkdown(page: string, tier: TestCase["tier"], prefix = ""): string {
+function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string): string {
   const cases = (catalog?.testCases ?? []) as TestCase[];
   if (TIER_PAGE[tier] !== page) fail(`${page}: lists ${tier} test cases, which belong on ${TIER_PAGE[tier]}`);
   const section = (anchor: string) => {
@@ -259,11 +259,11 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], prefix = ""): st
     for (const [i, t] of parts.entries()) if (/^\d+$/.test(t) || (i === 0 && /^[a-z]$/.test(t))) n.push(t.toUpperCase()); else break;
     return `[§${n.join(".")}](${catalog.specBase}${anchor})`;
   };
-  const link = (tc: TestCase) => (TIER_PAGE[tc.tier] === page ? `#${tc.id.toLowerCase()}` : caseHref(tc));
+  const link = (tc: TestCase) => (TIER_PAGE[tc.tier] === page ? `#${tc.id}` : caseHref(tc));
   const sentences = (xs?: string[]) => (xs ?? []).join(" ");
   /** A link to a section of scenarios.html, from this page. */
   const main = (anchor: string) => `${page === "scenarios.html" ? "" : "scenarios.html"}#${anchor}`;
-  return cases.filter((tc) => tc.tier === tier && tc.id.startsWith(prefix)).map((tc) => {
+  return cases.filter((tc) => tc.tier === tier && tc.group === group).map((tc) => {
     if (casesWritten.has(tc.id)) fail(`${page}: test case ${tc.id} is already on ${casesWritten.get(tc.id)}`);
     casesWritten.set(tc.id, page);
     const req = requests.find((r) => r.file === tc.request)!.request;
@@ -294,8 +294,8 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], prefix = ""): st
     const nativeRun = `check in on an Android phone with the [reference Android wallet](${main("reference-android-wallet")}), picking it from the phone's wallet chooser${tc.walletStep ? " and doing the step in it" : ""}`;
     const verifierRun = web && native ? `on the web path, ${webRun}; on the native path, ${nativeRun}.` : web ? `${webRun}.` : `${nativeRun}.`;
     return [
-      `<a id="${tc.id.toLowerCase()}"></a>`,
-      `### ${tc.id}. ${tc.title}`,
+      `<a id="${tc.id}"></a>`,
+      `### ${caseLabel(tc)}`,
       tc.summary,
       request,
       `**Step for the person using the wallet:** ${step}`,
@@ -311,7 +311,7 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], prefix = ""): st
 
 // ---------------------------------------------------------------- page sources
 // The Markdown pages may hold {{TBD: …}} (rendered as "To be announced"); nothing else in {{…}}.
-const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "scenarios.md", "advanced.md", "requests/README.md"];
+const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "scenarios.md", "requests/README.md"];
 for (const src of PAGES) {
   if (!existsSync(join(ROOT, src))) continue;
   const left = readFileSync(join(ROOT, src), "utf8").replace(/\{\{TBD:[^}]*\}\}/g, "");
@@ -320,10 +320,10 @@ for (const src of PAGES) {
 
 /** A page's Markdown with its `<!-- test cases: … -->` markers written out. */
 const withTestCases = (md: string, out: string) =>
-  md.replace(/<!-- test cases: (minimum|advanced)(?: ([A-Z]))? -->/g, (_m, tier: TestCase["tier"], prefix?: string) => testCaseMarkdown(out, tier, prefix));
+  md.replace(/<!-- test cases: (minimum|advanced)(?: ([a-z-]+))? -->/g, (_m, tier: TestCase["tier"], group?: string) => testCaseMarkdown(out, tier, group));
 // Every test case appears once, on its tier's page.
 if (catalog) {
-  for (const [src, out] of [["scenarios.md", "scenarios.html"], ["advanced.md", "advanced.html"]]) withTestCases(readFileSync(join(ROOT, src!), "utf8"), out!);
+  for (const [src, out] of [["index.md", "index.html"], ["scenarios.md", "scenarios.html"]]) withTestCases(readFileSync(join(ROOT, src!), "utf8"), out!);
   for (const tc of catalog.testCases as TestCase[]) if (!casesWritten.has(tc.id)) fail(`catalog.json: test case ${tc.id} isn't on ${TIER_PAGE[tc.tier]}`);
   casesWritten.clear();
 }
@@ -570,8 +570,7 @@ renderMarkdownPage("clinic-staff.md", "clinic-staff.html", "Clinic staff");
 renderMarkdownPage("verifier-developers.md", "verifier-developers.html", "Verifier developers");
 renderMarkdownPage("wallet-developers.md", "wallet-developers.html", "Wallet developers");
 renderMarkdownPage("observers.md", "observers.html", "Observers");
-renderMarkdownPage("scenarios.md", "scenarios.html", "Test scenarios");
-renderMarkdownPage("advanced.md", "advanced.html", "Advanced scenarios");
+renderMarkdownPage("scenarios.md", "scenarios.html", "Testing guide");
 
 // Prompts people paste into an AI assistant, and the page that offers them.
 mkdirSync(join(OUT, "prompts"), { recursive: true });
@@ -780,16 +779,21 @@ if (!results) {
     byScenario.set(s, [...(byScenario.get(s) ?? []), r]);
   }
   const cls = (v: string) => (/^pass/i.test(v) ? "ok" : /^fail/i.test(v) ? "bad" : "warn");
+  const scenarioOrder = ((catalog?.testCases ?? []) as TestCase[]).map(caseLabel);
   resultsBody = byScenario.size === 0 ? `<p>No open results. Closed issues are withdrawn results.</p>` : [...byScenario.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+    // In the catalog's order; scenarios it doesn't know go last.
+    .sort(([a], [b]) => (scenarioOrder.indexOf(a) >>> 0) - (scenarioOrder.indexOf(b) >>> 0) || a.localeCompare(b))
     .map(([scenario, rs]) => {
       const verifiers = [...new Set(rs.map((r) => r.fields["Verifier"]))].sort();
-      const wallets = [...new Set(rs.map((r) => `${r.fields["Wallet"]} (${r.fields["Path"]})`))].sort();
+      // A column per wallet and path, since a scenario such as share-records runs on either path.
+      const column = (r: Result) => `${r.fields["Wallet"]}|${r.fields["Path"] || "path not given"}`;
+      const wallets = [...new Set(rs.map(column))].sort();
       const cell = (e: string, w: string) => {
-        const r = rs.find((x) => x.fields["Verifier"] === e && `${x.fields["Wallet"]} (${x.fields["Path"]})` === w);
+        const r = rs.find((x) => x.fields["Verifier"] === e && column(x) === w);
         return r ? `<td><a class="smart-pill ${cls(r.fields["Result"])}" href="${r.url}">${esc(r.fields["Result"] || "?")} #${r.number}</a></td>` : "<td></td>";
       };
-      return `<h2>${esc(scenario)}</h2><div class="smart-table-wrap"><table><thead><tr><th>Verifier \\ wallet</th>${wallets.map((w) => `<th>${esc(w)}</th>`).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
+      const head = (w: string) => { const [wallet, path] = w.split("|"); return `<th>${esc(wallet!)}<br><span class="muted">Path: ${esc(path!)}</span></th>`; };
+      return `<h2>${esc(scenario)}</h2><div class="smart-table-wrap"><table><thead><tr><th>Verifier \\ wallet</th>${wallets.map(head).join("")}</tr></thead><tbody>${verifiers.map((e) => `<tr><th>${esc(e)}</th>${wallets.map((w) => cell(e, w)).join("")}</tr>`).join("")}</tbody></table></div>`;
     })
     .join("");
 }
@@ -797,7 +801,7 @@ writeFileSync(
   join(OUT, "results.html"),
   page(
     "Results",
-    `<article class="doc"><h1>Results</h1><p>The latest open result for each scenario and Verifier and wallet pair, from the <a href="https://github.com/${REPO}/issues?q=label%3Aresult">result issues</a>. <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">File a result</a>. Close an issue to withdraw its result. Rebuilt whenever a result issue changes.</p></article>${resultsBody}`,
+    `<article class="doc"><h1>Results</h1><p>The latest open result for each scenario, Verifier, wallet, and path (web wallet or native wallet), from the <a href="https://github.com/${REPO}/issues?q=label%3Aresult">result issues</a>. <a href="https://github.com/${REPO}/issues/new?template=test-result.yml">File a result</a>. Close an issue to withdraw its result. Rebuilt whenever a result issue changes.</p></article>${resultsBody}`,
   ),
 );
 

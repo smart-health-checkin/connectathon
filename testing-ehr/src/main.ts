@@ -9,7 +9,7 @@ import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 import { jsonHtml } from "../../shared/smart-json.ts";
 import { configUrl, FAULTS, isTestingWalletUrl, RESPONSE_SIZES, STATUSES, type WalletConfig } from "../../testing-wallet/src/config.ts";
-import { caseHref, describeExpectation, evaluateExpectations, type Evaluated, type RequestInfo, type TestCase } from "./cases.ts";
+import { caseHref, caseLabel, describeExpectation, evaluateExpectations, type Evaluated, type RequestInfo, type TestCase } from "./cases.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
@@ -83,7 +83,7 @@ async function load() {
   const group = (label: string, tier: TestCase["tier"]) => {
     const g = document.createElement("optgroup");
     g.label = label;
-    g.append(...catalog.filter((t) => t.tier === tier).map((t) => new Option(`${t.id} · ${t.title}`, t.id)));
+    g.append(...catalog.filter((t) => t.tier === tier).map((t) => new Option(caseLabel(t), t.id)));
     return g;
   };
   caseSelect.replaceChildren(new Option("None: check the response against the spec only", ""), group("Minimum scenarios", "minimum"), group("Advanced scenarios", "advanced"));
@@ -98,7 +98,7 @@ async function load() {
     return label;
   }));
   $("item-library").addEventListener("change", refresh);
-  ($("paste") as HTMLTextAreaElement).value = JSON.stringify(requestFiles.get("insurance.json") ?? {}, null, 2);
+  ($("paste") as HTMLTextAreaElement).value = JSON.stringify(requestFiles.get("insurance-card.json") ?? {}, null, 2);
   $("paste").addEventListener("input", refresh);
   for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.onclick = () => setMode(b.dataset.mode as typeof mode);
 
@@ -146,7 +146,7 @@ function buildLibrary(): LibraryItem[] {
   return out;
 }
 
-/** What a request file asks for, and the test cases that use it: "Demographics and insurance (M3, M6)". */
+/** What a request file asks for, and the test cases that use it: "The answers to the GAD-7 form, named by its URL only (form-by-reference)". */
 function requestLabel(file: string): string {
   const asks = requestInfo[file]?.asks ?? requestFiles.get(file)!.items.map((i) => i.title).join(", ");
   const ids = catalog.filter((t) => t.request === file).map((t) => t.id);
@@ -201,7 +201,7 @@ function currentRequest(): { ok: true; request: SmartCheckinRequest; label: stri
     if (!req) return { ok: false, error: "Loading the requests…" };
     const tc = currentCase();
     return tc
-      ? { ok: true, request: req, label: `${tc.id} · ${tc.title}`, short: tc.id, caseId: tc.id }
+      ? { ok: true, request: req, label: caseLabel(tc), short: tc.id, caseId: tc.id }
       : { ok: true, request: req, label: file, short: file.replace(/\.json$/, "") };
   }
   if (mode === "build") {
@@ -623,10 +623,10 @@ function resultLink(r: Run): string {
   const p = new URLSearchParams({
     template: "test-result.yml",
     title: `[result] ${tc?.id ?? "custom"} ${label(r.walletId)?.split(" (")[0] ?? r.walletName} ${result}`,
-    ...(tc ? { scenario: `${tc.id} ${tc.title}` } : {}),
-    ehr: label("smart-testing-ehr") ?? "Testing EHR (SMART Health IT, smart-testing-ehr)",
+    ...(tc ? { scenario: caseLabel(tc) } : {}),
+    verifier: label("smart-testing-ehr") ?? "Testing EHR (SMART Health IT, smart-testing-ehr)",
     ...(label(r.walletId) ? { wallet: label(r.walletId)! } : {}),
-    path: r.path,
+    path: `${r.path} wallet`,
     result,
     device: navigator.userAgent,
     evidence: log,

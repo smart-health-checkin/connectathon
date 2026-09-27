@@ -16,15 +16,15 @@ An online event where patients, clinic staff, and software teams try a new way o
 
 ## Schedule
 
-- **Three weeks before** ({{TBD: date}}): reference implementations, the [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/), the [wallet registry](scenarios.html#wallet-registry), and the [test scenarios](scenarios.html) with their [requests](requests/) are live.
+- **Three weeks before** ({{TBD: date}}): reference implementations, the [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/), the [wallet registry](scenarios.html#wallet-registry), and the [scenarios](#scenarios-and-tools) with their [requests](requests/) are live.
 - **One week before** ({{TBD: date}}): software teams aim to have their component up for [self-serve testing](scenarios.html#how-to-test) and to have tried a first connection.
 - **The event:** ideally spent on the harder problems and live debugging. Some people will still be finishing basic setup, and that's fine.
 
 ## Scenarios and tools
 
-- [Test scenarios](scenarios.html): the minimum set every Verifier and wallet should pass, the ground rules, and shared resources. The [advanced scenarios](advanced.html) cover large responses and optional features.
-- [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/): known-good counterparts for self-serve testing.
-- [Participant directory](directory.html): who is bringing what, and [Results](results.html) of formal scenario runs.
+The minimum set is three scenarios that every Verifier (the clinic's check-in page or app, which asks for data) and every wallet (the patient's health app, which answers) should pass. Software teams run them with each other, or alone against the [SMART Testing EHR](testing-ehr/) and [SMART Testing Wallet](testing-wallet/). Record every run, pass or fail, with the [result form](scenarios.html#recording-results), and see the [Testing guide](scenarios.html) for how to test, the ground rules, more scenarios, and the shared resources.
+
+<!-- test cases: minimum -->
 
 ## Pick your path
 

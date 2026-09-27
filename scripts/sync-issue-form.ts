@@ -5,6 +5,7 @@
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { caseLabel } from "../testing-ehr/src/cases.ts";
 
 const ROOT = join(import.meta.dir, "..");
 const participants = readdirSync(join(ROOT, "participants"))
@@ -17,7 +18,7 @@ const verifiers = participants.flatMap((p) => p.components.filter((c: any) => c.
 const wallets = participants.flatMap((p) =>
   p.components.filter((c: any) => c.role !== "verifier").map((c: any) => label(p.organization, c)),
 );
-const scenarios = catalog.testCases.map((t: any) => `${t.id} ${t.title}`);
+const scenarios = catalog.testCases.map(caseLabel);
 const OTHER = "Other (say which in the note)";
 const q = (s: string) => JSON.stringify(s);
 const options = (xs: string[], sort = true) => [...(sort ? [...xs].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) : xs), OTHER].map((x) => `        - ${q(x)}`).join("\n");
@@ -33,8 +34,8 @@ body:
       value: >-
         One issue per run. File failures too; discuss them in the comments.
         Close the issue to withdraw the result.
-        The minimum scenarios are described at https://smart-health-checkin.org/connectathon/scenarios.html,
-        and the others at https://smart-health-checkin.org/connectathon/advanced.html.
+        The minimum scenarios are described at https://smart-health-checkin.org/connectathon/#scenarios-and-tools,
+        and the others at https://smart-health-checkin.org/connectathon/scenarios.html.
   - type: dropdown
     id: scenario
     attributes:
@@ -64,9 +65,10 @@ ${options(wallets)}
     id: path
     attributes:
       label: Path
+      description: How the Verifier reached the wallet. A web wallet opens in a tab from the Verifier's wallet list; a native wallet is an app reached through the phone's wallet chooser.
       options:
-        - "web"
-        - "native"
+        - "web wallet"
+        - "native wallet"
     validations:
       required: true
   - type: dropdown

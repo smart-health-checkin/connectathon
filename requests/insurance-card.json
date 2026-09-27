@@ -8,21 +8,8 @@
   ],
   "items": [
     {
-      "id": "patient",
-      "title": "Demographics",
-      "content": {
-        "kind": "selection.fhir",
-        "profiles": [
-          "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"
-        ]
-      },
-      "accept": [
-        "application/fhir+json"
-      ]
-    },
-    {
       "id": "coverage",
-      "title": "Insurance",
+      "title": "Insurance card",
       "summary": "Your insurance card, as a CARIN digital insurance card or US Core coverage record.",
       "content": {
         "kind": "selection.fhir",
@@ -32,8 +19,8 @@
         ]
       },
       "accept": [
-        "application/fhir+json",
-        "application/smart-health-card"
+        "application/smart-health-card",
+        "application/fhir+json"
       ]
     }
   ]

@@ -15,7 +15,7 @@ const entries = (JSON.parse(readFileSync("testing-wallet/data/aria-test.json", "
 const patient = entries.find((e) => e.resource.resourceType === "Patient")!;
 const bundle = (es: Entry[]) => ({ resourceType: "Bundle", type: "collection", entry: es.map((e) => ({ fullUrl: e.fullUrl, resource: e.resource })) });
 
-for (const n of ["records", "insurance", "form-phq2"]) {
+for (const n of ["records", "form-phq2"]) {
   const request = JSON.parse(readFileSync(`requests/${n}.json`, "utf8"));
   request.id = `sample-${n}`;
   const artifacts: any[] = [];

@@ -1,8 +1,8 @@
 // Test cases (catalog.json): a request, an optional step for the person using
 // the wallet, and expectations a Verifier can check on the response. The
 // Testing EHR evaluates the expectations next to its spec checks;
-// scripts/build.ts validates the catalog and writes the scenario sections of
-// scenarios.html (the minimum tier) and advanced.html (the advanced tier) with
+// scripts/build.ts validates the catalog and writes the scenario blocks of
+// the front page (the minimum tier) and scenarios.html (the advanced tier) with
 // the same sentences.
 import type { WalletConfig } from "../../testing-wallet/src/config.ts";
 
@@ -17,10 +17,13 @@ export type Expectation =
   | { check: "min-size"; kb: number };
 
 export type TestCase = {
+  /** A short kebab-case name, used as the anchor, in the Testing EHR's #case=, and in results. */
   id: string;
   title: string;
-  /** Which page lists the case: the minimum set on scenarios.html, the rest on advanced.html. */
+  /** Which page lists the case: the minimum set on the front page, the rest on scenarios.html. */
   tier: "minimum" | "advanced";
+  /** The section of its page the case goes in, for pages with more than one (`<!-- test cases: TIER GROUP -->`). */
+  group?: string;
   /** What the case tests, in one sentence. */
   summary: string;
   /** A file in requests/. */
@@ -43,7 +46,10 @@ export type RequestInfo = { asks: string };
 
 /** The page and anchor that describe a case, relative to the connectathon root. */
 export const caseHref = (tc: Pick<TestCase, "id" | "tier">): string =>
-  `${tc.tier === "minimum" ? "scenarios" : "advanced"}.html#${tc.id.toLowerCase()}`;
+  `${tc.tier === "minimum" ? "./" : "scenarios.html"}#${tc.id}`;
+
+/** A case's name and title, as the result form and the Testing EHR show it: "share-records: Share records". */
+export const caseLabel = (tc: Pick<TestCase, "id" | "title">): string => `${tc.id}: ${tc.title}`;
 
 type Item = { id: string; title: string; content: { kind: string; profiles?: readonly string[]; profilesFrom?: readonly string[] } };
 type Request = { items: readonly Item[] };
@@ -79,6 +85,7 @@ export function caseProblems(tc: TestCase, request: Request): string[] {
     if (!["status", "every-status", "profiles", "includes-type", "only-types", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
   }
   for (const id of Object.keys(tc.walletStep?.testingWallet?.status ?? {})) known(id);
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(tc.id)) problems.push(`${tc.id}: the id must be kebab-case`);
   if (tc.tier !== "minimum" && tc.tier !== "advanced") problems.push(`${tc.id}: tier must be "minimum" or "advanced"`);
   if (tc.walletStep?.testingWallet && !tc.walletStep.text) problems.push(`${tc.id}: a Testing Wallet config needs the step's text`);
   return problems;

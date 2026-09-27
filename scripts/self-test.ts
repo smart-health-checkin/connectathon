@@ -45,9 +45,9 @@ type Run = {
 };
 const ALL_RUNS: Run[] = [
   // Every test case with a web path that this EHR and wallet can run on their own.
-  ...["M1", "M3", "M4", "M5", "M6", "L1", "L2", "O1", "O2", "O3", "O4", "O5", "O6", "O7", "O10", "O12"].map((caseId) => ({ name: caseId, caseId })),
+  ...["share-records", "fill-form", "decline-item", "any-us-core", "large-response", "nothing-to-share", "form-by-reference", "versioned-canonical", "physician-form", "narrowed-family", "no-selector", "health-card", "insurance-card", "shared-artifact", "prefilled-form", "unknown-selector"].map((caseId) => ({ name: caseId, caseId })),
   // A case whose step isn't done: its expectation is not met, and the run fails.
-  { name: "M5 without its step", caseId: "M5", skipStep: true, expectFail: ["expect-1"] },
+  { name: "decline-item without its step", caseId: "decline-item", skipStep: true, expectFail: ["expect-1"] },
   { name: "decline all (HOLD-4)", request: "records.json", declineAll: true, expectText: /declined/i },
   // The Testing Wallet's response size setting: valid responses, only larger.
   { name: "size 512 KB", request: "records.json", size: "512k" },

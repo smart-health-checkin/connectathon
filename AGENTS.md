@@ -28,14 +28,16 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   builds those public URLs with that module, as a tester would, and nothing
   else in the EHR knows about them. Expected outcomes of test cases live in
   `scripts/self-test.ts`, not in either tool.
-- `catalog.json` holds the test cases: `tier` (`minimum` cases go on `scenarios.md`,
-  `advanced` ones on `advanced.md`), `request`, an optional `walletStep` (text for the
+- `catalog.json` holds the test cases, each named by a short kebab-case `id` (the anchor,
+  the Testing EHR's `#case=`, and the result form's scenario): `tier` (`minimum` cases go
+  on the front page, `index.md`; `advanced` ones on `scenarios.md`), an optional `group`
+  (the section of its page), `request`, an optional `walletStep` (text for the
   person using the wallet, and the Testing Wallet config that does it), `expect` (checks
   on the response, defined and evaluated in `testing-ehr/src/cases.ts`), and what to look
   for by eye. Its `requests` says in plain words what each file in `requests/` asks for;
   the scenario pages, the Test requests page, and the Testing EHR's request menu use it.
   The build validates the catalog and writes each case's block where its page has
-  `<!-- test cases: TIER -->` or `<!-- test cases: TIER PREFIX -->`, failing if a case is
+  `<!-- test cases: TIER -->` (cases with no group) or `<!-- test cases: TIER GROUP -->`, failing if a case is
   missing or on the wrong page; link a case with `caseHref` from `cases.ts`. Run
   `bun scripts/sync-issue-form.ts` after changing it.
 - `_site/404.html` is the Testing Wallet page with a `<base>` at `testing-wallet/`,
@@ -50,11 +52,11 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
 - `main` has a ruleset ("Protect main") that blocks force-pushes and deleting
   the branch. Direct pushes and the workflows' pushes and merges still work;
   never rewrite `main`'s history.
-- Pages: `index.md` is the front page (a hub linking to one page per
-  participant type); `patients.md`, `clinic-staff.md`, `verifier-developers.md`,
-  `wallet-developers.md`, and `observers.md` are those pages; `scenarios.md` (the
-  minimum scenarios and shared resources) and `advanced.md` (the rest) are the
-  developer test reference. `scripts/build.ts` renders each; add a new page there
+- Pages: `index.md` is the front page (a hub with the minimum scenarios, linking to
+  one page per participant type); `patients.md`, `clinic-staff.md`, `verifier-developers.md`,
+  `wallet-developers.md`, and `observers.md` are those pages; `scenarios.md` (the Testing
+  guide: how to test, ground rules, the other scenarios, recording results, and shared
+  resources) is the developer test reference. `scripts/build.ts` renders each; add a new page there
   and in `nav.json`.
 - Every page uses the apex's shared chrome (see "The shared site" in MAINTAINING.md):
   content pages get the site bar, breadcrumb, `<main id="main">`, and footer from

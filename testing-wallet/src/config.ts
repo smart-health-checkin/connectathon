@@ -23,7 +23,7 @@ export const FAULTS: Record<string, { does: string; verifier: string; req?: stri
   "bad-encryption": { does: "Corrupt the HPKE ciphertext", verifier: "rejects the response", req: "VRS-3" },
   "wrong-origin": { does: "Bind the transcript to the origin with a trailing slash", verifier: "rejects the response", req: "VRS-3" },
   "bad-shc-signature": { does: "Break the SMART Health Card signature", verifier: "sets that card aside", req: "XV-13" },
-  "combine-allergies-meds": { does: "Answer allergies and medications with one shared Bundle (O7)", verifier: "passes" },
+  "combine-allergies-meds": { does: "Answer allergies and medications with one shared Bundle (scenario shared-artifact)", verifier: "passes" },
 };
 
 /** Statuses an item can be forced to. */

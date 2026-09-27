@@ -2,7 +2,7 @@
   "label": "Connectathon",
   "href": "./",
   "items": [
-    { "title": "Overview", "href": "./", "note": "Pick your path, how the event works" },
+    { "title": "Overview", "href": "./", "note": "How the event works, the minimum scenarios, pick your path" },
     {
       "title": "Who you are",
       "items": [
@@ -25,8 +25,7 @@
     {
       "title": "Test tools",
       "items": [
-        { "title": "Test scenarios", "href": "scenarios.html", "note": "The minimum set and what passing looks like" },
-        { "title": "Advanced scenarios", "href": "advanced.html", "note": "Large responses and optional features" },
+        { "title": "Testing guide", "href": "scenarios.html", "note": "How to test, ground rules, and more scenarios" },
         { "title": "SMART Testing EHR", "href": "testing-ehr/", "note": "Test your wallet" },
         { "title": "SMART Testing Wallet", "href": "testing-wallet/", "note": "Test your check-in page" },
         { "title": "Test requests", "href": "requests/", "note": "The scenario requests as JSON" },

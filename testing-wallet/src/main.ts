@@ -370,7 +370,7 @@ function previewText(entries: Entry[]): string {
 /**
  * Make each card's count include records the size setting added: they go to
  * the cards whose item the grown artifact fulfills and that already share
- * records of that kind (an O7 combined Bundle fulfills two items).
+ * records of that kind (a combined Bundle, as in shared-artifact, fulfills two items).
  */
 function updatePreviews(items: Prepared[], added?: Sealed["added"]) {
   items.forEach((p, idx) => {

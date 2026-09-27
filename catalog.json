@@ -2,10 +2,10 @@
   "specBase": "https://smart-health-checkin.org/spec/#",
   "requests": {
     "records.json": {
-      "asks": "demographics, problems, allergies, medications, and immunizations"
+      "asks": "demographics, problems, allergies, medications, immunizations, and the insurance card"
     },
-    "insurance.json": {
-      "asks": "demographics and insurance"
+    "insurance-card.json": {
+      "asks": "the insurance card, preferably as a SMART Health Card"
     },
     "form-phq2.json": {
       "asks": "demographics and the answers to the PHQ-2 form, sent inline"
@@ -37,86 +37,24 @@
   },
   "testCases": [
     {
-      "id": "M1",
-      "title": "Web wallet from the registry",
+      "id": "share-records",
+      "title": "Share records",
       "tier": "minimum",
-      "summary": "The Verifier lists the event's web wallets, opens the one the person picks, and exchanges the request and response with it by postMessage.",
+      "summary": "The patient shares their records and insurance card from a wallet. A web wallet is listed in the Verifier's wallet registry and opens in a new tab; a native wallet is an app on the phone, reached through the phone's wallet chooser. A team runs whichever path its component uses, and a Verifier that supports both runs each.",
       "request": "records.json",
-      "paths": [
-        "web"
-      ],
-      "expect": [
-        {
-          "check": "every-status",
-          "status": [
-            "fulfilled"
-          ]
-        },
-        {
-          "check": "profiles"
-        }
-      ],
-      "walletShows": [
-        "The wallet shows the Verifier's origin during consent."
-      ],
-      "verifierShows": [
-        "The Verifier lists every wallet in the registry, with the phone's own wallet alongside, and shows each item's status and data."
-      ],
-      "specSections": [
-        "8-5-hpke-encryption-and-verifier-processing",
-        "8-6-validation-checklist",
-        "6-4-verifier-cross-validation"
-      ]
-    },
-    {
-      "id": "M2",
-      "title": "Native wallet through the Digital Credentials API",
-      "tier": "minimum",
-      "summary": "The same check-in as M1, with a wallet app on the phone that the Verifier reaches through the browser's Digital Credentials API.",
-      "request": "records.json",
-      "paths": [
-        "native"
-      ],
-      "expect": [
-        {
-          "check": "every-status",
-          "status": [
-            "fulfilled"
-          ]
-        },
-        {
-          "check": "profiles"
-        }
-      ],
-      "walletShows": [
-        "The wallet shows the Verifier's origin during consent."
-      ],
-      "verifierShows": [
-        "The Verifier shows each item's status and data."
-      ],
-      "notes": "Record the phone, OS version, browser, and wallet app.",
-      "specSections": [
-        "a-2-digital-credentials-api-wrappers",
-        "8-6-validation-checklist"
-      ]
-    },
-    {
-      "id": "M3",
-      "title": "Insurance",
-      "tier": "minimum",
-      "summary": "The wallet returns insurance as either requested coverage profile, in FHIR JSON or as a SMART Health Card, and the Verifier shows it either way.",
-      "request": "insurance.json",
       "paths": [
         "web",
         "native"
       ],
       "expect": [
         {
-          "check": "status",
-          "item": "coverage",
+          "check": "every-status",
           "status": [
             "fulfilled"
           ]
+        },
+        {
+          "check": "profiles"
         },
         {
           "check": "includes-type",
@@ -124,18 +62,25 @@
           "resourceType": "Coverage"
         }
       ],
+      "walletShows": [
+        "The wallet shows the Verifier's origin during consent."
+      ],
       "verifierShows": [
-        "The Verifier shows the member, payer, and plan from the returned Coverage, whichever profile or format the wallet chose.",
+        "The Verifier shows each item's status and data, including the member, payer, and plan from the insurance card, whichever profile or format the wallet chose.",
         "If the wallet returns a SMART Health Card, the Verifier verifies its signature before showing it."
       ],
+      "notes": "On the native path, record the phone, OS version, browser, and wallet app.",
       "specSections": [
-        "5-4-1-selection-fhir",
+        "8-5-hpke-encryption-and-verifier-processing",
+        "8-6-validation-checklist",
+        "6-4-verifier-cross-validation",
+        "a-2-digital-credentials-api-wrappers",
         "5-6-accepted-media-types"
       ]
     },
     {
-      "id": "M4",
-      "title": "Pre-visit questionnaire, inline",
+      "id": "fill-form",
+      "title": "Fill in a form",
       "tier": "minimum",
       "summary": "The wallet fills in a form sent inline, and its QuestionnaireResponse names exactly the requested form.",
       "request": "form-phq2.json",
@@ -164,8 +109,8 @@
       ]
     },
     {
-      "id": "M5",
-      "title": "One item declined",
+      "id": "decline-item",
+      "title": "Decline one item",
       "tier": "minimum",
       "summary": "The person declines one item and shares the rest, and the Verifier tells a declined item from an error.",
       "request": "records.json",
@@ -212,44 +157,10 @@
       ]
     },
     {
-      "id": "M6",
-      "title": "Nothing to share",
-      "tier": "minimum",
-      "summary": "Every item comes back declined or unavailable, and the check-in still ends cleanly.",
-      "request": "insurance.json",
-      "paths": [
-        "web",
-        "native"
-      ],
-      "walletStep": {
-        "text": "Decline every item, or use a wallet whose patient has no insurance on file.",
-        "testingWallet": {
-          "status": {
-            "patient": "declined",
-            "coverage": "declined"
-          }
-        }
-      },
-      "expect": [
-        {
-          "check": "every-status",
-          "status": [
-            "declined",
-            "unavailable"
-          ]
-        }
-      ],
-      "verifierShows": [
-        "The Verifier handles every item declined or unavailable without breaking the page, and the patient can continue without the wallet."
-      ],
-      "specSections": [
-        "6-2-artifact-and-status-semantics"
-      ]
-    },
-    {
-      "id": "L1",
-      "title": "Anything in USCDI, small patient",
+      "id": "any-us-core",
+      "title": "Anything in US Core",
       "tier": "advanced",
+      "group": "larger-data",
       "summary": "A request for anything in US Core, answered with a modest record of whatever resource types the wallet holds.",
       "request": "uscdi.json",
       "paths": [
@@ -276,9 +187,10 @@
       ]
     },
     {
-      "id": "L2",
-      "title": "Anything in USCDI, large patient",
+      "id": "large-response",
+      "title": "Large response",
       "tier": "advanced",
+      "group": "larger-data",
       "summary": "A patient with years of history, to test that a response over 1 MB arrives intact.",
       "request": "uscdi.json",
       "paths": [
@@ -313,8 +225,47 @@
       ]
     },
     {
-      "id": "O1",
-      "title": "Questionnaire by reference only",
+      "id": "nothing-to-share",
+      "title": "Nothing to share",
+      "tier": "advanced",
+      "summary": "Every item comes back declined or unavailable, and the check-in still ends cleanly.",
+      "request": "records.json",
+      "paths": [
+        "web",
+        "native"
+      ],
+      "walletStep": {
+        "text": "Decline every item.",
+        "testingWallet": {
+          "status": {
+            "patient": "declined",
+            "problems": "declined",
+            "allergies": "declined",
+            "medications": "declined",
+            "immunizations": "declined",
+            "coverage": "declined"
+          }
+        }
+      },
+      "expect": [
+        {
+          "check": "every-status",
+          "status": [
+            "declined",
+            "unavailable"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The Verifier handles every item declined or unavailable without breaking the page, and the patient can continue without the wallet."
+      ],
+      "specSections": [
+        "6-2-artifact-and-status-semantics"
+      ]
+    },
+    {
+      "id": "form-by-reference",
+      "title": "Form by reference only",
       "tier": "advanced",
       "summary": "The wallet fetches a form that the request names by its URL only, with no copy inline.",
       "request": "form-by-reference.json",
@@ -343,8 +294,8 @@
       ]
     },
     {
-      "id": "O2",
-      "title": "Versioned canonical",
+      "id": "versioned-canonical",
+      "title": "Versioned form canonical",
       "tier": "advanced",
       "summary": "The request names the form with a version suffix (|1), and the QuestionnaireResponse echoes that versioned name exactly.",
       "request": "form-versioned.json",
@@ -369,7 +320,7 @@
       ]
     },
     {
-      "id": "O3",
+      "id": "physician-form",
       "title": "Physician-authored form",
       "tier": "advanced",
       "summary": "The wallet renders a physician-authored form with conditional items and typed answers.",
@@ -398,8 +349,8 @@
       ]
     },
     {
-      "id": "O4",
-      "title": "Narrowed family",
+      "id": "narrowed-family",
+      "title": "Narrowed profile family",
       "tier": "advanced",
       "summary": "A selector that takes any US Core profile but narrows it to Observation, for recent labs and vitals.",
       "request": "observations.json",
@@ -431,7 +382,7 @@
       ]
     },
     {
-      "id": "O5",
+      "id": "no-selector",
       "title": "No selector",
       "tier": "advanced",
       "summary": "An item with no selector at all: the patient shares whatever they think is relevant.",
@@ -452,7 +403,7 @@
       ]
     },
     {
-      "id": "O6",
+      "id": "health-card",
       "title": "SMART Health Card",
       "tier": "advanced",
       "summary": "The wallet answers an immunizations item with a SMART Health Card, which the request prefers over FHIR JSON.",
@@ -476,8 +427,37 @@
       ]
     },
     {
-      "id": "O7",
-      "title": "One artifact, several items",
+      "id": "insurance-card",
+      "title": "Insurance card as a SMART Health Card",
+      "tier": "advanced",
+      "summary": "The request prefers a SMART Health Card for the insurance card, so a wallet that holds one sends it, and the Verifier verifies it.",
+      "request": "insurance-card.json",
+      "paths": [
+        "web",
+        "native"
+      ],
+      "expect": [
+        {
+          "check": "media-type",
+          "item": "coverage",
+          "mediaType": "application/smart-health-card"
+        },
+        {
+          "check": "includes-type",
+          "item": "coverage",
+          "resourceType": "Coverage"
+        }
+      ],
+      "verifierShows": [
+        "The Verifier verifies the card's signature and shows the member, payer, and plan."
+      ],
+      "specSections": [
+        "5-6-accepted-media-types"
+      ]
+    },
+    {
+      "id": "shared-artifact",
+      "title": "One artifact for two items",
       "tier": "advanced",
       "summary": "One Bundle answers two items, and its fulfills lists both.",
       "request": "records.json",
@@ -510,7 +490,7 @@
       ]
     },
     {
-      "id": "O8",
+      "id": "cross-device",
       "title": "Cross-device",
       "tier": "advanced",
       "summary": "A desktop browser shows a QR code, and the wallet on a phone answers it.",
@@ -537,7 +517,7 @@
       ]
     },
     {
-      "id": "O9",
+      "id": "in-person-handoff",
       "title": "In-person handoff",
       "tier": "advanced",
       "summary": "A front-desk QR code or kiosk lands the patient's phone on the Verifier's check-in page.",
@@ -557,14 +537,14 @@
         }
       ],
       "verifierShows": [
-        "The same as M2, with the handoff shown."
+        "The Verifier shows each item's status and data, as in [share-records](./#share-records), and the handoff."
       ],
       "specSections": [
         "1-3-handoffs-as-on-ramps"
       ]
     },
     {
-      "id": "O10",
+      "id": "prefilled-form",
       "title": "Prefilled form",
       "tier": "advanced",
       "summary": "The wallet prefills form answers from the patient's records and lets the patient edit them.",
@@ -593,7 +573,7 @@
       ]
     },
     {
-      "id": "O11",
+      "id": "write-back",
       "title": "Write back",
       "tier": "advanced",
       "summary": "The Verifier files returned data and answers into the chart after staff review.",
@@ -611,7 +591,7 @@
       ]
     },
     {
-      "id": "O12",
+      "id": "unknown-selector",
       "title": "Unknown selector",
       "tier": "advanced",
       "summary": "The wallet answers an item whose selector kind it doesn't know as unsupported, and still answers the rest.",

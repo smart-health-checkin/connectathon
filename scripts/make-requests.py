@@ -32,16 +32,17 @@ def req(items, purpose="Pre-visit check-in"):
     return {"type": "smart-health-checkin-request", "version": "1", "id": RID, "purpose": purpose, "fhirVersions": ["4.0.1"], "items": items}
 
 patient = sel("patient", "Demographics", [UC + "us-core-patient"])
+def coverage(accept):
+    return sel("coverage", "Insurance card", ["http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage", UC + "us-core-coverage"],
+        summary="Your insurance card, as a CARIN digital insurance card or US Core coverage record.", accept=accept)
 files = {
     "records.json": req([patient,
         sel("problems", "Problems and health concerns", [UC + "us-core-condition-problems-health-concerns"]),
         sel("allergies", "Allergies", [UC + "us-core-allergyintolerance"]),
         sel("medications", "Medications", [UC + "us-core-medicationrequest"]),
-        sel("immunizations", "Immunizations", [UC + "us-core-immunization"])]),
-    "insurance.json": req([patient,
-        sel("coverage", "Insurance", ["http://hl7.org/fhir/us/insurance-card/StructureDefinition/C4DIC-Coverage", UC + "us-core-coverage"],
-            summary="Your insurance card, as a CARIN digital insurance card or US Core coverage record.",
-            accept=["application/fhir+json", "application/smart-health-card"])]),
+        sel("immunizations", "Immunizations", [UC + "us-core-immunization"]),
+        coverage(["application/fhir+json", "application/smart-health-card"])]),
+    "insurance-card.json": req([coverage(["application/smart-health-card", "application/fhir+json"])]),
     "form-phq2.json": req([patient, form("phq2", "Two questions about your mood", "phq-2.json")]),
     "uscdi.json": req([sel("uscdi", "Your health record", None,
         summary="Any US Core data you choose to share: problems, medications, allergies, results, immunizations, coverage, notes, and so on.",

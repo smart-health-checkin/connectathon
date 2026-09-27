@@ -3,15 +3,15 @@
  * the device's Chrome asks for credentials through the Digital Credentials
  * API, the installed reference wallet answers, and the testing EHR checks it.
  *
- *   bun scripts/android-e2e.ts [--serial emulator-5554] [--apk path|--release] [--warm-up] [M1 M3 ...]
+ *   bun scripts/android-e2e.ts [--serial emulator-5554] [--apk path|--release] [--warm-up] [share-records fill-form ...]
  *
  * Needs adb, a device with Chrome and Google Play services new enough for the
  * Digital Credentials API (the android-37 google_apis_playstore image works),
  * and the reference wallet installed (or --apk / --release to install it).
  * System dialogs are driven through uiautomator, the page through DevTools.
  *
- * Per case, the script picks the wallet's reference patient (L2 uses the large
- * record), answers every choice question in a form with its first option, and
+ * Per case, the script picks the wallet's reference patient (large-response uses
+ * the large record), answers every choice question in a form with its first option, and
  * checks that the answers and the payload size reached the testing EHR.
  */
 import puppeteer, { type Page } from "puppeteer-core";
@@ -27,7 +27,7 @@ const WARM_UP = flag("--warm-up"); // set up, load the EHR once, compile apps, t
 const BASE = opt("--base") ?? "https://smart-health-checkin.org/connectathon/";
 const PORT = Number(opt("--port") ?? 9477);
 const OUT = opt("--out"); // also append every result line to this file
-const CASES = args.length ? args : ["M1", "M3", "M4", "O6"];
+const CASES = args.length ? args : ["share-records", "fill-form", "health-card"];
 if (OUT) {
   const { appendFileSync, writeFileSync } = await import("node:fs");
   writeFileSync(OUT, "");
@@ -222,12 +222,12 @@ async function setup() {
   await adb("shell", "am", "set-debug-app", "--persistent", "com.android.chrome");
   await adb("shell", "am", "force-stop", "com.android.chrome"); // so the flags above apply
   step("starting Chrome");
-  await ensureChrome("M1");
+  await ensureChrome("share-records");
   step("Chrome's DevTools reachable");
 }
 
 async function runCase(caseId: string) {
-  await choosePatient(caseId === "L2" ? "large" : "aria");
+  await choosePatient(caseId === "large-response" ? "large" : "aria");
   const page = await ehrPage(caseId);
   await page.bringToFront();
   await page.goto(EHR_URL(caseId), { waitUntil: "networkidle0" });
@@ -272,18 +272,18 @@ async function runCase(caseId: string) {
 
 // Extra expectations beyond "all checks passed", per case.
 const EXPECT: Record<string, (r: Awaited<ReturnType<typeof runCase>>) => string | undefined> = {
-  // L2 should return the large record, not the modest one.
-  L2: (r) => (r.sizeKb > 512 ? undefined : `expected the large record, got a ${r.sizeKb} KB response`),
+  // large-response should return the large record, not the modest one.
+  "large-response": (r) => (r.sizeKb > 512 ? undefined : `expected the large record, got a ${r.sizeKb} KB response`),
 };
-const FORM_CASES = new Set(["M4", "O1", "O2", "O3", "O8", "O9", "O10"]);
+const FORM_CASES = new Set(["fill-form", "form-by-reference", "versioned-canonical", "physician-form", "prefilled-form"]);
 
-// L2 needs Chrome's large-response path, where the wallet hands the response
+// large-response needs Chrome's large-response path, where the wallet hands the response
 // over as a file. Chrome offers it from version 150.
 async function chromeMajor(): Promise<number> {
   const out = (await adb("shell", "dumpsys", "package", "com.android.chrome")).stdout.toString();
   return Number(out.match(/versionName=(\d+)/)?.[1] ?? 0);
 }
-const LARGE_CASES = new Set(["L2"]);
+const LARGE_CASES = new Set(["large-response"]);
 
 try {
   await setup();
@@ -295,8 +295,8 @@ try {
 if (WARM_UP) {
   // Everything a cold device does slowly the first time: Chrome's first page
   // load and the background compile of Chrome and Play services.
-  const page = await ehrPage("M1");
-  await page.goto(EHR_URL("M1"), { waitUntil: "networkidle0", timeout: 300_000 });
+  const page = await ehrPage("share-records");
+  await page.goto(EHR_URL("share-records"), { waitUntil: "networkidle0", timeout: 300_000 });
   page.browser().disconnect();
   step("testing EHR loaded");
   await $`timeout 900 ${ADB} -s ${SERIAL} shell cmd package bg-dexopt-job`.quiet().nothrow();
@@ -323,7 +323,7 @@ for (const c of CASES) {
     const extra = EXPECT[c]?.(r) ?? (FORM_CASES.has(c) && !r.qrAnswers ? "the QuestionnaireResponse arrived with no answers" : undefined);
     const ok = /All checks passed/.test(r.status) && !extra;
     if (!ok) { bad++; await saveEvidence(c); }
-    console.log(`${ok ? "ok  " : "FAIL"} ${c}: ${r.status}${extra ? ` | ${extra}` : ""}  [${r.steps.join(" → ")}]${r.qrAnswers ? ` (${r.qrAnswers} answer(s) received)` : ""}${c === "L2" ? ` (${r.sizeKb} KB)` : ""}`);
+    console.log(`${ok ? "ok  " : "FAIL"} ${c}: ${r.status}${extra ? ` | ${extra}` : ""}  [${r.steps.join(" → ")}]${r.qrAnswers ? ` (${r.qrAnswers} answer(s) received)` : ""}${c === "large-response" ? ` (${r.sizeKb} KB)` : ""}`);
     if (!ok || process.env.VERBOSE) console.log(r.log.split("\n").map((l) => "     " + l).join("\n"));
   } catch (e) {
     bad++;
