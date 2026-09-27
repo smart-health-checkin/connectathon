@@ -22,6 +22,8 @@ import addFormats from "ajv-formats";
 import { validateSmartCheckinRequest, validateWalletRegistry } from "@smart-health-checkin/client/model";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, cpSync } from "node:fs";
 import { join } from "node:path";
+import { caseProblems, describeExpectation, type TestCase } from "../testing-ehr/src/cases.ts";
+import { configProblems } from "../testing-wallet/src/config.ts";
 import { PLATFORM_LABEL, accessOf, isApp, participantProblems, type Component, type Participant as ParticipantFile } from "../register/src/participant.ts";
 
 const ROOT = join(import.meta.dir, "..");
@@ -205,9 +207,51 @@ if (catalog) {
   for (const tc of catalog.testCases ?? []) {
     if (ids.has(tc.id)) fail(`catalog.json: duplicate test case ${tc.id}`);
     ids.add(tc.id);
-    if (tc.request && !requests.some((r) => r.file === tc.request))
-      fail(`catalog.json: ${tc.id} points at missing request ${tc.request}`);
+    const req = requests.find((r) => r.file === tc.request);
+    if (!req) { fail(`catalog.json: ${tc.id} points at missing request ${tc.request}`); continue; }
+    for (const problem of caseProblems(tc, req.request)) fail(`catalog.json: ${problem}`);
+    const config = tc.walletStep?.testingWallet;
+    if (config) for (const problem of configProblems(config)) fail(`catalog.json: ${tc.id} Testing Wallet config: ${problem}`);
   }
+}
+
+/**
+ * The scenario sections of scenarios.md, from catalog.json: each case's request, the step for the
+ * person using the wallet, what a Verifier checks on the response, and what to look for by eye.
+ * `<!-- test cases: M -->` in the Markdown becomes the cases whose id starts with M.
+ */
+function testCaseMarkdown(prefix: string): string {
+  const cases = (catalog?.testCases ?? []) as TestCase[];
+  const section = (anchor: string) => {
+    const parts = anchor.split("-");
+    const n: string[] = [];
+    for (const [i, t] of parts.entries()) if (/^\d+$/.test(t) || (i === 0 && /^[a-z]$/.test(t))) n.push(t.toUpperCase()); else break;
+    return `[§${n.join(".")}](${catalog.specBase}${anchor})`;
+  };
+  return cases.filter((tc) => new RegExp(`^${prefix}\\d`).test(tc.id)).map((tc) => {
+    const req = requests.find((r) => r.file === tc.request)!.request;
+    const baseline = /^baseline-(\d+)\.json$/.exec(tc.request);
+    const requestLink = baseline ? `[Baseline ${baseline[1]}](#baseline-${baseline[1]})` : `[${tc.request}](requests/${tc.request})`;
+    const paths = tc.paths.length > 1 ? "through the web or native path" : `through the ${tc.paths[0]} path only`;
+    const step = tc.walletStep
+      ? `${tc.walletStep.text}${tc.walletStep.testingWallet ? ` The SMART Testing Wallet does this step with the config \`${JSON.stringify(tc.walletStep.testingWallet)}\` ([config URLs](https://github.com/${REPO}/blob/main/testing-wallet/FEATURES.md#config-urls)); the Testing EHR applies it when you choose this case.` : ""}`
+      : "None: share what the wallet offers.";
+    const checks = tc.expect.length ? tc.expect.map((e) => describeExpectation(e, req)).join(" ") : "Nothing beyond the spec's own checks.";
+    return [
+      `<a id="${tc.id.toLowerCase()}"></a>`,
+      `### ${tc.id}. ${tc.title}`,
+      tc.summary,
+      [
+        `- **Request:** ${requestLink}, ${paths}.`,
+        `- **Step for the person using the wallet:** ${step}`,
+        `- **Checks on the response:** ${checks}`,
+        tc.walletShows?.length ? `- **Look for in the wallet:** ${tc.walletShows.join(" ")}` : "",
+        tc.verifierShows?.length ? `- **Look for in the Verifier:** ${tc.verifierShows.join(" ")}` : "",
+        tc.notes ? `- **Also:** ${tc.notes}` : "",
+        `- **Spec:** ${tc.specSections.map(section).join(", ")}`,
+      ].filter(Boolean).join("\n"),
+    ].join("\n\n");
+  }).join("\n\n");
 }
 
 // ---------------------------------------------------------------- page sources
@@ -445,7 +489,7 @@ function sharePage(prompts: Array<{ file: string; title: string; who: string; wh
 }
 
 function renderMarkdownPage(src: string, out: string, fallbackTitle: string) {
-  const md = tbd(readFileSync(join(ROOT, src), "utf8"));
+  const md = tbd(readFileSync(join(ROOT, src), "utf8")).replace(/<!-- test cases: ([A-Z]) -->/g, (_m, prefix: string) => testCaseMarkdown(prefix));
   const title = md.match(/^# (.+)$/m)?.[1] ?? fallbackTitle;
   writeFileSync(join(OUT, out), page(title, `<article class="doc">${wrapTables(marked.parse(md) as string)}</article>`, { front: out === "index.html" }));
 }

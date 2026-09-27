@@ -157,86 +157,29 @@ All canonicals are unversioned, so any US Core version matches ([§5.5](https://
 
 Use [Baselines 1 to 3](#baseline-requests), with responses under 512 KB. Run them for every EHR and wallet pairing you can reach.
 
-<a id="m1"></a>
+Each test case below has a request, a step for the person using the wallet (if the case needs one), the checks a Verifier makes on the response, and what to look for by eye. The [SMART Testing EHR](testing-ehr/) runs the checks for you when you choose the case.
 
-### M1. Web wallet from the registry
-
-1. The EHR loads the registry and shows every listed wallet, with the phone's own wallet alongside.
-2. The tester picks a web wallet. The EHR opens it and sends [Baseline 1](#baseline-1) to it by `postMessage` ([Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) in the client docs).
-3. In the wallet, the tester shares everything.
-4. The response arrives back in the EHR's page.
-
-Pass:
-- **EHR:** the response opens and verifies ([§8.5](https://smart-health-checkin.org/spec/#8-5-hpke-encryption-and-verifier-processing)), passes cross-validation ([§6.4](https://smart-health-checkin.org/spec/#6-4-verifier-cross-validation)), and the page shows each item's status and data.
-- **Wallet:** shows the EHR's origin during consent, returns `fulfilled` for each item, and the returned resources carry the matching US Core `meta.profile`.
-
-<a id="m2"></a>
-
-### M2. Native wallet through the Digital Credentials API
-
-Same as [M1](#m1), but the tester picks the phone's own wallet, and the EHR calls `navigator.credentials.get` ([VRQ-8](https://smart-health-checkin.org/spec/#VRQ-8)). Record the phone, OS version, browser, and wallet app.
-
-### M3. Insurance
-
-[Baseline 2](#baseline-2), through either path ([M1](#m1) or [M2](#m2)).
-
-Pass: the EHR displays the member, payer, and plan from the returned Coverage, whichever profile or format the wallet chose. If the wallet returns a SMART Health Card, the EHR verifies its signature before showing it.
-
-### M4. Pre-visit questionnaire, inline
-
-[Baseline 3](#baseline-3), through either path ([M1](#m1) or [M2](#m2)).
-
-Pass:
-- **Wallet:** renders the inline PHQ-2 and returns a QuestionnaireResponse whose `questionnaire` is exactly the requested canonical ([§5.5](https://smart-health-checkin.org/spec/#5-5-canonical-version-handling)).
-- **EHR:** shows each answer next to its question.
-
-### M5. One item declined
-
-[Baseline 1](#baseline-1). In the wallet, decline `immunizations` and share the rest.
-
-Pass:
-- **Wallet:** returns `declined` for `immunizations`, and exactly one status for every other item ([§6.2](https://smart-health-checkin.org/spec/#6-2-artifact-and-status-semantics)).
-- **EHR:** shows the declined item as declined, not as an error, and displays the rest normally.
-
-### M6. Nothing to share
-
-The tester declines the whole request, or uses a wallet whose patient has no insurance on file.
-
-Pass: the EHR handles a whole-request decline and an `unavailable` item without breaking the page, and the patient can continue without the wallet.
+<!-- test cases: M -->
 
 ## Larger data scenarios
 
 [Baseline 4](#baseline-4), which tests that large responses work end to end. It's kept apart from the [minimum scenarios](#minimum-scenarios) so those stay simple.
 
-| # | Scenario | Pass |
-|---|---|---|
-| L1 | Anything in USCDI, small patient: a modest record | The EHR shows every returned resource under `uscdi`, whatever the resource types. The wallet lets the patient choose what to include ([§5.4](https://smart-health-checkin.org/spec/#5-4-content-selectors)). |
-| L2 | Anything in USCDI, large patient: a full history with notes | The response arrives intact. On Android, the wallet returns it with the three-argument `setGetCredentialResponse`, which passes it to the browser as a file ([Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android)). Record the browser, phone, and wallet version. |
+<!-- test cases: L -->
 
 ## Optional and stretch scenarios
 
-| # | Scenario | What it adds | Pass |
-|---|---|---|---|
-| O1 | Questionnaire by reference only | `form.fhir` with `questionnaireCanonical` and no inline body. The wallet fetches the hosted form ([§5.4.2](https://smart-health-checkin.org/spec/#5-4-2-form-fhir)). | Wallet renders the fetched form, or reports `unsupported` rather than inventing one. |
-| O2 | Versioned canonical | `questionnaireCanonical` with a version suffix, such as …/phq-2.json&#124;1, body inline | Wallet echoes the versioned canonical exactly in `QuestionnaireResponse.questionnaire` ([§5.5](https://smart-health-checkin.org/spec/#5-5-canonical-version-handling)). |
-| O3 | Physician-authored form | The [semaglutide check-in form](#example-questionnaires), inline | Wallet renders every item type, shows the missed-dose follow-up and the call-us note only when their conditions are met, accepts typed answers on the pen question, and returns every answer given. |
-| O4 | Narrowed family | `profilesFrom` US Core plus `resourceTypes: ["Observation"]`, for recent labs and vitals ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)) | Only Observations come back. |
-| O5 | No selector | `selection.fhir` with no arrays, meaning whatever the patient thinks is relevant ([§5.4.1](https://smart-health-checkin.org/spec/#5-4-1-selection-fhir)) | Wallet lets the patient choose, and the EHR displays whatever arrives. |
-| O6 | SMART Health Card | `accept: ["application/smart-health-card", "application/fhir+json"]` for immunizations | EHR verifies the card's signature and shows its contents. |
-| O7 | One artifact, several items | Wallet answers `allergies` and `medications` with one Bundle whose `fulfills[]` lists both ([§6.3](https://smart-health-checkin.org/spec/#6-3-many-to-many-fulfillment)) | EHR attributes the resources to both items without double-counting. |
-| O8 | Cross-device | Desktop Chrome or Safari 26 sends Baseline 1 and shows a QR code, and the phone's wallet answers | Response arrives in the desktop page. |
-| O9 | In-person handoff | A front-desk QR code or kiosk lands the patient's phone on the EHR's check-in page | Same as [M2](#m2), with the handoff shown. |
-| O10 | Prefilled form | Wallet prefills answers it can from the patient's records and lets the patient edit | Prefilled answers are visible to the patient before sending. |
-| O11 | Write back | EHR files returned data or answers into the chart after staff review | Staff can accept or reject each item. |
-| O12 | Unknown selector | An item with `kind: "example.ktc-test"` ([§5.4.3](https://smart-health-checkin.org/spec/#5-4-3-extension-selectors)) | Wallet reports `unsupported` for that item and still answers the others. |
+<!-- test cases: O -->
 
 ## Testing EHR and Testing Wallet
 
 Two test tools let each participant run the scenarios above against a known-good counterpart without waiting for a partner.
 
 - **[SMART Testing EHR](testing-ehr/)**
-  - Sends any scenario's request to any registry wallet, any web wallet by URL, or the phone's own wallet. It opens each wallet at the URL it's given and judges every response the same way.
-  - With the SMART Testing Wallet chosen, "Testing Wallet options" sets faults, forced statuses, and a response size by opening that wallet at one of its [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls).
+  - "What to send" chooses the request: a baseline or scenario request, one you build from items, or one you paste. The request is all that goes to the wallet.
+  - "Test case" is optional. It shows the case's step for the person using the wallet, and the checks it will make on the response, and reports each as met or not next to the spec checks. Choosing a case selects its request.
+  - "Which wallet" sends to any registry wallet, any web wallet by URL, or the phone's own wallet. It opens each wallet at the URL it's given and judges every response the same way.
+  - With the SMART Testing Wallet chosen, "Testing Wallet options" sets faults, forced statuses, and a response size, and does the test case's step, by opening that wallet at one of its [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls).
   - Checks the response against the spec, each check linked to its requirement. The verdict says whether the response was rejected, usable with problems in some items or records, or passed (possibly with warnings).
   - As the spec says for receivers, problems in the mdoc layer (signatures, digests, validity dates) are warnings, not failures.
 - **[SMART Testing Wallet](testing-wallet/)**
@@ -245,7 +188,7 @@ Two test tools let each participant run the scenarios above against a known-good
   - Can send deliberately broken or very large responses so Verifiers can test their error handling: a wrong canonical echo, a missing status, an unaccepted media type, a bad signature, a 5 MB response, and more. Each fault is labeled with how a Verifier that follows the spec reacts: reject the response, set one record aside, treat one item as unknown, or warn. The full list is in its [features page](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#testing-panel).
   - To test your own Verifier with these options, open the wallet, set them in its testing panel, choose "Copy wallet URL for these settings", and add that URL as a web wallet on your page. Then run check-ins from your page as usual. For example, bad signature is `https://smart-health-checkin.org/connectathon/testing-wallet/eyJmYXVsdHMiOlsiYmFkLXNpZ25hdHVyZSJdfQ/` and a 5 MB response is `https://smart-health-checkin.org/connectathon/testing-wallet/eyJzaXplIjoiNW0ifQ/`. These [config URLs](https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls) are the Testing Wallet's own format, not part of SMART Health Check-in.
 
-Each scenario is a named test case in both tools, so a self-serve run gives a pass or fail, with a link that files it as a result.
+Each scenario is a test case in the Testing EHR, so a self-serve run gives a pass or fail, with a link that files it as a result.
 
 ## Reference Android wallet
 

@@ -1,0 +1,141 @@
+// Test cases (catalog.json): a request, an optional step for the person using
+// the wallet, and expectations a Verifier can check on the response. The
+// Testing EHR evaluates the expectations next to its spec checks;
+// scripts/build.ts validates the catalog and writes the scenario sections of
+// scenarios.html with the same sentences.
+import type { WalletConfig } from "../../testing-wallet/src/config.ts";
+
+export type Expectation =
+  | { check: "status"; item: string; status: string[] }
+  | { check: "every-status"; status: string[] }
+  | { check: "profiles" }
+  | { check: "includes-type"; item: string; resourceType: string }
+  | { check: "only-types"; item: string; resourceTypes: string[] }
+  | { check: "media-type"; item: string; mediaType: string }
+  | { check: "one-artifact"; items: string[] }
+  | { check: "min-size"; kb: number };
+
+export type TestCase = {
+  id: string;
+  title: string;
+  summary: string;
+  /** A file in requests/. */
+  request: string;
+  paths: ("web" | "native")[];
+  /** What the person using the wallet does, and the SMART Testing Wallet config that does it. */
+  walletStep?: { text: string; testingWallet?: WalletConfig };
+  expect: Expectation[];
+  /** What to look for in the wallet, by eye. */
+  walletShows?: string[];
+  /** What the Verifier under test should show, by eye. */
+  verifierShows?: string[];
+  /** Anything else to record or know, in Markdown. */
+  notes?: string;
+  specSections: string[];
+};
+
+type Item = { id: string; title: string; content: { kind: string; profiles?: readonly string[]; profilesFrom?: readonly string[] } };
+type Request = { items: readonly Item[] };
+
+/** Resources that support a record (a reference target) rather than being one. */
+const SUPPORTING = new Set(["Patient", "Practitioner", "PractitionerRole", "Organization", "Location", "Medication"]);
+const or = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} or ${xs.at(-1)}` : xs[0] ?? "");
+const and = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}` : xs[0] ?? "");
+
+/** The expectation as a sentence, naming items by their titles in the request. */
+export function describeExpectation(e: Expectation, request: Request): string {
+  const t = (id: string) => `“${request.items.find((i) => i.id === id)?.title ?? id}”`;
+  switch (e.check) {
+    case "status": return `${t(e.item)} is ${or(e.status)}.`;
+    case "every-status": return `Every item is ${or(e.status)}.`;
+    case "profiles": return "Each item that names profiles gets at least one record that claims one of them.";
+    case "includes-type": return `${t(e.item)} includes a ${e.resourceType} record.`;
+    case "only-types": return `${t(e.item)} has only ${or(e.resourceTypes)} records, apart from the resources they reference.`;
+    case "media-type": return `${t(e.item)} comes as ${e.mediaType}.`;
+    case "one-artifact": return `One record answers ${and(e.items.map(t))}.`;
+    case "min-size": return `The response is at least ${e.kb >= 1024 ? `${e.kb / 1024} MB` : `${e.kb} KB`}.`;
+  }
+}
+
+/** Problems with a test case against its request, in words. */
+export function caseProblems(tc: TestCase, request: Request): string[] {
+  const ids = new Set(request.items.map((i) => i.id));
+  const problems: string[] = [];
+  const known = (id: string) => { if (!ids.has(id)) problems.push(`${tc.id}: item "${id}" isn't in ${tc.request}`); };
+  for (const e of tc.expect) {
+    if ("item" in e) known(e.item);
+    if (e.check === "one-artifact") e.items.forEach(known);
+    if (!["status", "every-status", "profiles", "includes-type", "only-types", "media-type", "one-artifact", "min-size"].includes(e.check)) problems.push(`${tc.id}: unknown check "${(e as { check: string }).check}"`);
+  }
+  for (const id of Object.keys(tc.walletStep?.testingWallet?.status ?? {})) known(id);
+  if (tc.walletStep?.testingWallet && !tc.walletStep.text) problems.push(`${tc.id}: a Testing Wallet config needs the step's text`);
+  return problems;
+}
+
+export type Evaluated = { id: string; title: string; outcome: "pass" | "fail"; detail: string };
+export type Observed = {
+  request: Request;
+  smartResponse?: { artifacts?: any[] };
+  /** Per item, its valid status or "unknown". Missing when the response was rejected. */
+  items?: Record<string, string>;
+  /** Per artifact id, whether the Verifier uses it. */
+  artifacts?: Record<string, "accepted" | "rejected">;
+  responseChars?: number;
+  /** The resources in a usable artifact (SMART Health Cards decoded). */
+  resourcesOf: (artifact: any) => any[];
+};
+
+/** Evaluate a case's expectations against what came back. */
+export function evaluateExpectations(expect: Expectation[], o: Observed): Evaluated[] {
+  const usable = (o.smartResponse?.artifacts ?? []).filter((a) => o.artifacts?.[a?.id] === "accepted");
+  const forItem = (id: string) => usable.filter((a) => (a.fulfills ?? []).includes(id));
+  const records = (id: string) => forItem(id).flatMap(o.resourcesOf);
+  return expect.map((e, n) => {
+    const title = describeExpectation(e, o.request);
+    const result = (ok: boolean, detail: string): Evaluated => ({ id: `expect-${n + 1}`, title, outcome: ok ? "pass" : "fail", detail });
+    if (!o.items) return result(false, "the response was rejected");
+    switch (e.check) {
+      case "status": {
+        const got = o.items[e.item] ?? "no status";
+        return result(e.status.includes(got), `got ${got}`);
+      }
+      case "every-status": {
+        const off = o.request.items.filter((i) => !e.status.includes(o.items![i.id] ?? "no status"));
+        return result(!off.length, off.length ? off.map((i) => `${i.id} is ${o.items![i.id] ?? "no status"}`).join("; ") : "");
+      }
+      case "profiles": {
+        const missing: string[] = [];
+        for (const item of o.request.items) {
+          const c = item.content;
+          if (c.kind !== "selection.fhir" || !(c.profiles?.length || c.profilesFrom?.length)) continue;
+          if (!["fulfilled", "partial"].includes(o.items[item.id] ?? "")) continue;
+          const claims = records(item.id).flatMap((r) => r?.meta?.profile ?? []).map((p: string) => p.split("|")[0]!);
+          const hit = claims.some((p) => (c.profiles ?? []).some((w) => w.split("|")[0] === p) || (c.profilesFrom ?? []).some((f) => p.startsWith(f.replace(/\/+$/, "") + "/")));
+          if (!hit) missing.push(item.id);
+        }
+        return result(!missing.length, missing.length ? `no record claims a requested profile for ${missing.join(", ")}` : "");
+      }
+      case "includes-type": {
+        const n = records(e.item).filter((r) => r?.resourceType === e.resourceType).length;
+        return result(n > 0, `${n} ${e.resourceType} record${n === 1 ? "" : "s"}`);
+      }
+      case "only-types": {
+        const rs = records(e.item).filter((r) => !SUPPORTING.has(r?.resourceType));
+        const other = [...new Set(rs.map((r) => r?.resourceType).filter((t) => !e.resourceTypes.includes(t)))];
+        return result(rs.length > 0 && !other.length, other.length ? `also ${other.join(", ")}` : `${rs.length} record${rs.length === 1 ? "" : "s"}`);
+      }
+      case "media-type": {
+        const types = [...new Set(forItem(e.item).map((a) => a.mediaType))];
+        return result(types.includes(e.mediaType), types.length ? `got ${types.join(", ")}` : "no usable record");
+      }
+      case "one-artifact": {
+        const shared = usable.find((a) => e.items.every((id) => (a.fulfills ?? []).includes(id)));
+        return result(!!shared, shared ? `record ${shared.id}` : "no single record lists them all in fulfills");
+      }
+      case "min-size": {
+        const kb = (o.responseChars ?? 0) / 1024;
+        return result(kb >= e.kb, `${kb.toFixed(1)} KB`);
+      }
+    }
+  });
+}

@@ -4,23 +4,29 @@
     {
       "id": "M1",
       "title": "Web wallet from the registry",
+      "summary": "The EHR lists the registry's web wallets, opens the one the person picks, and sends the request to it by postMessage.",
       "request": "baseline-1.json",
       "paths": [
         "web"
       ],
-      "summary": "EHR loads the registry, the tester picks a web wallet, shares everything.",
-      "expect": {
-        "ehr": [
-          "Response opens and verifies (§8.5, §8.6)",
-          "Passes cross-validation (§6.4)",
-          "Shows each item's status and data"
-        ],
-        "wallet": [
-          "Shows the EHR origin during consent",
-          "Returns fulfilled for every item",
-          "Returned resources carry the matching US Core meta.profile"
-        ]
-      },
+      "expect": [
+        {
+          "check": "every-status",
+          "status": [
+            "fulfilled"
+          ]
+        },
+        {
+          "check": "profiles"
+        }
+      ],
+      "walletShows": [
+        "The wallet shows the EHR's origin during consent."
+      ],
+      "verifierShows": [
+        "The EHR lists every wallet in the registry, with the phone's own wallet alongside.",
+        "The EHR shows each item's status and data."
+      ],
       "specSections": [
         "8-5-hpke-encryption-and-verifier-processing",
         "8-6-validation-checklist",
@@ -30,22 +36,29 @@
     {
       "id": "M2",
       "title": "Native wallet through the Digital Credentials API",
+      "summary": "Same as M1, but the person picks the phone's own wallet and the EHR calls navigator.credentials.get.",
       "request": "baseline-1.json",
       "paths": [
         "native"
       ],
-      "summary": "Same as M1 through navigator.credentials.get.",
-      "expect": {
-        "ehr": [
-          "Response opens and verifies",
-          "Passes cross-validation",
-          "Shows each item's status and data"
-        ],
-        "wallet": [
-          "Returns fulfilled for every item",
-          "Returned resources carry the matching US Core meta.profile"
-        ]
-      },
+      "expect": [
+        {
+          "check": "every-status",
+          "status": [
+            "fulfilled"
+          ]
+        },
+        {
+          "check": "profiles"
+        }
+      ],
+      "walletShows": [
+        "The wallet shows the EHR's origin during consent."
+      ],
+      "verifierShows": [
+        "The EHR shows each item's status and data."
+      ],
+      "notes": "Record the phone, OS version, browser, and wallet app.",
       "specSections": [
         "a-2-digital-credentials-api-wrappers",
         "8-6-validation-checklist"
@@ -54,21 +67,30 @@
     {
       "id": "M3",
       "title": "Insurance",
+      "summary": "Demographics and insurance, as CARIN or US Core coverage, in FHIR JSON or a SMART Health Card.",
       "request": "baseline-2.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Demographics and insurance, as CARIN or US Core coverage, FHIR JSON or SMART Health Card.",
-      "expect": {
-        "ehr": [
-          "Displays member, payer, and plan",
-          "Verifies a SMART Health Card signature before showing it"
-        ],
-        "wallet": [
-          "Returns Coverage with a requested profile in an accepted media type"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "coverage",
+          "status": [
+            "fulfilled"
+          ]
+        },
+        {
+          "check": "includes-type",
+          "item": "coverage",
+          "resourceType": "Coverage"
+        }
+      ],
+      "verifierShows": [
+        "The EHR shows the member, payer, and plan from the returned Coverage, whichever profile or format the wallet chose.",
+        "If the wallet returns a SMART Health Card, the EHR verifies its signature before showing it."
+      ],
       "specSections": [
         "5-4-1-selection-fhir",
         "5-6-accepted-media-types"
@@ -77,21 +99,27 @@
     {
       "id": "M4",
       "title": "Pre-visit questionnaire, inline",
+      "summary": "The PHQ-2, sent inline. The QuestionnaireResponse must name exactly the requested canonical.",
       "request": "baseline-3.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "PHQ-2 sent inline.",
-      "expect": {
-        "ehr": [
-          "Shows each answer next to its question"
-        ],
-        "wallet": [
-          "Renders the inline form",
-          "QuestionnaireResponse.questionnaire equals the requested canonical exactly"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "phq2",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "walletShows": [
+        "The wallet renders the inline form."
+      ],
+      "verifierShows": [
+        "The EHR shows each answer next to its question."
+      ],
       "specSections": [
         "5-4-2-form-fhir",
         "5-5-canonical-version-handling"
@@ -100,21 +128,46 @@
     {
       "id": "M5",
       "title": "One item declined",
+      "summary": "The person declines one item and shares the rest.",
       "request": "baseline-1.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Tester declines immunizations and shares the rest.",
-      "expect": {
-        "ehr": [
-          "Shows the declined item as declined, not an error"
-        ],
-        "wallet": [
-          "Returns declined for immunizations",
-          "Exactly one status per item"
-        ]
+      "walletStep": {
+        "text": "Decline Immunizations and share everything else.",
+        "testingWallet": {
+          "status": {
+            "immunizations": "declined"
+          }
+        }
       },
+      "expect": [
+        {
+          "check": "status",
+          "item": "immunizations",
+          "status": [
+            "declined"
+          ]
+        },
+        {
+          "check": "status",
+          "item": "patient",
+          "status": [
+            "fulfilled"
+          ]
+        },
+        {
+          "check": "status",
+          "item": "medications",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The EHR shows Immunizations as declined, not as an error, and the rest normally."
+      ],
       "specSections": [
         "6-2-artifact-and-status-semantics"
       ]
@@ -122,22 +175,33 @@
     {
       "id": "M6",
       "title": "Nothing to share",
+      "summary": "Every item comes back declined or unavailable.",
       "request": "baseline-2.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Tester declines the whole request, or the wallet has no coverage.",
-      "expect": {
-        "ehr": [
-          "Handles a whole-request decline",
-          "Handles an unavailable item",
-          "Patient can continue without the wallet"
-        ],
-        "wallet": [
-          "Returns unavailable for an item it cannot fulfill, or declined outcome"
-        ]
+      "walletStep": {
+        "text": "Decline every item, or use a wallet whose patient has no insurance on file.",
+        "testingWallet": {
+          "status": {
+            "patient": "declined",
+            "coverage": "declined"
+          }
+        }
       },
+      "expect": [
+        {
+          "check": "every-status",
+          "status": [
+            "declined",
+            "unavailable"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The EHR handles every item declined or unavailable without breaking the page, and the patient can continue without the wallet."
+      ],
       "specSections": [
         "6-2-artifact-and-status-semantics"
       ]
@@ -145,20 +209,27 @@
     {
       "id": "L1",
       "title": "Anything in USCDI, small patient",
+      "summary": "A modest record, whatever resource types the wallet holds.",
       "request": "baseline-4.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "A modest record.",
-      "expect": {
-        "ehr": [
-          "Shows every returned resource under uscdi"
-        ],
-        "wallet": [
-          "Lets the patient choose what to include"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "uscdi",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "walletShows": [
+        "The wallet lets the patient choose what to include."
+      ],
+      "verifierShows": [
+        "The EHR shows every returned resource, whatever the resource types."
+      ],
       "specSections": [
         "5-4-content-selectors"
       ]
@@ -166,20 +237,35 @@
     {
       "id": "L2",
       "title": "Anything in USCDI, large patient",
+      "summary": "A full record with years of history, to test that large responses arrive intact.",
       "request": "baseline-4.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "A full record with years of history: tests that large responses arrive intact.",
-      "expect": {
-        "ehr": [
-          "Response arrives intact"
-        ],
-        "wallet": [
-          "Returns the large record"
-        ]
+      "walletStep": {
+        "text": "Answer as a patient with a large record.",
+        "testingWallet": {
+          "patient": "large"
+        }
       },
+      "expect": [
+        {
+          "check": "status",
+          "item": "uscdi",
+          "status": [
+            "fulfilled"
+          ]
+        },
+        {
+          "check": "min-size",
+          "kb": 1024
+        }
+      ],
+      "verifierShows": [
+        "The EHR shows the whole record."
+      ],
+      "notes": "On Android, the wallet returns the response with the three-argument `setGetCredentialResponse`, which passes it to the browser as a file ([Platform notes](https://smart-health-checkin.org/spec/platform-notes.html#android)). Record the browser, phone, and wallet version.",
       "specSections": [
         "5-4-content-selectors"
       ]
@@ -187,20 +273,28 @@
     {
       "id": "O1",
       "title": "Questionnaire by reference only",
+      "summary": "The GAD-7 by canonical, with no inline body. The wallet fetches the hosted form.",
       "request": "o1-questionnaire-by-reference.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "GAD-7 by canonical, no inline body.",
-      "expect": {
-        "ehr": [
-          "Shows the answers"
-        ],
-        "wallet": [
-          "Fetches and renders the form, or reports unsupported"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "gad7",
+          "status": [
+            "fulfilled",
+            "unsupported"
+          ]
+        }
+      ],
+      "walletShows": [
+        "The wallet renders the fetched form, or reports the item unsupported rather than inventing a form."
+      ],
+      "verifierShows": [
+        "The EHR shows the answers."
+      ],
       "specSections": [
         "5-4-2-form-fhir"
       ]
@@ -208,20 +302,24 @@
     {
       "id": "O2",
       "title": "Versioned canonical",
+      "summary": "The PHQ-2 with a |1 version suffix, body inline. The QuestionnaireResponse must echo the versioned canonical exactly.",
       "request": "o2-versioned-canonical.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "PHQ-2 with a |1 version suffix, body inline.",
-      "expect": {
-        "ehr": [
-          "Shows the answers"
-        ],
-        "wallet": [
-          "Echoes the versioned canonical exactly"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "phq2",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The EHR shows the answers."
+      ],
       "specSections": [
         "5-5-canonical-version-handling"
       ]
@@ -229,22 +327,27 @@
     {
       "id": "O3",
       "title": "Physician-authored form",
+      "summary": "The semaglutide check-in form, inline, with conditional items and typed answers.",
       "request": "o3-physician-authored-form.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "The semaglutide check-in form, inline.",
-      "expect": {
-        "ehr": [
-          "Shows every answer, including typed pen-trouble answers"
-        ],
-        "wallet": [
-          "Renders every item type",
-          "Shows conditional items only when their conditions are met",
-          "Returns every answer given"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "semaglutide",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "walletShows": [
+        "The wallet renders every item type, shows conditional items only when their conditions are met, and accepts typed answers on the pen question."
+      ],
+      "verifierShows": [
+        "The EHR shows every answer, including typed pen-trouble answers."
+      ],
       "specSections": [
         "5-4-2-form-fhir"
       ]
@@ -252,20 +355,31 @@
     {
       "id": "O4",
       "title": "Narrowed family",
+      "summary": "US Core profiles narrowed to Observation, for recent labs and vitals.",
       "request": "o4-narrowed-family.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "US Core family narrowed to Observation.",
-      "expect": {
-        "ehr": [
-          "Shows the Observations"
-        ],
-        "wallet": [
-          "Returns only Observations"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "labs-vitals",
+          "status": [
+            "fulfilled"
+          ]
+        },
+        {
+          "check": "only-types",
+          "item": "labs-vitals",
+          "resourceTypes": [
+            "Observation"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The EHR shows the Observations."
+      ],
       "specSections": [
         "5-4-1-selection-fhir"
       ]
@@ -273,20 +387,19 @@
     {
       "id": "O5",
       "title": "No selector",
+      "summary": "A selection with no profiles or types: whatever the patient thinks is relevant.",
       "request": "o5-no-selector.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Whatever the patient thinks is relevant.",
-      "expect": {
-        "ehr": [
-          "Displays whatever arrives"
-        ],
-        "wallet": [
-          "Lets the patient choose"
-        ]
-      },
+      "expect": [],
+      "walletShows": [
+        "The wallet lets the patient choose."
+      ],
+      "verifierShows": [
+        "The EHR displays whatever arrives."
+      ],
       "specSections": [
         "5-4-1-selection-fhir"
       ]
@@ -294,20 +407,22 @@
     {
       "id": "O6",
       "title": "SMART Health Card",
+      "summary": "Immunizations, with a SMART Health Card preferred over FHIR JSON.",
       "request": "o6-smart-health-card.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Immunizations, SMART Health Card preferred.",
-      "expect": {
-        "ehr": [
-          "Verifies the card's signature and shows its contents"
-        ],
-        "wallet": [
-          "Returns a SMART Health Card"
-        ]
-      },
+      "expect": [
+        {
+          "check": "media-type",
+          "item": "immunizations",
+          "mediaType": "application/smart-health-card"
+        }
+      ],
+      "verifierShows": [
+        "The EHR verifies the card's signature and shows its contents."
+      ],
       "specSections": [
         "5-6-accepted-media-types"
       ]
@@ -315,20 +430,32 @@
     {
       "id": "O7",
       "title": "One artifact, several items",
+      "summary": "One Bundle answers two items, and its fulfills lists both.",
       "request": "baseline-1.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Wallet answers allergies and medications with one Bundle.",
-      "expect": {
-        "ehr": [
-          "Attributes the resources to both items without double-counting"
-        ],
-        "wallet": [
-          "One artifact's fulfills lists both items"
-        ]
+      "walletStep": {
+        "text": "Answer Allergies and Medications with one shared Bundle. Most wallets can't be asked to do this.",
+        "testingWallet": {
+          "faults": [
+            "combine-allergies-meds"
+          ]
+        }
       },
+      "expect": [
+        {
+          "check": "one-artifact",
+          "items": [
+            "allergies",
+            "medications"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The EHR attributes the resources to both items without counting them twice."
+      ],
       "specSections": [
         "6-3-many-to-many-fulfillment"
       ]
@@ -336,19 +463,25 @@
     {
       "id": "O8",
       "title": "Cross-device",
+      "summary": "A desktop browser shows a QR code, and the phone's wallet answers.",
       "request": "baseline-1.json",
       "paths": [
         "native"
       ],
-      "summary": "Desktop browser shows a QR code; the phone's wallet answers.",
-      "expect": {
-        "ehr": [
-          "Response arrives in the desktop page"
-        ],
-        "wallet": [
-          "Answers over the cross-device flow"
-        ]
+      "walletStep": {
+        "text": "Scan the QR code the desktop browser shows with the phone, and share everything."
       },
+      "expect": [
+        {
+          "check": "every-status",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The response arrives in the desktop page."
+      ],
       "specSections": [
         "8-same-device-presentation-flow"
       ]
@@ -356,19 +489,25 @@
     {
       "id": "O9",
       "title": "In-person handoff",
+      "summary": "A front-desk QR code or kiosk lands the patient's phone on the EHR's check-in page.",
       "request": "baseline-1.json",
       "paths": [
         "native"
       ],
-      "summary": "A QR code or kiosk lands the patient's phone on the check-in page.",
-      "expect": {
-        "ehr": [
-          "Same as M2, with the handoff shown"
-        ],
-        "wallet": [
-          "Same as M2"
-        ]
+      "walletStep": {
+        "text": "Open the check-in page on the phone from the front-desk QR code or kiosk, then share everything."
       },
+      "expect": [
+        {
+          "check": "every-status",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "verifierShows": [
+        "The same as M2, with the handoff shown."
+      ],
       "specSections": [
         "1-3-handoffs-as-on-ramps"
       ]
@@ -376,20 +515,27 @@
     {
       "id": "O10",
       "title": "Prefilled form",
+      "summary": "The wallet prefills answers from the patient's records and lets the patient edit them.",
       "request": "o3-physician-authored-form.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "Wallet prefills what it can and lets the patient edit.",
-      "expect": {
-        "ehr": [
-          "Shows the answers"
-        ],
-        "wallet": [
-          "Prefilled answers are visible before sending"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "semaglutide",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
+      "walletShows": [
+        "Prefilled answers are visible to the patient before sending."
+      ],
+      "verifierShows": [
+        "The EHR shows the answers."
+      ],
       "specSections": [
         "5-4-2-form-fhir"
       ]
@@ -397,20 +543,16 @@
     {
       "id": "O11",
       "title": "Write back",
+      "summary": "The EHR files returned data and answers into the chart after staff review.",
       "request": "baseline-1.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "EHR files returned data after staff review.",
-      "expect": {
-        "ehr": [
-          "Staff can accept or reject each item"
-        ],
-        "wallet": [
-          "Same as M1"
-        ]
-      },
+      "expect": [],
+      "verifierShows": [
+        "Staff can accept or reject each item."
+      ],
       "specSections": [
         "1-4-deliberately-out-of-scope"
       ]
@@ -418,20 +560,28 @@
     {
       "id": "O12",
       "title": "Unknown selector",
+      "summary": "An item with an extension selector kind no wallet knows.",
       "request": "o12-unknown-selector.json",
       "paths": [
         "web",
         "native"
       ],
-      "summary": "An item with an undefined selector kind.",
-      "expect": {
-        "ehr": [
-          "Shows the unsupported item as unsupported"
-        ],
-        "wallet": [
-          "Reports unsupported for that item and answers the others"
-        ]
-      },
+      "expect": [
+        {
+          "check": "status",
+          "item": "mystery",
+          "status": [
+            "unsupported"
+          ]
+        },
+        {
+          "check": "status",
+          "item": "patient",
+          "status": [
+            "fulfilled"
+          ]
+        }
+      ],
       "specSections": [
         "5-4-3-extension-selectors"
       ]

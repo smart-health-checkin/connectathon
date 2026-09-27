@@ -9,13 +9,13 @@ import { bindWire, layerFor, wireHtml } from "./wire.ts";
 import { esc, readable, resourcesOf } from "./readable.ts";
 import { jsonHtml } from "../../shared/smart-json.ts";
 import { configUrl, FAULTS, isTestingWalletUrl, RESPONSE_SIZES, STATUSES, type WalletConfig } from "../../testing-wallet/src/config.ts";
+import { describeExpectation, evaluateExpectations, type Evaluated, type TestCase } from "./cases.ts";
 
 const SITE = new URL("../", location.href).href; // .../connectathon/
 const REPO = "smart-health-checkin/connectathon";
 const RUNS_KEY = "testing-ehr:runs";
 const URLS_KEY = "testing-ehr:wallet-urls";
 
-type TestCase = { id: string; title: string; request: string; paths: string[]; summary: string; expect: { ehr: string[]; wallet: string[] }; specSections: string[] };
 type Component = { id: string; role: string; label: string };
 type LibraryItem = { key: string; item: SmartCheckinRequest["items"][number]; label: string; note: string };
 type CardView = { issuer?: string; valid: boolean; detail: string; resources: any[] };
@@ -24,7 +24,10 @@ type Run = {
   label: string; caseId?: string; walletId: string; walletName: string; path: "native" | "web"; walletUrl?: string;
   verdict: "pass" | "fail" | "declined";
   headline: string; message?: string;
-  request: SmartCheckinRequest; checks: Check[]; smartResponse?: any; responseChars?: number; wire?: WireLayers;
+  request: SmartCheckinRequest; checks: Check[];
+  /** The test case's expectations, evaluated on the response. */
+  expectations?: Evaluated[];
+  smartResponse?: any; responseChars?: number; wire?: WireLayers;
   /** The whole response couldn't be used. */
   rejected?: boolean;
   /** Per item, its valid status or "unknown"; per record, whether it was used. */
@@ -46,7 +49,7 @@ let catalog: TestCase[] = [];
 let components: Component[] = [];
 let library: LibraryItem[] = [];
 let offered: Wallet[] = [];
-let mode: "scenario" | "build" | "paste" = "scenario";
+let mode: "request" | "build" | "paste" = "request";
 const requestFiles = new Map<string, SmartCheckinRequest>();
 let runs: Run[] = store.get<Run[]>(RUNS_KEY, []);
 let showing: Run | undefined;
@@ -64,11 +67,20 @@ async function load() {
   library = buildLibrary();
   offered = await registryWallets({ registry: new URL("wallets.json", SITE).href, includeUnavailable: true }).catch(() => [platformWallet()]);
 
+  const requestSelect = $("request-file") as HTMLSelectElement;
+  const fileList = [...requestFiles.keys()].sort((a, b) => Number(!a.startsWith("baseline")) - Number(!b.startsWith("baseline")) || a.localeCompare(b, undefined, { numeric: true }));
+  requestSelect.replaceChildren(...fileList.map((f) => new Option(requestLabel(f), f)));
+  requestSelect.onchange = () => {
+    // A test case goes with its request: choosing another request leaves the case.
+    if (currentCase() && currentCase()!.request !== requestSelect.value) ($("case") as HTMLSelectElement).value = "";
+    describeCase(); remember(); refresh();
+  };
   const caseSelect = $("case") as HTMLSelectElement;
-  caseSelect.replaceChildren(...catalog.map((t) => new Option(`${t.id} · ${t.title}`, t.id)));
+  caseSelect.replaceChildren(new Option("None: check the response against the spec only", ""), ...catalog.map((t) => new Option(`${t.id} · ${t.title}`, t.id)));
+  caseSelect.onchange = () => { chooseCase(); remember(); refresh(); };
   const params = new URLSearchParams(location.hash.slice(1));
-  if (params.get("case") && catalog.some((t) => t.id === params.get("case"))) caseSelect.value = params.get("case")!;
-  caseSelect.onchange = () => { describeCase(); remember(); refresh(); };
+  if (params.get("request") && requestFiles.has(params.get("request")!)) requestSelect.value = params.get("request")!;
+  if (params.get("case") && catalog.some((t) => t.id === params.get("case"))) { caseSelect.value = params.get("case")!; chooseCase(); }
 
   $("item-library").replaceChildren(...library.map((l) => {
     const label = document.createElement("label");
@@ -87,7 +99,7 @@ async function load() {
     return label;
   }));
   ($("tw-size") as HTMLSelectElement).replaceChildren(new Option("Normal", ""), ...Object.entries(RESPONSE_SIZES).map(([k, v]) => new Option(v.label, k)));
-  $("tw-options").addEventListener("change", refresh);
+  $("tw-options").addEventListener("change", () => { describeCase(); refresh(); });
   ($("add-wallet") as HTMLFormElement).onsubmit = (e) => { e.preventDefault(); addWalletUrl(); };
   $("send").onclick = () => send();
   $("history-btn").onclick = () => { $("history").hidden = !$("history").hidden; renderHistory(); };
@@ -124,28 +136,65 @@ function buildLibrary(): LibraryItem[] {
   return out;
 }
 
+/** "Baseline 1: Demographics, …" or "Questionnaire by reference: …", from the file name and its items. */
+function requestLabel(file: string): string {
+  const req = requestFiles.get(file)!;
+  const name = /^baseline-(\d+)/.exec(file)
+    ? `Baseline ${/^baseline-(\d+)/.exec(file)![1]}`
+    : file.replace(/^o\d+-/, "").replace(/\.json$/, "").replaceAll("-", " ").replace(/^./, (c) => c.toUpperCase()).replace(/smart health card/i, "SMART Health Card");
+  return `${name}: ${req.items.map((i) => i.title).join(", ")}`;
+}
+
 function setMode(next: typeof mode) {
   mode = next;
+  // A test case goes with its request file.
+  if (mode !== "request") { ($("case") as HTMLSelectElement).value = ""; describeCase(); }
   for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.setAttribute("aria-selected", String(b.dataset.mode === mode));
   for (const p of document.querySelectorAll<HTMLElement>("[data-panel]")) p.hidden = p.dataset.panel !== mode;
   refresh();
 }
 
-const currentCase = (): TestCase => catalog.find((t) => t.id === ($("case") as HTMLSelectElement).value)!;
+const currentCase = (): TestCase | undefined => catalog.find((t) => t.id === ($("case") as HTMLSelectElement).value);
+
+/** Choosing a test case selects its request in part 1. */
+function chooseCase() {
+  const tc = currentCase();
+  if (tc) {
+    ($("request-file") as HTMLSelectElement).value = tc.request;
+    if (mode !== "request") setMode("request");
+  }
+  describeCase();
+}
+
+/** Whether the SMART Testing Wallet, through its config URL, does the case's step. */
+const walletDoesStep = (tc?: TestCase) => !!tc?.walletStep?.testingWallet && offersOptions(selectedWallet()) && ($("tw-step") as HTMLInputElement).checked;
 
 function describeCase() {
   const tc = currentCase();
-  $("case-info").innerHTML = `<p>${esc(tc.summary)} <a href="${new URL(`requests/${tc.request}`, SITE).href}">${esc(tc.request)}</a></p>
-    <p><b>Wallet should:</b> ${esc(tc.expect.wallet.join("; "))}</p>
-    ${tc.paths.length === 1 ? `<p>Meant for the ${esc(tc.paths[0])} path.</p>` : ""}`;
+  const box = $("case-info");
+  ($("tw-step-row") as HTMLElement).hidden = !tc?.walletStep?.testingWallet;
+  if (!tc) { box.innerHTML = `<p class="small">Choose a test case to add its step for the person using the wallet, and its expectations, which this EHR checks on the response.</p>`; return; }
+  const req = requestFiles.get(tc.request)!;
+  const step = tc.walletStep;
+  const stepText = step ? step.text.replace(/^./, (c) => c.toLowerCase()) : "";
+  box.innerHTML = `<p>${esc(tc.summary)}${tc.paths.length === 1 ? ` Meant for the ${esc(tc.paths[0]!)} path.` : ""}</p>
+    ${step ? walletDoesStep(tc)
+      ? `<p class="step"><b>The SMART Testing Wallet will do this step:</b> ${esc(stepText)}</p>`
+      : `<p class="step"><b>Ask the person using the wallet to</b> ${esc(stepText)}</p>` : ""}
+    ${tc.expect.length ? `<p><b>This EHR will check that:</b></p><ul>${tc.expect.map((e) => `<li>${esc(describeExpectation(e, req))}</li>`).join("")}</ul>` : `<p>This case has no expectations to check on the response; <a href="../scenarios.html#${tc.id.toLowerCase()}">its description</a> says what to look for.</p>`}
+    ${tc.walletShows?.length ? `<p><b>Look in the wallet for:</b> ${esc(tc.walletShows.join(" "))}</p>` : ""}`;
 }
 
 /** The request Send will use, or why there isn't one. */
 function currentRequest(): { ok: true; request: SmartCheckinRequest; label: string; short: string; caseId?: string } | { ok: false; error: string } {
-  if (mode === "scenario") {
+  if (mode === "request") {
+    const file = ($("request-file") as HTMLSelectElement).value;
+    const req = requestFiles.get(file);
+    if (!req) return { ok: false, error: "Loading the requests…" };
     const tc = currentCase();
-    const req = requestFiles.get(tc.request);
-    return req ? { ok: true, request: req, label: `${tc.id} · ${tc.title}`, short: tc.id, caseId: tc.id } : { ok: false, error: "Loading the scenario…" };
+    return tc
+      ? { ok: true, request: req, label: `${tc.id} · ${tc.title}`, short: tc.id, caseId: tc.id }
+      : { ok: true, request: req, label: requestLabel(file).split(":")[0]!, short: requestLabel(file).split(":")[0]! };
   }
   if (mode === "build") {
     const keys = [...document.querySelectorAll<HTMLInputElement>("#item-library input:checked")].map((i) => i.value);
@@ -200,7 +249,7 @@ function renderWallets(select?: string) {
       <span class="ico" style="background:${w.iconUrl ? "transparent" : color(w.name)}">${icon}</span>
       <span class="t"><b>${esc(w.name)}</b><small>${esc(sub)}</small></span>
       ${removable ? `<button type="button" class="x" aria-label="Remove ${esc(w.name)}">×</button>` : ""}`;
-    label.querySelector("input")!.addEventListener("change", () => { remember(); refresh(); });
+    label.querySelector("input")!.addEventListener("change", () => { remember(); describeCase(); refresh(); });
     label.querySelector(".x")?.addEventListener("click", (e) => {
       e.preventDefault();
       store.set(URLS_KEY, customUrls().filter((u) => `url:${u}` !== w.id));
@@ -234,7 +283,11 @@ function addWalletUrl() {
 
 function remember() {
   const w = selectedWallet();
-  history.replaceState(null, "", `#case=${($("case") as HTMLSelectElement).value}${w ? `&wallet=${encodeURIComponent(w.id)}` : ""}`);
+  const p = new URLSearchParams();
+  if (currentCase()) p.set("case", currentCase()!.id);
+  else if (mode === "request") p.set("request", ($("request-file") as HTMLSelectElement).value);
+  if (w) p.set("wallet", w.id);
+  history.replaceState(null, "", `#${p}`);
 }
 
 // ---------------------------------------------------------------- Testing Wallet options
@@ -244,13 +297,17 @@ function remember() {
 // like a tester pasting a config URL. Everything else treats every wallet the same.
 const offersOptions = (w?: Wallet) => !!w?.entry && isTestingWalletUrl(w.entry.walletUrl);
 
+/** The options set here, on top of the test case's step when the wallet does it. */
 function testingWalletConfig(): WalletConfig {
-  const status: Record<string, string> = {};
+  const tc = currentCase();
+  const step: WalletConfig = walletDoesStep(tc) ? tc!.walletStep!.testingWallet! : {};
+  const status: Record<string, string> = { ...step.status };
   for (const sel of document.querySelectorAll<HTMLSelectElement>("#tw-status select")) if (sel.value) status[sel.dataset.item!] = sel.value;
   return {
-    faults: [...document.querySelectorAll<HTMLInputElement>("#tw-faults input:checked")].map((i) => i.value),
+    faults: [...new Set([...(step.faults ?? []), ...[...document.querySelectorAll<HTMLInputElement>("#tw-faults input:checked")].map((i) => i.value)])],
     status,
-    size: ($("tw-size") as HTMLSelectElement).value,
+    size: ($("tw-size") as HTMLSelectElement).value || step.size,
+    patient: step.patient,
   };
 }
 
@@ -343,6 +400,20 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
       cards: await decodeCards(checked.smartResponse, checked.checks),
       log: "",
     };
+    const tc = catalog.find((t) => t.id === input.caseId);
+    if (tc) {
+      result.expectations = evaluateExpectations(tc.expect, {
+        request, smartResponse: checked.smartResponse, items: checked.items, artifacts: checked.artifacts, responseChars: checked.responseBytes,
+        resourcesOf: (a) => a.mediaType === "application/smart-health-card"
+          ? (a.value?.verifiableCredential ?? []).flatMap((_: string, n: number) => result.cards?.[`${a.id}-${n}`]?.resources ?? [])
+          : resourcesOf(a.value),
+      });
+      const missed = result.expectations.filter((e) => e.outcome === "fail").length;
+      if (missed) {
+        result.verdict = "fail";
+        result.headline += `; ${tc.id}: ${missed} of ${result.expectations.length} expectation${result.expectations.length === 1 ? "" : "s"} not met`;
+      }
+    }
   } catch (e) {
     const message = (e as Error).message;
     const declined = ["NotAllowedError", "AbortError", "WalletDeclinedError"].includes((e as Error).name);
@@ -354,7 +425,7 @@ async function run(input: { request: SmartCheckinRequest; label: string; caseId?
     };
   }
   result.log = logFor(result);
-  const failedCount = result.checks.filter((c) => c.outcome === "fail").length;
+  const failedCount = result.checks.filter((c) => c.outcome === "fail").length + (result.expectations ?? []).filter((e) => e.outcome === "fail").length;
   const warnCount = result.checks.filter((c) => c.outcome === "warn").length;
   $("status").textContent =
     result.verdict === "pass" ? (warnCount ? `Passed with ${warnCount} warning(s).` : "All checks passed.")
@@ -384,6 +455,7 @@ function logFor(r: Run): string {
     ...(r.checks.length
       ? r.checks.map((c) => `[${c.outcome.toUpperCase()}] ${c.id}${c.rule ? ` (${c.rule})` : ""}: ${c.title}${c.detail ? ` — ${c.detail}` : ""}`)
       : [`${r.verdict === "declined" ? "DECLINED" : "ERROR"}: ${r.message}`]),
+    ...(r.expectations ?? []).map((e) => `[${e.outcome.toUpperCase()}] ${e.id} (${r.caseId}): ${e.title}${e.detail ? ` — ${e.detail}` : ""}`),
   ].join("\n");
 }
 
@@ -442,7 +514,12 @@ function show(r: Run) {
           `<div class="check"><span class="dot ${c.outcome}"></span><span>${esc(c.title)}${c.section ? ` <a href="${esc(c.section)}" target="_blank" rel="noopener">${esc(c.rule ?? "spec")}</a>` : ""}</span>${c.detail ? `<small>${esc(c.detail)}</small>` : ""}</div>`).join("")}</div></details>`).join("")}</section>`
     : "";
 
-  $("result").innerHTML = verdict + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, [...failures, ...warnings]) : "");
+  const expectHtml = r.expectations
+    ? `<section class="card"><h2>Test case ${esc(r.caseId ?? "")} <span>${r.expectations.filter((e) => e.outcome === "pass").length} of ${r.expectations.length} met</span></h2>${r.expectations.length
+        ? `<div class="checks">${r.expectations.map((e) => `<div class="check"><span class="dot ${e.outcome}"></span><span>${esc(e.title)}</span>${e.detail ? `<small>${esc(e.detail)}</small>` : ""}</div>`).join("")}</div>`
+        : `<p class="small">This case has no expectations to check on the response.</p>`}</section>`
+    : "";
+  $("result").innerHTML = verdict + expectHtml + failuresHtml + warningsHtml + passedHtml + (r.smartResponse ? itemsHtml(r) : "") + (r.wire?.layers ? wireHtml(r.wire, [...failures, ...warnings]) : "");
   $("log").textContent = r.log;
   $("result").querySelector('[data-act="download"]')?.addEventListener("click", () => download(r));
   if (r.wire?.layers) bindWire($("result"), r.wire, `${r.label} → ${r.walletName}`);

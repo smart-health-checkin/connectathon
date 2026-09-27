@@ -28,6 +28,11 @@ results. Deploys to smart-health-checkin.org/connectathon/ on every push to
   builds those public URLs with that module, as a tester would, and nothing
   else in the EHR knows about them. Expected outcomes of test cases live in
   `scripts/self-test.ts`, not in either tool.
+- `catalog.json` holds the test cases: `request`, an optional `walletStep` (text for the
+  person using the wallet, and the Testing Wallet config that does it), `expect` (checks
+  on the response, defined and evaluated in `testing-ehr/src/cases.ts`), and what to look
+  for by eye. The build validates it and writes the scenario sections of `scenarios.md`
+  from it (`<!-- test cases: M -->`); run `bun scripts/sync-issue-form.ts` after changing it.
 - `_site/404.html` is the Testing Wallet page with a `<base>` at `testing-wallet/`,
   so its config URLs (`testing-wallet/<base64url JSON>/`) load it; any other
   missing address goes on to `not-found.html` (`scripts/build.ts`).

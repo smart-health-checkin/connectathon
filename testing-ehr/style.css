@@ -173,3 +173,6 @@ code.clip { display: block; overflow-wrap: anywhere; word-break: break-all; }
 .tree .k { color: var(--syn-keyword); } .tree .t { color: var(--syn-comment); }
 .tree .s { color: var(--syn-string); } .tree .b { color: var(--syn-function); } .tree .v { color: var(--syn-constant); }
 .actions .share-link { align-self: center; font-size: 13px; margin-left: auto; }
+.optional { font-weight: 400; font-size: 12px; color: var(--fg-3); }
+.case-info .step { padding: 8px 10px; border-radius: 8px; background: var(--status-warn-wash); color: var(--fg-1); }
+.case-info ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--fg-2); }

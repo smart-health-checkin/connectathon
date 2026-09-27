@@ -16,22 +16,21 @@
 </div>
 
 <main id="main" class="layout">
-  <div class="tool-head"><h1>SMART Testing EHR</h1><p>Send a scenario to a wallet and check its answer against the spec.</p></div>
+  <div class="tool-head"><h1>SMART Testing EHR</h1><p>Send a request to a wallet and check its answer against the spec and, if you choose one, a test case.</p></div>
   <div class="col setup-col">
     <details id="setup" class="setup" open>
       <summary id="setup-summary">Set up a run</summary>
 
       <section class="card">
-        <h2>1. What to ask for</h2>
+        <h2>1. What to send</h2>
         <div class="seg smart-tabs" role="tablist" aria-label="Request source">
-          <button type="button" role="tab" data-mode="scenario" aria-selected="true">Scenario</button>
+          <button type="button" role="tab" data-mode="request" aria-selected="true">Request</button>
           <button type="button" role="tab" data-mode="build" aria-selected="false">Build</button>
           <button type="button" role="tab" data-mode="paste" aria-selected="false">Paste</button>
         </div>
-        <div data-panel="scenario">
-          <label class="smart-sr" for="case">Scenario</label>
-          <select id="case"></select>
-          <div id="case-info" class="case-info"></div>
+        <div data-panel="request">
+          <label class="smart-sr" for="request-file">Request</label>
+          <select id="request-file"></select>
         </div>
         <div data-panel="build" hidden>
           <div id="item-library" class="item-library"></div>
@@ -44,7 +43,14 @@
       </section>
 
       <section class="card">
-        <h2>2. Which wallet</h2>
+        <h2>2. Test case <small class="optional">optional</small></h2>
+        <label class="smart-sr" for="case">Test case</label>
+        <select id="case"></select>
+        <div id="case-info" class="case-info"></div>
+      </section>
+
+      <section class="card">
+        <h2>3. Which wallet</h2>
         <div id="wallets" class="wallets" role="radiogroup" aria-label="Wallet"></div>
         <form id="add-wallet" class="add-wallet">
           <label class="smart-sr" for="wallet-url">Web wallet URL</label>
@@ -55,6 +61,7 @@
         <details id="tw-options" class="group smart-details" hidden>
           <summary>Testing Wallet options <span id="tw-count" class="n"></span></summary>
           <p class="small">Opens the SMART Testing Wallet at one of its <a href="https://github.com/smart-health-checkin/connectathon/blob/main/testing-wallet/FEATURES.md#config-urls">config URLs</a>, its own URL format for test options (not part of SMART Health Check-in). You can paste such a URL into any Verifier's wallet list instead.</p>
+          <label id="tw-step-row" class="tw-fault" hidden><input type="checkbox" id="tw-step" checked> Do the test case's step for the person using the wallet</label>
           <h3>Faults</h3>
           <div id="tw-faults" class="tw-faults"></div>
           <h3>Response size</h3>
@@ -81,7 +88,7 @@
 
   <div class="col result-col">
     <p id="status" class="smart-sr" role="status"></p>
-    <div id="result"><div class="empty">Pick what to ask for and a wallet, then Send. The verdict, failing checks, and what came back will show here.</div></div>
+    <div id="result"><div class="empty">Pick what to send and a wallet, then Send. The verdict, failing checks, and what came back will show here.</div></div>
     <details class="group log-box smart-details"><summary>Log</summary><pre id="log" class="smart-code short"></pre></details>
   </div>
 </main>
