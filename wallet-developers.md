@@ -12,11 +12,11 @@ Your answer is signed and encrypted to a key the clinic's page made for that req
 
 1. **Learn the model and the wire format.** [Request and response](https://smart-health-checkin.org/spec/request-response.html) covers what a clinic asks for and what comes back; [Wire protocol](https://smart-health-checkin.org/spec/wire-protocol.html) covers the encrypted, signed envelope.
 2. **Read the Wallet guide.** The [Wallet guide](https://smart-health-checkin.org/client/docs/build-a-wallet.html) covers matching records to items, forms, statuses, and web wallets built with the client library.
-3. **Compare with the reference.** The [reference Android wallet](scenarios.html#reference-android-wallet) (install link and test patients) and its [source](https://github.com/smart-health-checkin/android-wallet); for web wallets, the [SMART Testing Wallet](testing-wallet/).
+3. **Compare with the reference.** The [reference Android wallet](./#reference-android-wallet) (install link and test patients) and its [source](https://github.com/smart-health-checkin/android-wallet); for web wallets, the [SMART Testing Wallet](testing-wallet/).
 4. **Run the conformance tests.** The spec's [conformance tests](https://github.com/smart-health-checkin/spec/tree/main/conformance) test one capability at a time, without a browser or a partner.
 5. **Test against the Testing EHR.** The [Testing EHR](testing-ehr/) sends any scenario's request to your wallet and checks the answer against the spec, each check linked to its requirement.
-6. <a id="register"></a>**Register your wallet** with the [registration form](register/). It opens a pull request that adds you to the [Participant directory](directory.html). Only web wallets go into the event [registry](scenarios.html#wallet-registry) (`wallets.json`), because Verifier pages open them directly. A native wallet is reached through the phone's own wallet chooser, so it's listed in the directory only, with its platforms and how testers get it: an install link, an invite on request, or testing with you on your phone. It needs no public build ([example](register/#native-wallet-example)).
-7. **Run the scenarios.** Start with the three [minimum scenarios](./#scenarios-and-tools) on the front page: each gives its request, what passing looks like, and how to run it with the test tools. Then try the [larger data scenarios](scenarios.html#larger-data-scenarios) and [more scenarios](scenarios.html#more-scenarios).
+6. <a id="register"></a>**Register your wallet** with the [registration form](register/). It opens a pull request that adds you to the [Participant directory](directory.html). Only web wallets go into the event [registry](./#wallet-registry) (`wallets.json`), because Verifier pages open them directly. A native wallet is reached through the phone's own wallet chooser, so it's listed in the directory only, with its platforms and how testers get it: an install link, an invite on request, or testing with you on your phone. It needs no public build ([example](register/#native-wallet-example)).
+7. **Run the scenarios.** Start with the three [minimum scenarios](./#minimum-scenarios) on the front page: each gives its request, what passing looks like, and how to run it with the test tools. Then try the [advanced scenarios](advanced.html).
 8. **Share what you found** from the [developer track](share.html#developers) on the Share your experience page ([details below](#share-what-you-found)).
 
 ## Joining
@@ -28,7 +28,7 @@ Your answer is signed and encrypted to a key the clinic's page made for that req
 
 ## Share what you found
 
-Debrief your testing from the [developer track](share.html#developers) on the Share your experience page: it has a debrief prompt for any AI assistant, and the experience form. Record each formal scenario run as a [structured result](scenarios.html#recording-results) too. Reports are public, credited with the name and organization you give.
+Debrief your testing from the [developer track](share.html#developers) on the Share your experience page: it has a debrief prompt for any AI assistant, and the experience form. Record each formal scenario run as a [structured result](./#recording-results) too. Reports are public, credited with the name and organization you give.
 
 ## Reference
 

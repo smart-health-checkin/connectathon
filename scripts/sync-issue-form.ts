@@ -34,8 +34,8 @@ body:
       value: >-
         One issue per run. File failures too; discuss them in the comments.
         Close the issue to withdraw the result.
-        The minimum scenarios are described at https://smart-health-checkin.org/connectathon/#scenarios-and-tools,
-        and the others at https://smart-health-checkin.org/connectathon/scenarios.html.
+        The minimum scenarios are described at https://smart-health-checkin.org/connectathon/#minimum-scenarios,
+        and the others at https://smart-health-checkin.org/connectathon/advanced.html.
   - type: dropdown
     id: scenario
     attributes:

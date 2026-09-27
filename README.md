@@ -4,9 +4,9 @@ Resources for the KTC pre-visit check-in connectathon, served at <https://smart-
 
 | Path | What it is |
 |---|---|
-| `index.md` | The front page: how the event works, the schedule, the minimum scenarios, pick your path. |
+| `index.md` | The front page: how the event works, the schedule, how to test, ground rules, the minimum scenarios, recording results, shared resources (wallet registry, reference Android wallet), pick your path. |
 | `patients.md`, `clinic-staff.md`, `verifier-developers.md`, `wallet-developers.md`, `observers.md` | One page per participant type: background, getting started, joining, sharing what you found. |
-| `scenarios.md` | Testing guide: how to test, ground rules, the larger data and other scenarios beyond the minimum set, example questionnaires, the test tools' options, recording results, and shared resources. |
+| `advanced.md` | Advanced scenarios: larger-data and optional scenarios, example questionnaires, and the test tools' options. |
 | `prompts/` | Prompts people paste into any AI assistant: a patient guide and an implementer debrief. Offered on the generated [Share your experience](https://smart-health-checkin.org/connectathon/share.html) page. |
 | `participants/` | One file per organization. [How to register](CONTRIBUTING.md). |
 | `requests/` | Every scenario's request. |

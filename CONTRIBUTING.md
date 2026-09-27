@@ -1,6 +1,6 @@
 # How to register for the connectathon
 
-Each participating organization has one file in [`participants/`](participants/), named after the organization, such as `participants/example-health.json`. It lists your components: Verifiers, web wallets, and native wallets ([fields for each](#fields-for-each-component)). The site builds the [Participant directory](https://smart-health-checkin.org/connectathon/directory.html) from these files. Only web wallets also go into the [wallet registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) (`wallets.json`), because Verifier pages open them directly; native wallets are reached through the phone's own wallet chooser, so they're listed in the directory only.
+Each participating organization has one file in [`participants/`](participants/), named after the organization, such as `participants/example-health.json`. It lists your components: Verifiers, web wallets, and native wallets ([fields for each](#fields-for-each-component)). The site builds the [Participant directory](https://smart-health-checkin.org/connectathon/directory.html) from these files. Only web wallets also go into the [wallet registry](https://smart-health-checkin.org/connectathon/#wallet-registry) (`wallets.json`), because Verifier pages open them directly; native wallets are reached through the phone's own wallet chooser, so they're listed in the directory only.
 
 ## The easy way: the registration form
 
@@ -24,7 +24,7 @@ Everything in your file is public. Only list contact details you're happy to pub
 | Role | Required | Notes |
 |---|---|---|
 | `verifier` | `id`, `name`, `status`, and `url` or `platforms` | Verifier: the side that asks for data. EHR check-in pages, patient portals, kiosks, and clinic apps register as Verifiers. A web page (check-in page, portal, or kiosk) sets `url`, its public page that starts a check-in. A phone app sets the [phone app fields](#phone-app-fields) instead. |
-| `web-wallet` | `id`, `name`, `status`, `walletUrl` | `walletUrl` is the page a Verifier opens. It follows the client docs' [Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) page. Optional: `description`, `testPatient`, `iconUrl`, `homepage` (defaults to the organization's), and `target` (`tab` or `popup`). These make up the wallet's [registry](https://smart-health-checkin.org/connectathon/scenarios.html#wallet-registry) entry. |
+| `web-wallet` | `id`, `name`, `status`, `walletUrl` | `walletUrl` is the page a Verifier opens. It follows the client docs' [Web wallets](https://smart-health-checkin.org/client/docs/web-wallets.html) page. Optional: `description`, `testPatient`, `iconUrl`, `homepage` (defaults to the organization's), and `target` (`tab` or `popup`). These make up the wallet's [registry](https://smart-health-checkin.org/connectathon/#wallet-registry) entry. |
 | `native-wallet` | `id`, `name`, `status`, `platforms`, and `installUrl` unless `access` says otherwise | A phone app, reached through the phone's wallet chooser; not in the registry. Uses the [phone app fields](#phone-app-fields). Optional: `testPatient`. |
 
 Every component can also have `description` (one or two sentences for the directory) and `notes` (anything a tester needs to know).

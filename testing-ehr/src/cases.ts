@@ -2,7 +2,7 @@
 // the wallet, and expectations a Verifier can check on the response. The
 // Testing EHR evaluates the expectations next to its spec checks;
 // scripts/build.ts validates the catalog and writes the scenario blocks of
-// the front page (the minimum tier) and scenarios.html (the advanced tier) with
+// the front page (the minimum tier) and advanced.html (the advanced tier) with
 // the same sentences.
 import type { WalletConfig } from "../../testing-wallet/src/config.ts";
 
@@ -20,7 +20,7 @@ export type TestCase = {
   /** A short kebab-case name, used as the anchor, in the Testing EHR's #case=, and in results. */
   id: string;
   title: string;
-  /** Which page lists the case: the minimum set on the front page, the rest on scenarios.html. */
+  /** Which page lists the case: the minimum set on the front page, the rest on advanced.html. */
   tier: "minimum" | "advanced";
   /** The section of its page the case goes in, for pages with more than one (`<!-- test cases: TIER GROUP -->`). */
   group?: string;
@@ -46,7 +46,7 @@ export type RequestInfo = { asks: string };
 
 /** The page and anchor that describe a case, relative to the connectathon root. */
 export const caseHref = (tc: Pick<TestCase, "id" | "tier">): string =>
-  `${tc.tier === "minimum" ? "./" : "scenarios.html"}#${tc.id}`;
+  `${tc.tier === "minimum" ? "./" : "advanced.html"}#${tc.id}`;
 
 /** A case's name and title, as the result form and the Testing EHR show it: "share-records: Share records". */
 export const caseLabel = (tc: Pick<TestCase, "id" | "title">): string => `${tc.id}: ${tc.title}`;

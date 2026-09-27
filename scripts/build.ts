@@ -5,7 +5,7 @@
  *   bun scripts/build.ts --check-only validate only (used on pull requests)
  *
  * Inputs (all in this repo):
- *   index.md, the per-type pages, scenarios.md   rendered to HTML pages
+ *   index.md, the per-type pages, advanced.md   rendered to HTML pages
  *   participants/*.json                    validated; web wallets that are up become wallets.json
  *   requests/*.json                        validated as SMART requests
  *   Questionnaire/*.json                   validated as Questionnaires hosted at their url
@@ -220,7 +220,7 @@ if (catalog) {
 }
 
 /** The page each tier of test cases is on. */
-const TIER_PAGE: Record<TestCase["tier"], string> = { minimum: "index.html", advanced: "scenarios.html" };
+const TIER_PAGE: Record<TestCase["tier"], string> = { minimum: "index.html", advanced: "advanced.html" };
 /** Where each case was written, to check every case appears once, on its tier's page. */
 const casesWritten = new Map<string, string>();
 
@@ -245,7 +245,7 @@ function itemsTable(request: any): string {
 }
 
 /**
- * The scenario blocks of index.md and scenarios.md, from catalog.json. `<!-- test cases: TIER -->`
+ * The scenario blocks of index.md and advanced.md, from catalog.json. `<!-- test cases: TIER -->`
  * becomes that tier's cases with no group; `<!-- test cases: TIER GROUP -->` those in GROUP.
  * Each case gets the same block: what it tests, its request, the step for the person using the wallet,
  * what the Verifier should see, what passes for each side, how to run it with the test tools, and the spec.
@@ -261,8 +261,8 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
   };
   const link = (tc: TestCase) => (TIER_PAGE[tc.tier] === page ? `#${tc.id}` : caseHref(tc));
   const sentences = (xs?: string[]) => (xs ?? []).join(" ");
-  /** A link to a section of scenarios.html, from this page. */
-  const main = (anchor: string) => `${page === "scenarios.html" ? "" : "scenarios.html"}#${anchor}`;
+  /** A link to a section of the front page, from this page. */
+  const main = (anchor: string) => `${page === "index.html" ? "" : "./"}#${anchor}`;
   return cases.filter((tc) => tc.tier === tier && tc.group === group).map((tc) => {
     if (casesWritten.has(tc.id)) fail(`${page}: test case ${tc.id} is already on ${casesWritten.get(tc.id)}`);
     casesWritten.set(tc.id, page);
@@ -311,7 +311,7 @@ function testCaseMarkdown(page: string, tier: TestCase["tier"], group?: string):
 
 // ---------------------------------------------------------------- page sources
 // The Markdown pages may hold {{TBD: …}} (rendered as "To be announced"); nothing else in {{…}}.
-const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "scenarios.md", "requests/README.md"];
+const PAGES = ["index.md", "patients.md", "clinic-staff.md", "verifier-developers.md", "wallet-developers.md", "observers.md", "advanced.md", "requests/README.md"];
 for (const src of PAGES) {
   if (!existsSync(join(ROOT, src))) continue;
   const left = readFileSync(join(ROOT, src), "utf8").replace(/\{\{TBD:[^}]*\}\}/g, "");
@@ -323,7 +323,7 @@ const withTestCases = (md: string, out: string) =>
   md.replace(/<!-- test cases: (minimum|advanced)(?: ([a-z-]+))? -->/g, (_m, tier: TestCase["tier"], group?: string) => testCaseMarkdown(out, tier, group));
 // Every test case appears once, on its tier's page.
 if (catalog) {
-  for (const [src, out] of [["index.md", "index.html"], ["scenarios.md", "scenarios.html"]]) withTestCases(readFileSync(join(ROOT, src!), "utf8"), out!);
+  for (const [src, out] of [["index.md", "index.html"], ["advanced.md", "advanced.html"]]) withTestCases(readFileSync(join(ROOT, src!), "utf8"), out!);
   for (const tc of catalog.testCases as TestCase[]) if (!casesWritten.has(tc.id)) fail(`catalog.json: test case ${tc.id} isn't on ${TIER_PAGE[tc.tier]}`);
   casesWritten.clear();
 }
@@ -570,7 +570,7 @@ renderMarkdownPage("clinic-staff.md", "clinic-staff.html", "Clinic staff");
 renderMarkdownPage("verifier-developers.md", "verifier-developers.html", "Verifier developers");
 renderMarkdownPage("wallet-developers.md", "wallet-developers.html", "Wallet developers");
 renderMarkdownPage("observers.md", "observers.html", "Observers");
-renderMarkdownPage("scenarios.md", "scenarios.html", "Testing guide");
+renderMarkdownPage("advanced.md", "advanced.html", "Advanced scenarios");
 
 // Prompts people paste into an AI assistant, and the page that offers them.
 mkdirSync(join(OUT, "prompts"), { recursive: true });
@@ -701,7 +701,7 @@ const DIRECTORY_SECTIONS = [
   },
   {
     id: "web-wallets", title: "Web wallets", role: "web-wallet", noun: "Wallet", cols: { details: false, patient: true },
-    intro: `Wallets that run as websites. The ones that are up are in the <a href="wallets.json">wallet registry</a>, so Verifier pages list them in their wallet menus (<a href="scenarios.html#wallet-registry">how the registry works</a>).`,
+    intro: `Wallets that run as websites. The ones that are up are in the <a href="wallets.json">wallet registry</a>, so Verifier pages list them in their wallet menus (<a href="./#wallet-registry">how the registry works</a>).`,
   },
   {
     id: "native-wallets", title: "Native wallets", role: "native-wallet", noun: "Wallet", cols: { details: true, patient: true },
@@ -843,7 +843,7 @@ for (const tool of ["testing-ehr", "testing-wallet", "register"]) {
   if (!/<meta charset="utf-8">/i.test(wallet)) throw new Error("testing-wallet/index.html: no <meta charset> to put the 404 router after");
   writeFileSync(join(OUT, "404.html"), wallet.replace(/(<meta charset="utf-8">)/i, `$1${router}`));
   writeFileSync(join(OUT, "not-found.html"), page("Not found",
-    `<h1>There's nothing at this address</h1><p id="missing"></p><p>The <a href="./">connectathon overview</a>, the <a href="scenarios.html">test scenarios</a>, the <a href="testing-ehr/">SMART Testing EHR</a>, and the <a href="testing-wallet/">SMART Testing Wallet</a> are a click away.</p>` +
+    `<h1>There's nothing at this address</h1><p id="missing"></p><p>The <a href="./">connectathon overview</a> with the minimum scenarios, the <a href="advanced.html">advanced scenarios</a>, the <a href="testing-ehr/">SMART Testing EHR</a>, and the <a href="testing-wallet/">SMART Testing Wallet</a> are a click away.</p>` +
     `<script>document.getElementById("missing").textContent=location.hash?"Nothing is published at "+decodeURIComponent(location.hash.slice(1))+".":"";</script>`));
 }
 
