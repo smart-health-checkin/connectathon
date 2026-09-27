@@ -1,7 +1,7 @@
 /**
  * Regenerates .github/ISSUE_TEMPLATE/test-result.yml so its dropdowns list the
  * registered components and the catalog's scenarios. Run after changing
- * participants/ or catalog.json; the "sync" workflow runs it on every push.
+ * participants/ or catalog.json; pages.yml runs it on every push and dispatch.
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";

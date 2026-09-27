@@ -32,7 +32,9 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - name: Keep the result form's dropdowns in sync
-        if: github.event_name == 'push'
+        # Not only on push: participant-pr.yml merges with the workflow token
+        # (no push event) and starts this workflow by dispatch.
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           bun scripts/sync-issue-form.ts
           if ! git diff --quiet -- .github/ISSUE_TEMPLATE/test-result.yml; then
