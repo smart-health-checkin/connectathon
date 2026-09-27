@@ -15,8 +15,11 @@ permissions:
   id-token: write
   issues: read
 
+# Only runs that build share the group: an issue event the job skips (any
+# issue that isn't a result) gets a group of its own, so it can't cancel a
+# deploy in progress.
 concurrency:
-  group: pages
+  group: ${{ github.event_name == 'issues' && !contains(github.event.issue.labels.*.name, 'result') && format('pages-skip-{0}', github.run_id) || 'pages' }}
   cancel-in-progress: true
 
 jobs:
