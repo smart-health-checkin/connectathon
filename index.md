@@ -29,7 +29,7 @@ Each scenario gives its request, the step for the person using the wallet, what 
 ## Ground rules
 
 - **Open trust.** Wallets accept any Verifier origin and don't require reader authentication, and Verifiers accept responses from any wallet. There are no certificates or trust lists ([§7](https://smart-health-checkin.org/spec/#7-trust-framework)).
-- **No patient matching.** Each wallet holds its own synthetic patient. Verifiers show what arrives and don't match it to a chart.
+- **Patients don't need to match.** Each wallet holds its own synthetic patient, so what arrives won't match a Verifier's test chart. A Verifier that matches patients should still let these scenarios run to the end and show what arrived.
 - **Handoff is a plain link.** The patient opens the Verifier's check-in page in a browser. Portal buttons, text messages, and QR codes are product choices outside the spec ([§1.3](https://smart-health-checkin.org/spec/#1-3-handoffs-as-on-ramps)).
 - **FHIR R4 and US Core.** Every request asks for FHIR 4.0.1 as `application/fhir+json`; the insurance item also accepts a SMART Health Card ([§5.6](https://smart-health-checkin.org/spec/#5-6-accepted-media-types)).
 - **Responses under 512 KB.** Every minimum scenario's response fits in 512 KB. Larger responses have their own [scenarios](advanced.html#larger-data-scenarios).
