@@ -1,0 +1,26 @@
+{
+  "organization": "haau3",
+  "homepage": "https://haau3.com",
+  "contacts": [
+    {
+      "name": "Brian K. Fung",
+      "github": "briankfung",
+      "slack": "Brian K. Fung (haau3)",
+      "email": "brian@haau3.com"
+    }
+  ],
+  "components": [
+    {
+      "id": "haau3",
+      "role": "web-wallet",
+      "name": "haau3 Web Wallet",
+      "status": "up",
+      "target": "tab",
+      "iconUrl": "https://haau3.com/apple-touch-icon.png",
+      "walletUrl": "https://haau3.com/check-in",
+      "testPatient": "Yuk Sample, born 1994, with a small record, who cares for two others: Rosalynn Sample, born 1961, with problems, allergies, medications, immunizations, a procedure, an implanted device, results, notes, documents, and US Core insurance; and Chris Sample, born 1957, with a large record, for the larger-data scenarios",
+      "notes": "Check-in in haau3 is an early version: a first full version comes in November 2026, and general availability in early 2027. Testers need no account: on the sign-in step, choose \"Use the sample account\". Every record and form response the sample sends carries HL7's security label for test data (HTEST). Forms are shown as sent inline, or found by canonical for LOINC forms, the connectathon's published forms, and forms at other addresses we are asked to reach (hello@haau3.com). Forms can show questions only after certain answers, take several answers as checkboxes, and take the person's own words. Forms are not pre-filled from the record yet. A form with groups of questions or dates answers unsupported.",
+      "description": "A caregiver's health app: US Core records, documents with their files, and forms, for the person or someone they care for, shared item by item and record by record. Renders questionnaires. Testers choose \"Use the sample account\" at sign-in."
+    }
+  ]
+}
