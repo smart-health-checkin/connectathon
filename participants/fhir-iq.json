@@ -21,7 +21,7 @@
       "iconUrl": "https://careagents.cloud/static/icon.svg",
       "homepage": "https://careagents.cloud",
       "testPatient": "Casey Synthetic Testpatient (synthetic, born 1985-07-04)",
-      "notes": "Sign in on the wallet page with an emailed code. Answers come from a synthetic US Core test patient (no real data). Self-serve access to the test patient lands by Oct 27; until then, post in #kill-the-clipboard and mention CareAgents and we will set you up. Supports the three minimum scenarios: share records and insurance (US Core, C4DIC Coverage), PHQ-2 inline, decline an item. Records without a US Core profile claim are answered unavailable. Responses are capped at about 400 KB, so the large-response scenario is not supported yet. Testing guide: https://healthclaw.io/static/connectathon/careagents-wallet.html"
+      "notes": "Sign in on the wallet page with an emailed code, then pick the synthetic test patient when the wallet offers it (self-serve, no real data). Supports the three minimum scenarios: share records and insurance (US Core, C4DIC Coverage), PHQ-2 inline, decline an item. Also answers short forms inline (up to 30 questions); optional questions it cannot answer are shown to the patient as not sent, and a required one it cannot answer means the whole form is not answered. Records are checked against US Core before they are sent, and any that fail are held back. Responses are capped at about 400 KB, so the large-response scenario is not supported yet. Testing guide: https://healthclaw.io/static/connectathon/careagents-wallet.html"
     }
   ]
 }
