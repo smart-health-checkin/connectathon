@@ -15,8 +15,9 @@
       "role": "verifier",
       "name": "Foo Medical",
       "status": "up",
-      "description": "Medplum's sample patient portal",
-      "url": "https://foomedical.com/check-in"
+      "description": "Medplum's sample patient portal acting as a verifier",
+      "url": "https://foomedical.com/check-in",
+      "notes": "1. Click on the \"Sign up\" link in the top left to create a new account.  2. From the top right menu, choose \"Check in\""
     }
   ]
 }
