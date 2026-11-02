@@ -1,0 +1,22 @@
+{
+  "organization": "Medplum",
+  "homepage": "https://www.medplum.com/",
+  "contacts": [
+    {
+      "name": "Cody Ebberson",
+      "github": "codyebberson",
+      "slack": "Cody Ebberson",
+      "email": "cody@medplum.com"
+    }
+  ],
+  "components": [
+    {
+      "id": "medplum-foo-medical",
+      "role": "verifier",
+      "name": "Foo Medical",
+      "status": "up",
+      "description": "Medplum's sample patient portal",
+      "url": "https://foomedical.com/check-in"
+    }
+  ]
+}
