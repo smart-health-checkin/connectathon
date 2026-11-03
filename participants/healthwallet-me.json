@@ -1,0 +1,42 @@
+{
+  "organization": "HealthWallet.me by Life Value",
+  "homepage": "https://healthwallet.me",
+  "contacts": [
+    {
+      "name": "Alex Szilagyi",
+      "github": "alexszilagyi"
+    }
+  ],
+  "components": [
+    {
+      "id": "healthwallet-me-android",
+      "role": "native-wallet",
+      "name": "HealthWallet.me (Android)",
+      "status": "not-yet",
+      "platforms": [
+        "android"
+      ],
+      "access": "install",
+      "installUrl": "https://play.google.com/store/apps/details?id=com.techstackapps.healthwallet",
+      "requirements": "Android 10 or later with Chrome 141 or later",
+      "description": "Open-source, offline-first patient health wallet with on-device AI. Holds FHIR R4 records synced from US providers or extracted locally from scanned documents.",
+      "testPatient": "John Doe (synthetic, born 1985-03-15) from the app's built-in demo dataset: allergies, medications, immunizations, procedures, observations, goals, a clinical document, and a Coverage resource.",
+      "notes": "SMART Health Check-in support is in development for the November 2026 connectathon; status will change to up once a build that answers check-in requests is on the Play Store. Load the demo patient from onboarding (Load Demo Data). Source: https://github.com/LifeValue/HealthWallet.me"
+    },
+    {
+      "id": "healthwallet-me-ios",
+      "role": "native-wallet",
+      "name": "HealthWallet.me (iOS)",
+      "status": "not-yet",
+      "platforms": [
+        "ios"
+      ],
+      "access": "install",
+      "installUrl": "https://apps.apple.com/app/healthwallet-me/id6748325588",
+      "requirements": "iPhone with iOS 26 and Safari",
+      "description": "Open-source, offline-first patient health wallet with on-device AI. Holds FHIR R4 records synced from US providers or extracted locally from scanned documents.",
+      "testPatient": "John Doe (synthetic, born 1985-03-15) from the app's built-in demo dataset: allergies, medications, immunizations, procedures, observations, goals, a clinical document, and a Coverage resource.",
+      "notes": "SMART Health Check-in support is in development for the November 2026 connectathon; status will change to up once a build that answers check-in requests is on the App Store. Load the demo patient from onboarding (Load Demo Data). Source: https://github.com/LifeValue/HealthWallet.me"
+    }
+  ]
+}
