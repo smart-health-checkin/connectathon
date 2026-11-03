@@ -1,0 +1,25 @@
+{
+  "organization": "M5 Whole Health",
+  "homepage": "https://github.com/crookhaven/M5-WholeHealth",
+  "contacts": [
+    {
+      "name": "Mark Roberts",
+      "github": "crookhaven"
+    }
+  ],
+  "components": [
+    {
+      "id": "m5-whole-health",
+      "role": "web-wallet",
+      "name": "M5 Whole Health",
+      "status": "up",
+      "target": "tab",
+      "description": "A free, open-source health record app that runs entirely in the browser. It answers a check-in request from the patient's own records, with per-item consent; nothing leaves the browser except the encrypted answer.",
+      "walletUrl": "https://crookhaven.github.io/M5-WholeHealth/?checkin",
+      "iconUrl": "https://crookhaven.github.io/M5-WholeHealth/favicon.svg",
+      "homepage": "https://github.com/crookhaven/M5-WholeHealth",
+      "testPatient": "Maximus Decimus Meridius (synthetic, from open-synthetic-patients)",
+      "notes": "Click “Load the synthetic test patient” if the wallet shows no records. Shares US Core and coverage records as imported, matched by declared profile, with per-item consent; answers inline forms such as the PHQ-2. Does not issue SMART Health Cards or support the large-response scenario. Runs entirely in the browser; nothing is stored or sent except the encrypted answer."
+    }
+  ]
+}
