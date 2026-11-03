@@ -1,1 +1,35 @@
-{"organization":"Bwell","homepage":"https://www.icanbwell.com/","contacts":[{"name":"Adam Culbertson","github":"Culby","slack":"Adam Culbertson","email":"adam.culbertson@bwell.com"},{"name":"Liz Lewis","email":"liz.lewis@bwell.com"},{"name":"Tom Schneider","github":"tschneit717","email":"tom.schneider@bwell.com"}],"components":[{"id":"bwell-wallet","role":"web-wallet","name":"bwell-wallet","status":"not-yet","target":"tab","description":"A patient health app for sharing essential data with providers.","homepage":"https://www.icanbwell.com/","walletUrl":"https://api-gateway.client-sandbox.icanbwell.com/v1/health-link/check-in","notes":"We are looking to test our wallet against one or more verifiers."}]}
+{
+  "organization": "Bwell",
+  "homepage": "https://www.icanbwell.com/",
+  "contacts": [
+    {
+      "name": "Adam Culbertson",
+      "github": "Culby",
+      "slack": "Adam Culbertson",
+      "email": "adam.culbertson@bwell.com"
+    },
+    {
+      "name": "Liz Lewis",
+      "email": "liz.lewis@bwell.com"
+    },
+    {
+      "name": "Tom Schneider",
+      "github": "tschneit717",
+      "email": "tom.schneider@bwell.com"
+    }
+  ],
+  "components": [
+    {
+      "id": "bwell-wallet",
+      "role": "web-wallet",
+      "name": "bwell-wallet",
+      "status": "up",
+      "target": "tab",
+      "description": "A patient health app for sharing essential data with providers.",
+      "homepage": "https://www.icanbwell.com/",
+      "walletUrl": "https://api-gateway.client-sandbox.icanbwell.com/v1/health-link/check-in",
+      "testPatient": "Allison Hackett (synthetic, born 1984-03-17): problems, allergies, medications, immunizations, and a US Core insurance card. No sign-in — the wallet opens straight to the consent screen.",
+      "notes": "Self-serve, no sign-in. Holds fabricated records for one synthetic patient. Supports the three minimum scenarios: share records and insurance, a form inline, and declining an item. Inline FHIR Questionnaires render with group nesting, enableWhen, required questions and prefilled initial values; a form named only by canonical URL is reported unsupported. Items the wallet holds nothing for come back unavailable. Responses run about 17 KB."
+    }
+  ]
+}
