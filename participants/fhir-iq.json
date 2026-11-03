@@ -30,7 +30,7 @@
       "status": "up",
       "description": "A community pharmacy's check-in counter: asks the patient's wallet for demographics, medications, allergies, problems, immunizations, the insurance card, and the PHQ-2, and shows each item's status and contents.",
       "url": "https://rxgenie.us/pharmacy/health-checkin",
-      "notes": "Web page, no sign-in. Pick a request at the top: \"Share records\" (scenario 1), \"Fill in a form\" (PHQ-2 inline, scenario 2), or \"Pharmacy visit\" (both). Decline Immunizations for scenario 3. Wallets come from the connectathon registry; health cards are accepted from any valid issuer for testing. Synthetic data only; the response stays in the browser session."
+      "notes": "Web page, no sign-in. Pick a request under \"What to ask for\": \"Share records\" (scenario 1; decline Immunizations in the wallet for scenario 3), \"Fill in a form\" (PHQ-2 inline, scenario 2), \"Pharmacy visit\" (both), or one of the organizers' test requests, loaded live from /connectathon/requests/. Passed against the SMART Testing Wallet: share-records, fill-form, decline-one, any-us-core, large-response (1.9 MB), form-by-reference (GAD-7), unknown-selector, write-back (staff accept or reject each item). Supported, not yet run with a wallet: decline-all, narrowed-family, no-selector, versioned-canonical, physician-form, prefilled-form, health-card, insurance-card, shared-artifact, cross-device. Not supported: in-person-handoff. The page's \"Supported use cases\" table is kept current. Wallets come from the connectathon registry; health cards are accepted from any valid issuer for testing. Synthetic data only."
     }
   ]
 }
